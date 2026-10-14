@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#0d111a" />
+    <title>V-WORLD · Characters</title>
+    <link rel="stylesheet" href="/src/app/style.css" />
+    <style>
+      #cv-panel { position: absolute; left: 12px; top: 12px; width: 260px; }
+      #cv-panel select, #cv-panel input[type=range] { width: 100%; }
+      #cv-panel .row { margin: 4px 0; display: flex; gap: 6px; align-items: center; }
+      #cv-panel label.chk { display: flex; gap: 4px; align-items: center; font-size: 12px; }
+      #cv-info { font-size: 11px; color: var(--muted); line-height: 1.4; margin-top: 6px; white-space: pre-line; }
+      #cv-list { max-height: 40vh; overflow: auto; margin-top: 6px; font-size: 12px; }
+      #cv-list div { padding: 2px 4px; cursor: pointer; border-radius: 4px; }
+      #cv-list div:hover { background: rgba(255,255,255,0.08); }
+      #cv-list div.sel { background: rgba(242,194,48,0.25); }
+      .fps { pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="hud">
+      <div class="panel" id="cv-panel">
+        <div class="title">V-WORLD · <span>Characters</span></div>
+        <div class="row"><select id="cv-clip"></select><select id="cv-lod"><option value="auto">LOD auto</option><option value="0">LOD0</option><option value="1">LOD1</option><option value="2">LOD2</option></select></div>
+        <div class="row"><select id="cv-view"><option value="full">Full body</option><option value="face">Face</option><option value="hands">Hands</option><option value="back">Back</option></select>
+          <label class="chk"><input type="checkbox" id="cv-rot" checked> turn</label><label class="chk"><input type="checkbox" id="cv-wire"> wire</label><label class="chk"><input type="checkbox" id="cv-skel"> bones</label></div>
+        <div class="row"><span class="k">Light</span><input type="range" id="cv-light" min="0" max="360" value="35"></div>
+        <div id="cv-info"></div>
+        <div id="cv-list"></div>
+      </div>
+      <div id="hud-fps" class="fps"></div>
+    </div>
+    <script type="module" src="/src/characters/viewer.ts"></script>
+  </body>
+</html>

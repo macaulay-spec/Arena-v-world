@@ -1,0 +1,41 @@
+{
+  "when": "2026-10-14T23:26:00.778Z",
+  "shots": [
+    {
+      "shot": "lineup-all",
+      "file": "docs/screenshots/characters/lineup-all.png",
+      "stats": "1 fps · 47 draw calls · 213 k tris"
+    },
+    {
+      "shot": "lineup-bodies",
+      "file": "docs/screenshots/characters/lineup-bodies.png",
+      "stats": "2 fps · 10 draw calls · 57 k tris"
+    },
+    {
+      "shot": "face-female",
+      "file": "docs/screenshots/characters/face-female.png",
+      "stats": "2 fps · 6 draw calls · 28 k tris"
+    },
+    {
+      "shot": "face-male",
+      "file": "docs/screenshots/characters/face-male.png",
+      "stats": "2 fps · 6 draw calls · 28 k tris"
+    },
+    {
+      "shot": "solo-test_male_street",
+      "file": "docs/screenshots/characters/solo-test_male_street.png",
+      "stats": "2 fps · 8 draw calls · 24 k tris"
+    },
+    {
+      "shot": "solo-test_female_ankara",
+      "file": "docs/screenshots/characters/solo-test_female_ankara.png",
+      "stats": "2 fps · 8 draw calls · 27 k tris"
+    },
+    {
+      "shot": "solo-test_male_agbada",
+      "file": "docs/screenshots/characters/solo-test_male_agbada.png",
+      "stats": "2 fps · 9 draw calls · 31 k tris"
+    }
+  ],
+  "errors": []
+}
