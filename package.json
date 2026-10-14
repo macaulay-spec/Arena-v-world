@@ -1,0 +1,30 @@
+{
+  "name": "v-world-city",
+  "version": "0.2.0",
+  "private": true,
+  "description": "V-WORLD: Vora City - procedural, data-driven 3D city environment (exterior world foundation)",
+  "type": "module",
+  "scripts": {
+    "generate": "tsx generator/index.ts",
+    "map": "python3 scripts/render_map.py",
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "verify": "npm run generate && npm run test && npm run typecheck && npm run build"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "^131.0.1",
+    "@types/node": "^22.10.0",
+    "@types/three": "0.170.0",
+    "puppeteer-core": "^23.11.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
+}
