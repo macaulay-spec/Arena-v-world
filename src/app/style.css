@@ -7,6 +7,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0d111a; fon
 .top-left { position: absolute; left: 12px; top: 12px; width: 270px; }
 .title { font-weight: 700; letter-spacing: 0.08em; font-size: 13px; margin-bottom: 6px; }
 .title span { color: var(--accent); }
+.title { cursor: pointer; user-select: none; }
+.title .caret { float: right; font-weight: 400; color: var(--muted); margin-left: 8px; }
+.top-left.collapsed > :not(.title) { display: none; }
+.top-left.collapsed .title { margin-bottom: 0; }
+.top-left.collapsed .caret { transform: rotate(-90deg); display: inline-block; }
 .row { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin: 2px 0; }
 .row .k { color: var(--muted); }
 .row .v { text-align: right; }

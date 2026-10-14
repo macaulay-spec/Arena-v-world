@@ -18,13 +18,13 @@ export class Hud {
     const root = document.getElementById('hud')!; this.root = root;
     root.innerHTML = `
       <div class="panel top-left">
-        <div class="title">V-WORLD · <span>Vora City</span></div>
+        <div class="title" id="hud-title" title="collapse / expand">V-WORLD · <span>Vora City</span><b class="caret">▾</b></div>
         <div class="row"><span class="k">District</span><span id="hud-district" class="v">—</span></div>
         <div class="row"><span class="k">Position</span><span id="hud-pos" class="v">—</span></div>
         <div class="row"><span class="k">Time</span><span id="hud-hour" class="v">10:00</span></div>
         <input id="hud-time" type="range" min="0" max="24" step="0.1" value="${initial.hour}">
         <div class="row ctrls">
-          <select id="hud-mode" title="camera mode"><option value="orbit">Orbit / fly</option><option value="walk">Walk</option></select>
+          <select id="hud-mode" title="camera mode"><option value="orbit">Orbit</option><option value="walk">Walk</option></select>
           <select id="hud-quality" title="quality"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
           <label class="chk"><input id="hud-shadows" type="checkbox" ${initial.shadows ? 'checked' : ''}> shadows</label>
         </div>
@@ -53,6 +53,8 @@ export class Hud {
     this.setHourLabel(initial.hour);
     this.statsEl.textContent = `${city.stats.buildings} buildings · ${city.stats.edges} road segments · ${city.stats.parcels} parcels · ${city.stats.props} props`;
     if (initial.mobile) root.classList.add('mobile');
+    const panel = root.querySelector('.top-left')!;
+    root.querySelector('#hud-title')!.addEventListener('click', () => panel.classList.toggle('collapsed'));
   }
   setHourLabel(h: number) { const hh = Math.floor(h) % 24, mm = Math.floor((h % 1) * 60); this.hourLabel.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`; if (Math.abs(parseFloat(this.time.value) - h) > 0.01) this.time.value = String(h); }
   setMode(m: 'orbit' | 'walk') { (this.root.querySelector('#hud-mode') as HTMLSelectElement).value = m; }

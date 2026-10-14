@@ -38,10 +38,11 @@ Findings that drove the rebuild:
   parcels still get a fitting building; every mass records facade tile, bay width, ground-floor treatment, roof type and
   features (balconies, canopies, porticos, colonnades, arcades, verandas, awnings, signs, tanks, AC units, roller doors,
   stacks, minarets, spires, crowns, fins, helipads, dishes, …).
-* **Public space & props** (`props.ts`, `landmarks.ts`): 12,977 props across 55 types — 1,394 lamps, 4,263 trees,
+* **Public space & props** (`props.ts`, `landmarks.ts`): 12,981 props across 55 types — 1,394 lamps, 4,263 trees,
   838 market stalls, 831 signals, 407 street-name signs, 342 parking bays, 304 benches, 241 manholes, 195 bins,
   128 utility cabinets, 760 poles with 426 wire spans, 71 bus stops/shelters, 1,477 parked vehicles, cranes,
-  scaffolds, roadworks, playgrounds, pitches, fountains, monuments, boats, piers, quay cranes, fields.
+  scaffolds, roadworks, playgrounds, pitches, fountains, monuments, boats, piers, quay cranes, fields, stadium and
+  port floodlight masts.
   Land props are rejected in water or below graded ground level.
 
 ### Renderer (`src/app/`, three.js 0.170, Vite)
@@ -50,7 +51,8 @@ Findings that drove the rebuild:
   stalls, pitches, fields) cut on the same lattice so they never z-fight; water shader with ripples, Fresnel, sun glints.
 * **Roads**: carriageway, kerbs, continuous sidewalks, medians with palms, lane/centre markings, zebra crossings,
   stop lines, parking bays, drains, speed bumps, roundabout islands, beam and cable-stayed bridges with piers/pylons.
-* **Buildings**: chunked merged meshes (200 m cells) with per-building tint and per-building/per-window night lighting
+* **Buildings**: chunked merged meshes (200 m cells); the stadium is a dedicated bowl builder (rounded-rectangle
+  two-tier stands in sector colours, concourse wall, cantilever roof ring, corner cores, marked pitch) with per-building tint and per-building/per-window night lighting
   (hash of tile repeat × face × building; warm/cool colour; staggered switch-on at dusk); picking via a per-vertex id.
 * **Walls/fences/hedges/railings/gates** per parcel; **props** as instanced meshes per 320 m cell with per-instance
   colour, text signs from a glyph atlas, additive lamp-glow decals at night.
@@ -73,8 +75,8 @@ Findings that drove the rebuild:
 | No land props in water | **pass** |
 | Stats match data | **pass** |
 | `npx vitest run` | **13 / 13 passed** |
-| `npm run build` | production bundle: 616 kB JS (168 kB gzip) + 2.7 MB JSON (472 kB gzip) |
-| Headless runtime test (`scripts/screenshot.mjs`, bundled Chromium 131 + SwiftShader software GL) | viewer loads, **no page errors / console errors / failed requests**; 12 views rendered to `docs/screenshots/` |
+| `npm run build` | production bundle: ≈620 kB JS (≈170 kB gzip) + 2.8 MB JSON (≈486 kB gzip) |
+| Headless runtime test (`scripts/screenshot.mjs`, bundled Chromium 131 + SwiftShader software GL) | viewer loads, **no page errors / console errors / failed requests**; 12 views rendered to `docs/screenshots/`; a phone-emulated run (412×915 touch device, `low` preset) rendered to `docs/screenshots/mobile/` |
 
 Measured in the software renderer (not representative of GPU speed): 108–583 draw calls and 0.5–1.9 M triangles
 per view at the *medium* preset. On a GPU the scene is dominated by ~350 chunk/instance draw calls and the single

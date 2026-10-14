@@ -9,7 +9,7 @@
  */
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const base = process.argv[2] ?? 'http://localhost:5173/';
@@ -32,6 +32,11 @@ const VIEWS = [
   { name: 'walk-market-quarter', walk: [-60, 240], yaw: 0.6, hour: 10 },
 ];
 
+// optional filters: VIEWS=name1,name2  QUALITY=low|medium|high  (defaults: all views, medium)
+const only = process.env.VIEWS ? new Set(process.env.VIEWS.split(',')) : null;
+const views = only ? VIEWS.filter(v => only.has(v.name)) : VIEWS;
+const quality = process.env.QUALITY ?? 'medium';
+
 const executablePath = await chromium.executablePath();
 // the bundled binary needs the NSS libraries shipped in the package (normally only extracted on AWS Lambda)
 if (!process.env.LD_LIBRARY_PATH?.includes('/tmp/al2023/lib')) {
@@ -51,12 +56,13 @@ const browser = await puppeteer.launch({
   headless: true,
 });
 const page = await browser.newPage();
+if (process.env.SHOT_MOBILE) await page.emulate({ viewport: { width: W, height: H, deviceScaleFactor: 2, isMobile: true, hasTouch: true }, userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Mobile Safari/537.36' });
 const errors = [];
 page.on('pageerror', e => errors.push('pageerror: ' + e.message));
 page.on('console', m => { const t = m.type(); if (t === 'error') errors.push('console.error: ' + m.text()); else if (t === 'warning' && /three/i.test(m.text())) errors.push('warning: ' + m.text()); });
 page.on('requestfailed', r => errors.push('requestfailed: ' + r.url()));
 
-const url = base + (base.includes('?') ? '&' : '?') + 'q=medium';
+const url = base + (base.includes('?') ? '&' : '?') + 'q=' + quality;
 console.log('open', url);
 await page.goto(url, { waitUntil: 'load', timeout: 120000 });
 await page.waitForFunction(() => !!window.vworld, { timeout: 240000 });
@@ -66,7 +72,7 @@ const info = await page.evaluate(() => ({ buildings: window.vworld.city.stats.bu
 console.log('viewer ready', info);
 
 const report = [];
-for (const v of VIEWS) {
+for (const v of views) {
   await page.evaluate((v) => {
     const { controls, setHour, city } = window.vworld;
     setHour(v.hour);
@@ -84,7 +90,18 @@ for (const v of VIEWS) {
   console.log('shot', file, fps);
   await page.evaluate(() => { const { controls } = window.vworld; if (controls.mode === 'walk') controls.setMode('orbit'); });
 }
-writeFileSync(join(outDir, 'report.json'), JSON.stringify({ when: new Date().toISOString(), info, views: report, errors }, null, 2));
+// a filtered run (VIEWS=...) updates only its own entries in an existing report instead of replacing it
+const reportPath = join(outDir, 'report.json');
+let reportViews = report;
+if (only && existsSync(reportPath)) {
+  try {
+    const prev = JSON.parse(readFileSync(reportPath, 'utf8'));
+    const fresh = new Set(report.map(r => r.view));
+    reportViews = [...(prev.views ?? []).filter(v => !fresh.has(v.view)), ...report];
+    reportViews.sort((a, b) => VIEWS.findIndex(v => v.name === a.view) - VIEWS.findIndex(v => v.name === b.view));
+  } catch { /* unreadable previous report: overwrite */ }
+}
+writeFileSync(reportPath, JSON.stringify({ when: new Date().toISOString(), info, views: reportViews, errors }, null, 2));
 await browser.close();
 if (errors.length) { console.error('errors:\n' + errors.join('\n')); process.exit(1); }
 console.log('ok');

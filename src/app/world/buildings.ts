@@ -1,7 +1,7 @@
 /** Building meshes: walls (atlas-tiled per bay/floor), plinths, roofs, parapets and the feature kit (balconies, canopies, porticos, tanks, …). */
 import * as THREE from 'three';
 import type { CityData, Building, BuildingMass, MassFeature, Vec2 } from '../../shared/types';
-import { AtlasBuilder, ColorBuilder, type V3 } from '../geom';
+import { AtlasBuilder, ColorBuilder, faceNormal, type V3 } from '../geom';
 import { TextBuilder, type TextAtlas } from '../signs';
 import type { ChunkSet } from './chunks';
 import type { WorldBase } from './terrain';
@@ -49,6 +49,7 @@ function buildMass(b: Building, m: BuildingMass, mi: number, id: number, out: Bu
   const A = out.atlas.get(m.x, m.z), K = out.color.get(m.x, m.z), T = out.text.get(m.x, m.z);
   const facadeColor = C(m.facade.color);
   const trimColor = C(m.facade.trim ?? '#444444');
+  if (b.archetype === 'stadium') { buildStadium(f, A, K, id, facadeColor, trimColor); return; }
   const lit = r.range(0.35, 1);
   const open = m.facade.tile === 'open', frame = m.facade.tile === 'frame';
   const gh = m.facade.groundTile ? Math.min(m.facade.groundHeight ?? m.floorHeight, f.top - f.base - 0.5) : 0;
@@ -551,4 +552,87 @@ function buildFeature(ft: MassFeature, f: Frame, A: AtlasBuilder, K: ColorBuilde
     case 'solar': case 'pylon': case 'cables': case 'parapet': default: break;
   }
   void b; void mi;
+}
+
+
+/**
+ * Stadium: an open bowl instead of a box — rounded-rectangle stands raked towards the pitch, concourse wall with fins,
+ * cantilevered roof ring, corner stair cores, pitch with markings and goals. Built from the single mass of the
+ * 'stadium' archetype (its w × d is the outer footprint).
+ */
+function buildStadium(f: Frame, A: AtlasBuilder, K: ColorBuilder, id: number, facadeColor: THREE.Color, trimColor: THREE.Color) {
+  const { hw, hd, W, m } = f;
+  const y0 = f.base;
+  const N = 72;
+  // rounded rectangle (superellipse) outline in local coords
+  const outline = (sx: number, sz: number): [number, number][] => {
+    const pts: [number, number][] = [];
+    for (let i = 0; i < N; i++) { const t = (i / N) * Math.PI * 2; const c = Math.cos(t), s = Math.sin(t); const e = 2 / 3.4; pts.push([sx * Math.sign(c) * Math.pow(Math.abs(c), e), sz * Math.sign(s) * Math.pow(Math.abs(s), e)]); }
+    return pts;
+  };
+  const standDepth = Math.min(22, hw * 0.28), roofDepth = standDepth * 0.62;
+  const outer = outline(hw, hd), inner = outline(hw - standDepth, hd - standDepth * 0.85), roofIn = outline(hw - roofDepth, hd - roofDepth * 0.85);
+  const wallTop = y0 + 15.5, standLow = y0 + 2.6, standTop = y0 + 13.8, roofOut = y0 + 18.2, roofInY = y0 + 16.4, roofT = 1.1;
+  const seatA = trimColor.clone(), seatB = C('#e9e5dc'), seatC = trimColor.clone().lerp(C('#ffffff'), 0.45);
+  const conc = facadeColor.clone(), concDark = facadeColor.clone().multiplyScalar(0.8), glazing = C('#39485a'), roofTop = C('#d9d9d4'), roofUnder = C('#737a80'), fascia = C('#f1f1ee'), pitchA = C('#4f8a3a'), pitchB = C('#5b9843'), line = C('#f4f4f0');
+  const q = (p0: V3, p1: V3, p2: V3, p3: V3, col: THREE.Color, facing: V3, em = 0) => {
+    const n = faceNormal(p0, p1, p2);
+    if (n[0] * facing[0] + n[1] * facing[1] + n[2] * facing[2] >= 0) K.quad(p0, p1, p2, p3, col, 0, em, n); else K.quad(p1, p0, p3, p2, col, 0, em, [-n[0], -n[1], -n[2]]);
+  };
+  for (let i = 0; i < N; i++) {
+    const j = (i + 1) % N;
+    const o0 = outer[i], o1 = outer[j], i0 = inner[i], i1 = inner[j], r0 = roofIn[i], r1 = roofIn[j];
+    const mid: [number, number] = [(o0[0] + o1[0]) / 2, (o0[1] + o1[1]) / 2];
+    const radial: V3 = [mid[0] * f.c - mid[1] * f.s, 0, mid[0] * f.s + mid[1] * f.c]; // outward in world xz
+    const inward: V3 = [-radial[0], 0, -radial[2]];
+    const sector = Math.floor(i / 6) % 3; const seat = sector === 0 ? seatA : sector === 1 ? seatB : seatC;
+    // raked stand (two tiers with a walkway between them)
+    const tier = 0.58;
+    const m0: [number, number] = [i0[0] + (o0[0] - i0[0]) * tier, i0[1] + (o0[1] - i0[1]) * tier], m1: [number, number] = [i1[0] + (o1[0] - i1[0]) * tier, i1[1] + (o1[1] - i1[1]) * tier];
+    const yMid = standLow + (standTop - standLow) * 0.5;
+    q(W(i0[0], standLow, i0[1]), W(i1[0], standLow, i1[1]), W(m1[0], yMid, m1[1]), W(m0[0], yMid, m0[1]), seat, [0, 1, 0]);
+    q(W(m0[0], yMid + 0.6, m0[1]), W(m1[0], yMid + 0.6, m1[1]), W(o1[0], standTop, o1[1]), W(o0[0], standTop, o0[1]), seat, [0, 1, 0]);
+    q(W(m0[0], yMid, m0[1]), W(m1[0], yMid, m1[1]), W(m1[0], yMid + 0.6, m1[1]), W(m0[0], yMid + 0.6, m0[1]), concDark, inward);
+    // inner wall down to the pitch (hoardings)
+    q(W(i0[0], y0 + 0.25, i0[1]), W(i1[0], y0 + 0.25, i1[1]), W(i1[0], standLow, i1[1]), W(i0[0], standLow, i0[1]), i % 2 ? trimColor : C('#c8352b'), inward);
+    // outer wall: concourse glazing band between concrete bands (atlas tile for the concrete so it reads as a facade)
+    const len = Math.hypot(o1[0] - o0[0], o1[1] - o0[1]);
+    A.quadFacing(W(o0[0], y0, o0[1]), W(o1[0], y0, o1[1]), W(o1[0], y0 + 4.2, o1[1]), W(o0[0], y0 + 4.2, o0[1]), 'concrete-plain', 0, 0, len / 6, 0.7, conc, 0, id, radial);
+    q(W(o0[0], y0 + 4.2, o0[1]), W(o1[0], y0 + 4.2, o1[1]), W(o1[0], y0 + 7.4, o1[1]), W(o0[0], y0 + 7.4, o0[1]), glazing, radial, 0.35);
+    A.quadFacing(W(o0[0], y0 + 7.4, o0[1]), W(o1[0], y0 + 7.4, o1[1]), W(o1[0], wallTop, o1[1]), W(o0[0], wallTop, o0[1]), 'concrete-strip', 0, 0, len / 4, 2, conc, 0.6, id, radial);
+    // fins
+    const fin = W(o0[0], (y0 + roofOut) / 2, o0[1]);
+    K.box(fin[0], fin[1], fin[2], 0.7, roofOut - y0, 0.7, fascia, 0, 0, -Math.atan2(radial[2], radial[0]));
+    // roof ring: fascia, top, underside, inner drop
+    q(W(o0[0], wallTop, o0[1]), W(o1[0], wallTop, o1[1]), W(o1[0], roofOut + 0.9, o1[1]), W(o0[0], roofOut + 0.9, o0[1]), fascia, radial);
+    q(W(o0[0], roofOut + 0.9, o0[1]), W(o1[0], roofOut + 0.9, o1[1]), W(r1[0], roofInY, r1[1]), W(r0[0], roofInY, r0[1]), roofTop, [0, 1, 0]);
+    q(W(o0[0], roofOut - roofT, o0[1]), W(o1[0], roofOut - roofT, o1[1]), W(r1[0], roofInY - roofT, r1[1]), W(r0[0], roofInY - roofT, r0[1]), roofUnder, [0, -1, 0]);
+    q(W(r0[0], roofInY - roofT, r0[1]), W(r1[0], roofInY - roofT, r1[1]), W(r1[0], roofInY, r1[1]), W(r0[0], roofInY, r0[1]), fascia, inward);
+    // ring beam closing the gap between wall top and roof underside on the inside
+    q(W(o0[0], standTop, o0[1]), W(o1[0], standTop, o1[1]), W(o1[0], roofOut - roofT, o1[1]), W(o0[0], roofOut - roofT, o0[1]), concDark, inward);
+  }
+  // corner stair / lift cores
+  for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const) {
+    const cx = sx * (hw - standDepth * 0.55), cz = sz * (hd - standDepth * 0.5);
+    const p = W(cx, (y0 + roofOut + 2.5) / 2, cz);
+    K.box(p[0], p[1], p[2], 9, roofOut + 2.5 - y0, 7, concDark, 0, 0, -m.rot);
+  }
+  // pitch with mowing stripes, lines and goals
+  const PL = Math.min(105, (hw - standDepth) * 2 - 10) / 2, PW = Math.min(68, (hd - standDepth * 0.85) * 2 - 8) / 2;
+  const py = y0 + 0.28;
+  const stripes = 12;
+  for (let k = 0; k < stripes; k++) {
+    const x0 = -PL + (2 * PL * k) / stripes, x1 = -PL + (2 * PL * (k + 1)) / stripes;
+    q(W(x0 - (k === 0 ? 6 : 0), py, -PW - 6), W(x1 + (k === stripes - 1 ? 6 : 0), py, -PW - 6), W(x1 + (k === stripes - 1 ? 6 : 0), py, PW + 6), W(x0 - (k === 0 ? 6 : 0), py, PW + 6), k % 2 ? pitchA : pitchB, [0, 1, 0]);
+  }
+  const ly = py + 0.03, lw = 0.14;
+  const seg = (ax: number, az: number, bx: number, bz: number) => { const a = W(ax, ly, az), b = W(bx, ly, bz); K.box((a[0] + b[0]) / 2, ly, (a[2] + b[2]) / 2, Math.hypot(b[0] - a[0], b[2] - a[2]), 0.02, lw, line, 0, 0, -Math.atan2(b[2] - a[2], b[0] - a[0])); };
+  seg(-PL, -PW, PL, -PW); seg(-PL, PW, PL, PW); seg(-PL, -PW, -PL, PW); seg(PL, -PW, PL, PW); seg(0, -PW, 0, PW);
+  for (const sgn of [-1, 1]) { const bx = sgn * PL, ix = sgn * (PL - 16.5); seg(bx, -20.16, ix, -20.16); seg(bx, 20.16, ix, 20.16); seg(ix, -20.16, ix, 20.16); const gx = sgn * (PL - 5.5); seg(bx, -9.16, gx, -9.16); seg(bx, 9.16, gx, 9.16); seg(gx, -9.16, gx, 9.16); }
+  for (let k = 0; k < 24; k++) { const a0 = (k / 24) * Math.PI * 2, a1 = ((k + 1) / 24) * Math.PI * 2; seg(Math.cos(a0) * 9.15, Math.sin(a0) * 9.15, Math.cos(a1) * 9.15, Math.sin(a1) * 9.15); }
+  for (const sgn of [-1, 1]) {
+    const gx = sgn * PL;
+    for (const gz of [-3.66, 3.66]) { const p = W(gx, py + 1.22, gz); K.cylinder(p[0], py, p[2], 0.07, 0.07, 2.44, 6, WHITE); }
+    const bar = W(gx, py + 2.44, 0); K.box(bar[0], bar[1], bar[2], 0.12, 0.12, 7.32, WHITE, 0, 0, -m.rot);
+  }
 }

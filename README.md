@@ -24,7 +24,7 @@ generator/  (Node, TypeScript)  ──►  data/city.json  ──►  src/app/ (
    (with camera views) and props. Every entity has a **stable id, type, position and district**, so gameplay,
    traffic, NPCs or an economy layer can be attached later without touching the world.
 2. **`npm run dev`** serves the viewer. It builds all geometry at load time from the JSON (procedural texture atlas,
-   chunked merged meshes, instanced props, LOD/culling, one cascaded-free shadow map, time-of-day sky) — no external
+   chunked merged meshes, instanced props, LOD/culling, a single camera-following shadow map, time-of-day sky) — no external
    assets are downloaded.
 
 ### Construction order (matches the master plan)
@@ -53,6 +53,7 @@ npm run typecheck
 npm run build        # production bundle in dist/
 npm run map          # docs/map.png plan render (needs python3 + Pillow)
 node scripts/screenshot.mjs   # headless Chromium (SwiftShader) screenshots + runtime smoke test → docs/screenshots
+#   env: VIEWS=stadium,night-central  QUALITY=low|medium|high  SHOT_MOBILE=1 (phone emulation)  SHOT_W/SHOT_H
 ```
 
 ### Viewer controls

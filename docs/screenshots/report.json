@@ -1,9 +1,9 @@
 {
-  "when": "2026-10-14T17:34:57.891Z",
+  "when": "2026-10-14T17:55:59.129Z",
   "info": {
     "buildings": 1263,
     "edges": 721,
-    "props": 12977
+    "props": 12981
   },
   "views": [
     {
@@ -29,7 +29,7 @@
     {
       "view": "old-town-street",
       "file": "docs/screenshots/old-town-street.png",
-      "stats": "0 fps · 493 draw calls · 1.69 M tris"
+      "stats": "0 fps · 493 draw calls · 1.70 M tris"
     },
     {
       "view": "north-heights",
@@ -39,7 +39,7 @@
     {
       "view": "unity-bridge",
       "file": "docs/screenshots/unity-bridge.png",
-      "stats": "0 fps · 483 draw calls · 1.19 M tris"
+      "stats": "0 fps · 482 draw calls · 1.19 M tris"
     },
     {
       "view": "industrial",

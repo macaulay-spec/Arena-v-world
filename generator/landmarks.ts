@@ -182,6 +182,10 @@ export function buildLandmark(zoneId: string, parcel: Parcel, rng: RNG): Landmar
     case 'stadium': {
       const bowl = placeMass(f, uc, D / 2, Math.min(W - 30, 150), Math.min(D - 40, 118), { floors: 1, fh: 22, roof: { type: 'flat', tile: 'roof-metal', parapet: 0 }, facade: { tile: 'concrete-strip', bayWidth: 4, color: '#c2bdb4', trim: '#1d5c8a' }, features: [F('pitchlights', { p: [4] }), F('sign', { side: 0, text: 'VORA NATIONAL STADIUM', color: '#1d5c8a' })] });
       spec('stadium', 'stadium', [bowl], zone.name, ['civic', 'sport'], { fence: 'railing', gateU: uc, gateWidth: 12 });
+      if (bowl) { // floodlight masts just outside the four corners of the bowl
+        const c = Math.cos(bowl.rot), sn = Math.sin(bowl.rot);
+        for (const [sx, sz] of [[1, 1], [-1, 1], [1, -1], [-1, -1]]) { const lx = sx * (bowl.w / 2 + 7), lz = sz * (bowl.d / 2 + 7); props.push({ t: 'floodlight', x: r2(bowl.x + lx * c - lz * sn), z: r2(bowl.z + lx * sn + lz * c), r: 0, p: [38] }); }
+      }
       props.push(...parkingRows(f, r, 16, Math.min(W - 20, 120)));
       for (let k = -5; k <= 5; k++) { const p = world(f, uc + k * 6, 3); props.push({ t: 'flag', x: p[0], z: p[1], r: 0 }); }
       rowTrees(f, uc - 60, uc + 60, 18, 12, 'tree-palm', props, 1.2);
