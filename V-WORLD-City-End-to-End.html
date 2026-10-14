@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#09090b">
+<title>V-WORLD | Vora City Construction Build</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+:root{--bg:#09090b;--panel:rgba(15,15,18,.88);--stroke:rgba(255,255,255,.11);--text:#f5f3f3;--muted:#a4a0a3;--red:#e11d48;--sand:#d0b79a}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif}canvas{position:fixed;inset:0;display:block;outline:none}button,input{font:inherit}button{cursor:pointer;color:inherit}.ui{position:fixed;inset:0;z-index:2;pointer-events:none}.panel{pointer-events:auto;background:var(--panel);border:1px solid var(--stroke);border-radius:16px;backdrop-filter:blur(18px);box-shadow:0 14px 50px #0004}header{position:absolute;left:28px;right:28px;top:24px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;align-items:center;gap:12px}.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:#151216;border:1px solid #e11d4838}.logo svg{width:27px;height:27px}.eyebrow{font-size:9px;text-transform:uppercase;letter-spacing:2.1px;color:#f26c87;font-weight:700}.brand h1{margin:2px 0 0;font:600 24px 'Space Grotesk',sans-serif;letter-spacing:-.9px}.brand p{margin:3px 0 0;color:#a9a1a4;font-size:10px;letter-spacing:.45px}.status{display:flex;gap:10px;align-items:center;padding:10px 14px;border:1px solid var(--stroke);border-radius:30px;background:#111114b8;color:#d9d5d6;font-size:10px;letter-spacing:1.3px}.live-dot{width:6px;height:6px;border-radius:50%;background:#ee345b;box-shadow:0 0 12px #e11d48}.intro{position:absolute;left:30px;top:111px;max-width:280px}.intro h2{font:500 30px/1.05 'Space Grotesk',sans-serif;letter-spacing:-1.4px;margin:9px 0}.intro p{max-width:245px;color:#b9b4b6;font-size:11px;line-height:1.7;margin:8px 0}.stats{display:flex;gap:22px;margin-top:19px}.stat strong{display:block;font:500 22px 'Space Grotesk',sans-serif}.stat span{font-size:8px;letter-spacing:1.45px;color:#a7a1a3;text-transform:uppercase}.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.panel-title span:first-child{font-size:10px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase}.tiny-tag{font-size:8px;color:#ff8ea5;border:1px solid #e11d4845;border-radius:5px;padding:4px 6px;letter-spacing:.5px}.controls{position:absolute;left:28px;bottom:24px;width:272px;padding:17px}.range-label{display:flex;justify-content:space-between;color:#b4afb1;font-size:10px;margin:7px 0 8px}.range-label b{color:#f5f3f3;font-weight:500;font-variant-numeric:tabular-nums}.time-range{width:100%;appearance:none;background:linear-gradient(90deg,#303039,#e88c65,#e11d48);height:3px;border-radius:4px;outline:none;margin:9px 0 7px}.time-range::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#fbf2f3;border:3px solid var(--red);box-shadow:0 0 0 4px #e11d4825}.ticks{display:flex;justify-content:space-between;color:#777277;font-size:8px;margin-bottom:13px}.toggle-row{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--stroke);padding:10px 0;font-size:10px;color:#ddd7d9}.toggle{width:31px;height:17px;padding:2px;border:0;border-radius:20px;background:#39363a}.toggle:after{content:'';display:block;width:13px;height:13px;border-radius:50%;background:#9c9599;transition:.18s}.toggle.active{background:#a41636}.toggle.active:after{transform:translateX(14px);background:white}.actions{display:flex;gap:6px;margin-top:8px}.action{flex:1;border:1px solid var(--stroke);border-radius:7px;background:#ffffff07;padding:9px 7px;font-size:9px;color:#cfc9cb}.action:hover,.action:focus-visible{background:#e11d481e;border-color:#e11d4866}.districts{position:absolute;right:28px;top:100px;width:190px;padding:14px}.districts .label{font-size:9px;letter-spacing:1.7px;text-transform:uppercase;color:#aaa2a5;margin-bottom:10px}.district-btn{display:flex;width:100%;align-items:center;justify-content:space-between;text-align:left;padding:9px 8px;border:0;border-radius:7px;background:transparent;color:#c9c2c5;font-size:10px}.district-btn span{font-size:8px;color:#756e72}.district-btn:hover{background:#e11d4817;color:#fff}.district-btn.active{background:#e11d481a;color:#ff9caf}.selection{position:absolute;right:28px;bottom:24px;width:240px;padding:16px;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.selection.visible{opacity:1;transform:none;pointer-events:auto}.selection h3{font:500 21px 'Space Grotesk',sans-serif;margin:7px 0 14px}.detail{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--stroke);padding:9px 0;color:#a9a2a5;font-size:10px}.detail b{color:#f1ebed;font-weight:500;text-align:right}.close{position:absolute;top:8px;right:10px;border:0;background:transparent;color:#a7a0a3;font-size:20px}.hint{position:absolute;right:30px;bottom:28px;color:#958d91;text-align:right;font-size:9px;line-height:1.9;pointer-events:none}.hint b{font-weight:500;color:#e4dcdf}.compass{position:absolute;right:39px;bottom:110px;width:40px;height:40px;border:1px solid var(--stroke);border-radius:50%;display:grid;place-items:center;background:#11111498;color:#e5dadd;font-size:8px}.compass span{position:absolute;top:-13px;color:#f47891}#needle{width:11px;height:22px;clip-path:polygon(50% 0,100% 100%,50% 78%,0 100%);background:linear-gradient(var(--red) 55%,#6c666a 55%)}#toast{position:absolute;left:50%;bottom:25px;transform:translateX(-50%);border:1px solid var(--stroke);border-radius:24px;padding:10px 14px;background:#111114d9;color:#ddd6d8;font-size:10px;white-space:nowrap;transition:opacity .5s}.loader{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#09090b;transition:opacity .7s}.loader-mark{font:500 35px 'Space Grotesk',sans-serif;letter-spacing:5px}.loader-mark b{color:var(--red);font-weight:600}.loader p{color:#90878c;font-size:9px;letter-spacing:2px}.loader-line{width:150px;height:2px;background:#292126;overflow:hidden}.loader-line:after{content:'';display:block;width:45%;height:100%;background:var(--red);animation:load 1.1s infinite ease-in-out}@keyframes load{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+@media(max-width:760px){header{top:15px;left:15px;right:15px}.logo{width:36px;height:36px}.brand h1{font-size:20px}.brand p{font-size:9px}.status{font-size:8px;padding:8px 9px}.intro{left:16px;top:87px;max-width:205px}.intro h2{font-size:23px}.intro p{font-size:10px;max-width:190px}.stats{gap:15px;margin-top:10px}.stat strong{font-size:18px}.stat span{font-size:7px}.districts{right:14px;top:84px;width:144px;padding:9px}.districts .label{font-size:7px}.district-btn{padding:7px 5px;font-size:9px}.district-btn span{font-size:7px}.controls{left:12px;bottom:13px;width:218px;padding:12px}.panel-title{margin-bottom:10px}.panel-title span:first-child{font-size:9px}.range-label{font-size:9px}.ticks{margin-bottom:8px}.toggle-row{font-size:9px;padding:8px 0}.actions .action{font-size:8px;padding:8px 4px}.selection{right:12px;bottom:13px;width:200px;padding:12px}.selection h3{font-size:17px}.hint{right:14px;bottom:190px;font-size:8px}.compass{right:19px;bottom:275px;width:34px;height:34px}#toast{bottom:265px;max-width:94%;font-size:9px}.selection.visible~.hint{display:none}}
+@media(max-width:420px){.districts{width:125px}.district-btn{font-size:8px}.intro{max-width:168px}.intro p{max-width:160px}.status .status-extra{display:none}.controls{width:202px}.selection{width:174px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}</script>
+</head>
+<body>
+<div class="loader" id="loader"><div class="loader-mark"><b>V</b> WORLD</div><div class="loader-line"></div><p>REBUILDING VORA CITY, BLOCK BY BLOCK</p></div>
+<div class="ui">
+<header><div class="brand"><div class="logo"><svg viewBox="0 0 32 32" fill="none"><path d="M5 6L13.5 26H18.5L27 6H21L16 19L11 6H5Z" fill="#E11D48"/><circle cx="25" cy="25" r="3" fill="#F6B5C1"/></svg></div><div><div class="eyebrow">A living open world</div><h1>V-WORLD</h1><p>VORA CITY · CITY CONSTRUCTION BUILD</p></div></div><div class="status"><i class="live-dot"></i><span>CITY BUILD</span><span class="status-extra"> · DISTRICTS CONNECTED</span></div></header>
+<section class="intro"><div class="eyebrow">A city built around you</div><h2>Your world.<br>Your next move.</h2><p>A connected city with a central skyline, distinct civic landmarks, real street hierarchy, market life, transport hubs, parks and industrial edges.</p><div class="stats"><div class="stat"><strong id="buildingCount">—</strong><span>Structures</span></div><div class="stat"><strong id="residentCount">—</strong><span>People represented</span></div></div></section>
+<section class="panel districts"><div class="label">Jump to a district</div><button class="district-btn active" data-view="central">Central District <span>01</span></button><button class="district-btn" data-view="market">Market Quarter <span>02</span></button><button class="district-btn" data-view="north">North Heights <span>03</span></button><button class="district-btn" data-view="oldtown">Old Town <span>04</span></button><button class="district-btn" data-view="industrial">Industrial District <span>05</span></button><button class="district-btn" data-view="green">Green Estates <span>06</span></button></section>
+<section class="panel controls"><div class="panel-title"><span>City atmosphere</span><span class="tiny-tag" id="period">GOLDEN HOUR</span></div><div class="range-label"><label for="time">Time of day</label><b id="timeLabel">17:20</b></div><input class="time-range" id="time" type="range" min="0" max="100" value="72" aria-label="Time of day"><div class="ticks"><span>00:00</span><span>12:00</span><span>24:00</span></div><div class="toggle-row"><span>Road traffic</span><button class="toggle active" id="traffic" aria-label="Toggle traffic" aria-pressed="true"></button></div><div class="toggle-row"><span>Auto orbit</span><button class="toggle" id="orbit" aria-label="Toggle orbit" aria-pressed="false"></button></div><div class="actions"><button class="action" id="overview">↗ Overview</button><button class="action" id="street">⌁ Street view</button><button class="action" id="reset">↺ Reset</button></div></section>
+<section class="panel selection" id="selection"><button class="close" id="close" aria-label="Close building details">×</button><div class="eyebrow">Place inspector</div><h3 id="placeName">Central Exchange</h3><div class="detail"><span>District</span><b id="districtName">Central District</b></div><div class="detail"><span>Building type</span><b id="buildingUse">Commercial</b></div><div class="detail"><span>Scale</span><b id="buildingHeight">4 floors</b></div><div class="detail"><span>Street character</span><b id="buildingStyle">Mixed-use</b></div></section>
+<div class="compass"><span>N</span><div id="needle"></div></div><div class="hint"><div><b>Drag</b> orbit · <b>pinch</b> zoom</div><div><b>Tap</b> a building to inspect</div></div><div id="toast">V-WORLD city build loaded. Explore the city and inspect its landmarks.</div>
+</div>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const smallScreen = matchMedia('(max-width: 760px)').matches || matchMedia('(pointer: coarse)').matches;
+const scene = new THREE.Scene();
+const skyNight = new THREE.Color('#171b29');
+scene.background = skyNight.clone();
+scene.fog = new THREE.FogExp2('#252934', 0.00235);
+const camera = new THREE.PerspectiveCamera(43, innerWidth/innerHeight, 0.1, 1400);
+camera.position.set(270, 220, 285);
+const renderer = new THREE.WebGLRenderer({antialias: !smallScreen, powerPreference:'low-power', alpha:false});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, smallScreen ? 1.15 : 1.5));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+renderer.shadowMap.enabled = !smallScreen;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.prepend(renderer.domElement);
+renderer.domElement.setAttribute('aria-label','Interactive procedural 3D city. Drag to orbit, scroll to zoom, tap a structure to inspect.');
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 9, 0); controls.enableDamping = true; controls.dampingFactor = .065;
+controls.minDistance = 23; controls.maxDistance = 530; controls.maxPolarAngle = Math.PI*.47; controls.minPolarAngle = .18; controls.autoRotateSpeed = .25; controls.update();
+
+const hemi = new THREE.HemisphereLight('#ffd9b6','#44352b',1.4); scene.add(hemi);
+const sun = new THREE.DirectionalLight('#ffd2a3',2.2); sun.position.set(-110,190,100); sun.castShadow = !smallScreen; sun.shadow.mapSize.set(1024,1024); Object.assign(sun.shadow.camera,{left:-190,right:190,top:190,bottom:-190,near:1,far:650}); scene.add(sun);
+const fill = new THREE.DirectionalLight('#9bb8d4',.7); fill.position.set(125,80,-140); scene.add(fill);
+
+// Deterministic procedural city: all materials are generated locally; no downloaded asset pack is required.
+let seed=20260419;
+function rand(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+function pick(a){return a[Math.floor(rand()*a.length)];}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+const cube = new THREE.BoxGeometry(1,1,1), dummy = new THREE.Object3D(), colorTemp = new THREE.Color();
+function mat(color, extras={}){return new THREE.MeshStandardMaterial({color,roughness:.88,...extras});}
+const earthMat=mat('#874d35',{roughness:1});
+const roadMat=mat('#292b30',{roughness:.97});
+const asphaltPatch=mat('#36383d',{roughness:1});
+const concreteMat=mat('#a59b8e',{roughness:1});
+const curbMat=mat('#b5aa98',{roughness:1});
+const gutterMat=mat('#17191b',{roughness:1});
+const roofMaterials=['#66584c','#7d4a3b','#a65d40','#8a8173','#6e7776','#ba714c'].map(c=>mat(c,{roughness:.94}));
+const wallPalette=['#c9b49a','#d7c7ad','#bfa98b','#d1c6b8','#b8a58d','#d9cfc1','#a9a095','#d5bba0','#c1b8a7'];
+const roofPalette=['#a64f39','#874638','#6e7474','#a58f76','#6d5a50','#91867a','#c0784e'];
+const signPalette=['#a51d31','#183e37','#184d65','#c5812d','#222326','#f1d8a4'];
+const data={ground:[],roads:[],sidewalks:[],gutters:[],markings:[],buildings:[],roofs:[],windows:[],doors:[],awnings:[],walls:[],fences:[],poles:[],lamps:[],trunks:[],crowns:[],tanks:[],market:[],produce:[],barrels:[],props:[],people:[],heads:[],legs:[],shirts:[],wheels:[],drains:[],plinth:[],trim:[],balconies:[],shopGlass:[],roofSlopes:[],fields:[],stands:[],parkGrounds:[],parkPaths:[],streetFurniture:[],fuelEquipment:[]};
+const buildingInfo=[];
+function item(list,x,y,z,w,h,d,color,rotation=0,rotationX=0,rotationZ=0){list.push({x,y,z,w,h,d,color,rotation,rotationX,rotationZ});}
+function addBox(m,x,y,z,w,h,d,rotationY=0){const o=new THREE.Mesh(cube,m);o.position.set(x,y,z);o.scale.set(w,h,d);o.rotation.y=rotationY;o.receiveShadow=true;o.castShadow=true;scene.add(o);return o;}
+function instances(list,geometry,material,shadows=false){if(!list.length)return null;const mesh=new THREE.InstancedMesh(geometry,material,list.length);list.forEach((p,i)=>{dummy.position.set(p.x,p.y,p.z);dummy.rotation.set(p.rotationX||0,p.rotation||0,p.rotationZ||0);dummy.scale.set(p.w,p.h,p.d);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);if(p.color){colorTemp.set(p.color);mesh.setColorAt(i,colorTemp);}});mesh.instanceMatrix.needsUpdate=true;if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;mesh.castShadow=shadows;mesh.receiveShadow=shadows;scene.add(mesh);return mesh;}
+
+// World floor and gently rolling red-earth outskirts.
+addBox(earthMat,0,-1.05,0,560,1.5,420);
+for(let i=0;i<24;i++){const a=rand()*Math.PI*2,x=Math.cos(a)*(205+rand()*31),z=Math.sin(a)*(140+rand()*28),r=10+rand()*24,h=4+rand()*18;const hill=new THREE.Mesh(new THREE.SphereGeometry(1,9,6),mat(pick(['#76523e','#765d44','#5b6245','#8e6648']),{roughness:1}));hill.position.set(x,-1.7+h*.15,z);hill.scale.set(r,h,r*(.62+rand()*.38));hill.receiveShadow=true;scene.add(hill);}
+
+const xRoads=[];for(let x=-175;x<=175;x+=25)xRoads.push(x);
+const zRoads=[];for(let z=-120;z<=120;z+=20)zRoads.push(z);
+function roadWidthX(x){return Math.abs(x)<.1?9:Math.abs(x-50)<.1?7:5.1;}
+function roadWidthZ(z){return Math.abs(z)<.1?8:Math.abs(z+40)<.1?6.5:4.4;}
+for(const x of xRoads){const rw=roadWidthX(x);item(data.roads,x,-.38,0,rw,.16,300,'#303034');item(data.gutters,x-rw/2-.24,-.18,0,.32,.23,300,'#191a1c');item(data.gutters,x+rw/2+.24,-.18,0,.32,.23,300,'#191a1c');for(const s of [-1,1])item(data.sidewalks,x+s*(rw/2+.9),-.07,0,1.25,.42,302,'#a89e90');if(Math.abs(x)<.1||Math.abs(x-50)<.1){for(let z=-144;z<146;z+=9)item(data.markings,x+rw*.22,-.285,z,.12,.025,4.5,'#ded0ad');}}
+for(const z of zRoads){const rw=roadWidthZ(z);item(data.roads,0,-.38,z,394,.16,rw,'#303034');item(data.gutters,0,-.18,z-rw/2-.22,394,.23,.28,'#191a1c');item(data.gutters,0,-.18,z+rw/2+.22,394,.23,.28,'#191a1c');for(const s of [-1,1])item(data.sidewalks,0,-.07,z+s*(rw/2+.85),396,.42,1.05,'#a89e90');if(Math.abs(z)<.1||Math.abs(z+40)<.1){for(let x=-190;x<191;x+=9)item(data.markings,x,-.285,z+rw*.18,4.5,.025,.11,'#e5bc52');}}
+// Outer bypass road connects the edges of every existing neighbourhood into one continuous city network.
+for(const z of [-137,137]){
+ item(data.roads,0,-.38,z,366,.16,6.2,'#2c2e32');
+ item(data.gutters,0,-.18,z-3.35,366,.22,.24,'#191a1c');item(data.gutters,0,-.18,z+3.35,366,.22,.24,'#191a1c');
+ for(const side of [-1,1])item(data.sidewalks,0,-.07,z+side*3.9,366,.36,1.0,'#9d9487');
+ for(let x=-170;x<=170;x+=18)item(data.markings,x,-.274,z,3.4,.022,.075,'#c9c4b8');
+}
+for(const x of [-182,182]){
+ item(data.roads,x,-.38,0,6.2,.16,278,'#2c2e32');
+ item(data.gutters,x-3.35,-.18,0,.24,.22,278,'#191a1c');item(data.gutters,x+3.35,-.18,0,.24,.22,278,'#191a1c');
+ for(const side of [-1,1])item(data.sidewalks,x+side*3.9,-.07,0,1.0,.36,278,'#9d9487');
+ for(let z=-126;z<=126;z+=18)item(data.markings,x,-.274,z,.075,.022,3.4,'#c9c4b8');
+}
+// Road hierarchy: secondary streets get broken centre lines; avenues get double yellow lines.
+for(const x of xRoads){
+ const rw=roadWidthX(x);
+ if(rw>=7){for(let z=-136;z<=136;z+=18){if(Math.abs(z)<6||Math.abs(z-20)<4||Math.abs(z+40)<4)continue;item(data.markings,x-.12,-.274,z,.075,.025,5.2,'#d9b751');item(data.markings,x+.12,-.274,z,.075,.025,5.2,'#d9b751');}}
+ else {for(let z=-132;z<=132;z+=18){if(Math.abs(z)<4||Math.abs(z-20)<3||Math.abs(z+40)<3)continue;item(data.markings,x,-.274,z,.075,.022,3.4,'#c9c4b8');}}
+}
+for(const z of zRoads){
+ const rw=roadWidthZ(z);
+ if(rw>=6){for(let x=-180;x<=180;x+=18){if(Math.abs(x)<6||Math.abs(x-50)<4)continue;item(data.markings,x,-.274,z-.12,5.2,.025,.075,'#d9b751');item(data.markings,x,-.274,z+.12,5.2,.025,.075,'#d9b751');}}
+ else {for(let x=-180;x<=180;x+=18){if(Math.abs(x)<4||Math.abs(x-50)<3)continue;item(data.markings,x,-.274,z,3.4,.022,.075,'#c9c4b8');}}
+}
+// Selected busy intersections have zebra crossings, stop lines and visible drainage mouths.
+for(const x of [-100,-50,0,50,100])for(const z of [-80,-40,0,40,80]){
+ for(let i=-4;i<=4;i++){item(data.markings,x+i*.72,-.268,z+roadWidthZ(z)/2-.42,.42,.025,.13,'#e6e0d2');item(data.markings,x+roadWidthX(x)/2-.42,-.268,z+i*.72,.13,.025,.42,'#e6e0d2');}
+ item(data.drains,x+roadWidthX(x)/2+.18,-.105,z,.27,.055,2.1,'#343438');
+}
+// Weathered asphalt patches are subtle, sparse and only placed over road surfaces.
+for(let i=0;i<54;i++){const axis=rand()>.5?'x':'z';if(axis==='x'){const x=pick(xRoads),z=-112+rand()*224;item(data.roads,x,-.287,z,.55,.018,1.35,pick(['#37383a','#252629','#34363a']));}else{const z=pick(zRoads),x=-165+rand()*330;item(data.roads,x,-.287,z,1.35,.018,.55,pick(['#37383a','#252629','#34363a']));}}
+
+// Painted stop lines, drains, road patches, and zebra crossings at the main interchange.
+for(const x of [-25,0,25,50])for(const z of [-40,0,20]){for(let i=-3;i<=3;i++)item(data.markings,x+i*.85,-.275,z+roadWidthZ(z)/2-.65,.52,.025,.15,'#ddd5c3');item(data.drains,x+roadWidthX(x)/2+.22,-.105,z,.28,.06,2.6,'#343438');}
+// A landscaped roundabout around the central busier junction.
+const roundabout=new THREE.Mesh(new THREE.CylinderGeometry(7,7,1,24),mat('#9b6747'));roundabout.position.set(0,.0,0);scene.add(roundabout);
+const rbRing=new THREE.Mesh(new THREE.TorusGeometry(7.1,.28,5,28),mat('#d3bda0'));rbRing.rotation.x=Math.PI/2;rbRing.position.y=.54;scene.add(rbRing);
+for(let i=0;i<8;i++){const a=i*Math.PI/4;const t=new THREE.Mesh(new THREE.IcosahedronGeometry(.75,1),mat('#416845'));t.position.set(Math.cos(a)*3,.95,Math.sin(a)*3);t.scale.set(.8,1.3,.8);scene.add(t);}
+
+const districtFor=(x,z)=>{
+ if(x>42&&z>23)return 'Green Estates';
+ if(x<-28&&z>18)return 'North Heights';
+ if(x>30&&z>-25&&z<=23)return 'Central District';
+ if(x>-20&&x<45&&z>24)return 'Market Quarter';
+ if(x<5&&z>-29&&z<=22)return 'Old Town';
+ if(z<-38)return 'Industrial District';
+ if(x<-45)return 'Westside Compounds';
+ return 'Central District';
+};
+function configFor(x,z){const d=districtFor(x,z);if(d==='Central District')return {type:'mixed',floors:[3,9],density:3,palette:['#a9a49a','#c1b9ad','#9eaaa7','#c8b6a0','#777e7f']};if(d==='Market Quarter')return {type:'market',floors:[1,3],density:5,palette:['#cba77e','#c0a17c','#b5aa91','#d0b698']};if(d==='North Heights')return {type:'residential',floors:[1,4],density:5,palette:['#c59e77','#d1b69a','#b88b6b','#d5c2a5']};if(d==='Old Town')return {type:'market',floors:[1,3],density:5,palette:['#bf9475','#d0b49a','#a97559','#d6c6a8']};if(d==='Industrial District')return {type:'industrial',floors:[1,2],density:3,palette:['#8b8a82','#a4a092','#b98a68','#9f735e']};if(d==='Green Estates')return {type:'estate',floors:[1,3],density:2,palette:['#dfd4c0','#c5bfa9','#b9c5ae','#d5c4a6']};return {type:'residential',floors:[1,4],density:5,palette:['#c9ae8e','#b58b6f','#d4c0a5','#a9795d']};}
+function addBuilding(x,z,w,d,floors,district,usage,name,customColor){
+ const h=floors*3.05+(.2+rand()*.5),color=customColor||pick(configFor(x,z).palette),idx=data.buildings.length;
+ const cfg=configFor(x,z),front=z+d/2,sideTone=pick(['#d8cabb','#9a8a78','#b8a99a','#d9c9b7','#7f827e']);
+ const commercial=['Shop','Mixed-use','Commercial','Mall','Market','Industrial','Healthcare','Civic','Hotel','Tower','Education','Bank','Retail'].includes(usage);
+ const gableRoof=floors<=2&&['residential','estate'].includes(cfg.type)&&rand()>.5;
+ item(data.buildings,x,h/2,z,w,h,d,color);
+ // A raised foundation and subtle facade framing give every shell a believable contact with the street.
+ item(data.plinth,x,.16,z,w+.22,.28,d+.22,pick(['#91877a','#a39a8e','#82796f','#b3a493']));
+ if(gableRoof){
+  const roof=pick(['#6e3430','#7e4637','#3d4549','#9b583e','#545a5a']);
+  item(data.roofSlopes,x,h+.42,z+d*.22,w+0.42,.18,d*.58,roof,0,.34);
+  item(data.roofSlopes,x,h+.42,z-d*.22,w+0.42,.18,d*.58,roof,0,-.34);
+  // Front and rear gable fascia.
+  item(data.trim,x,h+.57,front+.06,w*.95,.13,.12,pick(['#e0d4c1','#b8a58f','#d1c0aa']));
+ }else{
+  item(data.roofs,x,h+.13,z,w+.22,.24,d+.22,pick(roofPalette));
+  if(rand()>.3){item(data.roofs,x,h+.31,z+d*.48,w,.22,.18,pick(['#9d9588','#8a8278','#aba192']));item(data.roofs,x,h+.31,z-d*.48,w,.22,.18,pick(['#9d9588','#8a8278','#aba192']));}
+ }
+ // Corner pilasters and floor bands break up the uninterrupted box silhouette.
+ for(const sx of [-1,1]){
+  item(data.trim,x+sx*(w/2-.13),h/2,front+.065,.18,h-.08,.11,pick(['#d4c6b3','#9b9286','#e2d5c2','#a59a8c']));
+  item(data.trim,x+sx*(w/2-.1),h/2,z-d/2-.045,.15,h-.1,.09,sideTone);
+ }
+ const floorCount=Math.max(1,Math.floor((h-.65)/2.75));
+ for(let level=1;level<floors;level++){
+  const bandY=level*3.05-.08;
+  item(data.trim,x,bandY,front+.035,w,.09,.085,pick(['#d1c5b5','#8f877d','#c7b9a7']));
+  item(data.trim,x,bandY,z-d/2-.035,w,.07,.07,sideTone);
+  item(data.trim,x+w/2+.025,bandY,z,.07,.07,d,sideTone);
+  item(data.trim,x-w/2-.025,bandY,z,.07,.07,d,sideTone);
+ }
+ for(let r=0;r<floorCount;r++){
+  const wy=1.25+r*2.7;if(wy>h-.75)continue;
+  const cols=Math.max(1,Math.floor((w-1.3)/2.1));
+  for(let c=0;c<cols;c++){
+   const wx=x-(cols-1)*1.05+c*2.1;
+   if(rand()>.13)item(data.windows,wx,wy,front+.026,.76,1.02,.06,pick(['#263d45','#25343b','#473b34','#718c91','#a9b2ae','#c8b38e']));
+   if(rand()>.34)item(data.windows,wx,wy,z-d/2-.026,.76,1.02,.06,pick(['#263d45','#253b43','#473b34','#68787b']));
+  }
+  if(rand()>.42){item(data.windows,x+w/2+.026,wy,z,.06,.96,1.05,'#35484b');item(data.windows,x-w/2-.026,wy,z,.06,.96,1.05,'#35484b');}
+ }
+ // Storefront glazing and frames are separate layers, not painted-on rectangles.
+ if(commercial&&w>4.2&&!['Mall','Tower','Education','Healthcare','Civic','Hotel','Bank'].includes(usage)){
+  const paneW=Math.max(.6,w*.3),paneX=x+w*.27;
+  item(data.shopGlass,paneX,1.35,front+.09,paneW,1.18,.055,pick(['#1e343b','#233f48','#344b50','#1e2c33']));
+  item(data.trim,paneX-paneW/2,1.36,front+.13,.075,1.32,.075,'#b7aa98');
+  item(data.trim,paneX+paneW/2,1.36,front+.13,.075,1.32,.075,'#b7aa98');
+  item(data.trim,paneX,2.02,front+.13,paneW+.12,.085,.075,pick(['#d7c7b0','#918274','#c8b59d']));
+  if(w>7){item(data.shopGlass,x+w*.01,1.35,front+.075,w*.25,1.08,.055,'#263a40');item(data.trim,x+w*.01,1.35,front+.12,.065,1.24,.07,'#b7aa98');}
+ }
+ const doorColor=pick(['#49372e','#302f31','#654531','#24383c','#76614a']);
+ if(usage==='Mall'){
+  // Multi-storey glazed frontage, mullions, and broad paired entry doors make the mall read as a different building class.
+  item(data.shopGlass,x,h*.56,front+.095,w*.72,h*.52,.06,'#223c45');
+  for(let mullion=-2;mullion<=2;mullion++)item(data.trim,x+mullion*w*.14,h*.56,front+.15,.09,h*.51,.07,'#b7b9b4');
+  for(let level=1;level<=Math.min(3,Math.floor(h/3.3));level++)item(data.trim,x,h*.29+level*2.55,front+.15,w*.72,.085,.07,'#a3a8a5');
+  item(data.shopGlass,x,1.28,front+.19,Math.min(3.2,w*.28),2.18,.07,'#182d35');
+  item(data.trim,x,.16,front+.3,Math.min(4,w*.36),.15,.52,'#c0b3a1');
+ }else{
+  item(data.doors,x-w*.18,1.15,front+.105,.78,2.25,.12,doorColor);
+  item(data.trim,x-w*.18,.16,front+.27,1.08,.14,.5,pick(['#c0b3a1','#978b7b','#d0c4b4']));
+ }
+ if(commercial&&rand()>.42)item(data.awnings,x+w*.1,2.52,front+.42,Math.min(w*.93,8),.2,.86,pick(['#b32739','#c79c38','#2b6c50','#e0d7c8','#275c79']));
+ // Landmark architecture receives distinct silhouettes: civic porticoes, clinic markers, and workshop shutters.
+ if(usage==='Civic'&&w>=10){
+  const colH=Math.min(4.2,h*.3),offset=Math.min(w*.36,5.5);
+  for(const cx of [-offset,-offset/3,offset/3,offset])item(data.trim,x+cx,colH/2,front+.24,.28,colH,.3,pick(['#e4d8c6','#c6b9a7','#f0e6d6']));
+  item(data.trim,x,colH+.13,front+.23,Math.min(w*.9,15),.32,.38,'#b5a692');
+ }
+ if(usage==='Healthcare'){
+  const mx=x+w*.28,my=Math.min(h-1.1,Math.max(3.2,h*.72));
+  item(data.trim,mx,my,front+.16,.34,1.18,.1,'#cf3447');
+  item(data.trim,mx,my,front+.17,1.05,.34,.11,'#cf3447');
+  item(data.trim,x,2.55,front+.15,Math.min(w*.46,5.2),.12,.09,'#e7e0d3');
+ }
+ if(usage==='Industrial'&&w>=8){
+  const shutterX=x-w*.24,shutterW=Math.min(w*.42,5.6);
+  item(data.shopGlass,shutterX,1.22,front+.14,shutterW,1.92,.07,'#55575a');
+  for(let slat=0;slat<6;slat++)item(data.trim,shutterX, .48+slat*.23,front+.19,shutterW,.035,.045,'#a0a09a');
+  item(data.trim,shutterX,2.2,front+.19,shutterW+.18,.1,.09,'#b3a692');
+ }
+ if((usage==='Commercial'||usage==='Civic')&&floors>=4){
+  // Vertical mullions create a more intentional large-building facade rhythm.
+  for(let mullion=-1;mullion<=1;mullion++)item(data.trim,x+mullion*w*.22,h*.56,front+.09,.085,h*.64,.07,'#b8b7b0');
+ }
+ if(usage==='Tower'||usage==='Bank'){
+  // Skyline towers have a podium, vertical fins, a setback crown and a readable roof silhouette.
+  item(data.roofs,x,h+.47,z,w*.82,.56,d*.82,pick(['#687a80','#888d8c','#5c666c']));
+  item(data.roofs,x,h+.83,z,w*.58,.24,d*.58,'#b6b6ad');
+  for(let fin=-2;fin<=2;fin++)item(data.trim,x+fin*w*.16,h*.52,front+.075,.105,h*.9,.09,pick(['#b9c2c1','#d7d4ca','#7b8588']));
+  item(data.props,x,h+1.65,z,.12,1.9,.12,'#5b6264');
+  item(data.props,x,h+2.62,z,.75,.09,.09,'#666b6b');
+ }
+ if(usage==='Education'){
+  const colOffset=Math.min(w*.34,4.2);
+  for(const cx of [-colOffset,-colOffset/3,colOffset/3,colOffset])item(data.trim,x+cx,1.45,front+.42,.22,2.9,.24,pick(['#e8dec9','#c4b69f','#f0e6d3']));
+  item(data.roofs,x,3.0,front+.4,Math.min(w*.86,10),.24,.85,'#b7a38a');
+  item(data.awnings,x,3.22,front+.45,Math.min(w*.76,8),.14,.65,'#245847');
+ }
+ if(usage==='Hotel'){
+  item(data.roofs,x,3.15,front+.42,Math.min(w*.7,7),.28,.95,'#9f3442');
+  for(let p=-1;p<=1;p++)item(data.trim,x+p*1.5,2.1,front+.55,.16,2.1,.16,'#c9bba6');
+ }
+ if(usage==='Transport'){
+  item(data.awnings,x,3.1,front+.95,Math.min(w*1.2,16),.22,2.0,'#a4aaa9');
+  for(let q=-2;q<=2;q++)item(data.poles,x+q*Math.min(w*.18,2.5),1.55,front+.92,.16,3.1,.16,'#555b5a');
+ }
+ if(usage==='Retail'&&w>6){
+  item(data.awnings,x,3.0,front+.5,w*.8,.18,1.0,pick(['#b72b3a','#c59a39','#2d684e']));
+ }
+
+ // Selected medium-rise buildings get real balcony slabs, rails, and vertical supports.
+ if(floors>=3&&w>=6&&rand()>.42){
+  const levels=Math.min(floors-1,2);
+  for(let r=1;r<=levels;r++){
+   if(rand()>.68)continue;
+   const by=r*3.05-.04,bw=Math.min(w*.62,5.2),bz=front+.46;
+   item(data.balconies,x,by,bz,bw,.13,.82,'#b7a997');
+   item(data.balconies,x,by+.48,bz+.35,bw,.08,.08,'#44484a');
+   for(let p=0;p<=3;p++)item(data.balconies,x-bw/2+p*bw/3,by+.27,bz+.35,.055,.43,.055,'#5d6260');
+  }
+ }
+ // Roof kit: water tanks, vents, aerials, and occasional solar panels add readable silhouettes.
+ if(rand()>.54){item(data.tanks,x+(rand()-.5)*w*.38,h+.87,z+(rand()-.5)*d*.35,.95,1.15,.95,'#777f7f');}
+ if(rand()>.69){item(data.props,x+(rand()-.5)*w*.35,h+.62,z+(rand()-.5)*d*.3,.75,.18,.55,'#31393c');item(data.props,x+(rand()-.5)*w*.3,h+.86,z+(rand()-.5)*d*.3,.09,.4,.09,'#4c514e');}
+ if(rand()>.82){item(data.props,x,h+.95,z,.12,1.7,.12,'#393c40');item(data.props,x,h+1.82,z,.65,.08,.65,'#393c40');}
+ if(rand()>.71&&floors<=2){
+  item(data.walls,x,1.05,z-d/2-1.2,w+.7,1.9,.24,'#b6a58e');
+  item(data.fences,x,1.05,z-d/2-.35,.18,1.7,1.8,'#36383a');
+ }
+ const displayName=name||randomName(usage);
+ if(!name&&['Retail','Shop','Market','Mixed-use','Commercial','Mall','Tower','Bank','Healthcare','Education','Hotel','Transport','Religious','Police','Fire','Court','Culture','Utility','Civic','Industrial'].includes(usage)&&signs.length<105){
+  const bg=usage==='Healthcare'?'#245d52':usage==='Education'?'#24543b':usage==='Bank'||usage==='Tower'?'#263f4a':usage==='Fire'?'#a32c37':usage==='Religious'?'#6b5835':pick(signPalette);
+  signs.push({x,y:Math.min(h-.7,2.75),z:front+.19,w:Math.min(w-1.1,8.4),text:displayName,district,color:bg});
+ }
+ buildingInfo.push({name:displayName,district,usage,height:h,style:styleFor(district,usage),x,z,w,d});
+ return idx;
+}
+const firstNames=['Aanu','Olu','Morenike','Adesola','Bisi','Tunde','Seyi','Kemi','Dare','Damilola','Folasade','Babatunde','Ife','Tola'];
+const surnames=['House','Court','Stores','Place','Residences','Centre','Plaza','Compound','Hub','Terrace'];
+function randomName(use){
+ if(use==='Mall')return 'Vora Galleria';
+ if(use==='Market')return pick(['Vora Market Stall','Family Provisions','Amala Corner','Fresh Produce Stand','Old Town Shop','Fresh Fish & Meat Market','Spice and Grain Stall']);
+ if(use==='Industrial')return pick(['Auto Parts Workshop','Panel Beaters Yard','Building Materials Depot','Mechanic Bay','Vora Fabrication Works','Furniture & Timber Yard','Cold-Chain Warehouse']);
+ if(use==='Retail'||use==='Shop')return pick(['Bola Provisions','Mama’s Kitchen','Phone Repairs & Data','Fresh Basket Grocers','Vora Fashion House','Corner Bakery','City Pharmacy','Auto Spares & Tyres','Tailor & Textiles','Vora Electronics']);
+ if(use==='Tower')return pick(['Central Exchange Tower','Meridian Corporate Tower','Vora Business House']);
+ if(use==='Bank')return pick(['First Vora Bank','Meridian Finance','Unity Microfinance','Civic Trust Bank']);
+ if(use==='Healthcare')return pick(['Community Health Centre','Vora Diagnostic Clinic','Family Care Pharmacy','Green Estates Medical Centre']);
+ if(use==='Education')return pick(['Community Primary School','Vora Technical College','Northside Learning Centre','Bright Future Academy']);
+ if(use==='Hotel')return pick(['Meridian Hotel','Vora Grand Lodge','Central Suites','City Gate Hotel']);
+ if(use==='Transport')return pick(['Vora Transit Services','City Bus Depot','Freight & Logistics Yard']);
+ if(use==='Residential')return pick(['Adebayo Family Compound','Olu Court Residences','Palm Court Apartments','Red Earth Villas','Unity Terrace']);
+ return pick(firstNames)+' '+pick(surnames);
+}
+function styleFor(d,u){const styles={Mall:'Multi-level retail complex',Market:'Open-front market',Industrial:'Workshop / depot',Residential:'Family compound',Tower:'Glass-and-concrete skyline tower',Bank:'Corporate bank headquarters',Civic:'Civic building with portico',Healthcare:'Healthcare facility',Education:'School or university campus',Hotel:'Hotel with porte-cochere',Transport:'Transport terminal',Religious:'Community worship building',Retail:'Street-facing retail block',Shop:'Small street-front business',Commercial:'Commercial office block','Mixed-use':'Retail frontage with homes above',Police:'Police service compound',Fire:'Fire and rescue station',Court:'Civic courthouse',Utility:'Municipal utility compound',Culture:'Cultural and heritage centre'};return styles[u]||(d==='Central District'?'Mixed-use avenue':d==='Green Estates'?'Low-rise green residential':'Local neighbourhood');}
+const shopNames=['MAMA’S KITCHEN','BOLA PROVISIONS','POS · DATA · PRINTING','MOTOR SPARE PARTS','TAILORING & FASHION','FRESH TOMATO · PEPPER','COLD DRINKS','BARBING SALON','PHONE ACCESSORIES','BREAD · EGGS · MILK','MAMA KITCHEN','BUILDING MATERIALS','VORA CENTRAL MARKET','OLD TOWN STORES','CASH & CARRY'];
+const signs=[];
+
+// Reserve clean footprints for signature buildings so procedural plots never overlap landmarks.
+const landmarkFootprints=[
+ {x:-37.5,z:10,w:16,d:12}, {x:13,z:10,w:14,d:10},
+ {x:34,z:32,w:16,d:11}, {x:-14,z:-20,w:15,d:12},
+ {x:62.5,z:-50,w:12,d:10}, {x:87.5,z:70,w:16,d:11},
+ {x:112.5,z:30,w:13,d:10}, {x:-87.5,z:-50,w:15,d:12},
+ // Reserved civic, education, transport, health, worship, recreation and utility plots.
+ {x:12.5,z:-10,w:12,d:10}, {x:37.5,z:-10,w:13,d:10},
+ {x:62.5,z:50,w:14,d:11}, {x:87.5,z:50,w:14,d:12},
+ {x:-62.5,z:70,w:17,d:12}, {x:-62.5,z:10,w:17,d:12},
+ {x:112.5,z:-10,w:20,d:16}, {x:87.5,z:-50,w:10,d:8},
+ {x:62.5,z:-10,w:13,d:10}, {x:12.5,z:70,w:12,d:10},
+ {x:-12.5,z:50,w:12,d:10}, {x:-12.5,z:-10,w:13,d:11},
+ {x:-112.5,z:10,w:13,d:10}, {x:-12.5,z:-50,w:12,d:10},
+ {x:112.5,z:-70,w:14,d:12}, {x:-37.5,z:-10,w:13,d:10},
+ {x:-87.5,z:50,w:14,d:10}, {x:112.5,z:70,w:17,d:12},
+ {x:-112.5,z:-30,w:15,d:11}, {x:87.5,z:30,w:12,d:10},
+ {x:-12.5,z:10,w:12,d:10}, {x:37.5,z:50,w:12,d:10}
+];
+function intersectsLandmark(x,z,w,d,pad=1.1){return landmarkFootprints.some(l=>Math.abs(x-l.x)<(w+l.w)/2+pad&&Math.abs(z-l.z)<(d+l.d)/2+pad);}
+
+// Block-by-block plots. The grid stays traversable, while building sizes and uses vary by district.
+for(let xi=0;xi<xRoads.length-1;xi++)for(let zi=0;zi<zRoads.length-1;zi++){
+ const x0=xRoads[xi]+roadWidthX(xRoads[xi])/2+1.7,x1=xRoads[xi+1]-roadWidthX(xRoads[xi+1])/2-1.7;
+ const z0=zRoads[zi]+roadWidthZ(zRoads[zi])/2+1.7,z1=zRoads[zi+1]-roadWidthZ(zRoads[zi+1])/2-1.7;
+ const bw=x1-x0,bz=z1-z0,cx=(x0+x1)/2,cz=(z0+z1)/2,district=districtFor(cx,cz),cfg=configFor(cx,cz);
+ if(bw<8||bz<7)continue;
+ // Local lanes and compound boundaries: lanes interrupt the block rhythm in older quarters.
+ if((district==='Old Town'||district==='Westside Compounds')&&rand()>.64){item(data.roads,cx,-.29,cz,bw*.84,.12,1.6,'#373537');}
+ const count=cfg.density,occupied=[];
+ for(let n=0;n<count;n++){
+  let placed=null;
+  // Retry with smaller frontage lots before abandoning a plot. No building may overlap another.
+  for(let attempt=0;attempt<46&&!placed;attempt++){
+   let w,d;
+   if(cfg.type==='mixed'){w=pick([5.8,6.5,7.4,8.2,9.4]);d=pick([5.6,6.4,7.3,8.2]);}
+   else if(cfg.type==='industrial'){w=pick([6.2,7.5,8.8,10.4]);d=pick([5.8,7.1,8.4]);}
+   else if(cfg.type==='market'){w=pick([3.3,3.8,4.5,5.2]);d=pick([3.8,4.3,4.9,5.5]);}
+   else {w=pick([3.8,4.5,5.2,6.1]);d=pick([4.1,4.8,5.5,6.1]);}
+   if(w>bw-1.2||d>bz-1.2)continue;
+   const px=x0+rand()*(bw-w),pz=z0+rand()*(bz-d),cx=px+w/2,cz=pz+d/2;
+   if(intersectsLandmark(cx,cz,w,d,.5))continue;
+   const overlap=occupied.some(o=>Math.abs(cx-o.x)<(w+o.w)/2+.75&&Math.abs(cz-o.z)<(d+o.d)/2+.75);
+   if(overlap)continue;
+   placed={x:px,z:pz,w,d,cx,cz};
+  }
+  if(!placed)continue;
+  const {x:px,z:pz,w,d,cx,cz}=placed;occupied.push({x:cx,z:cz,w,d});
+  const floors=cfg.floors[0]+Math.floor(rand()*(cfg.floors[1]-cfg.floors[0]+1));
+  let usage=cfg.type==='market'?'Market':cfg.type==='industrial'?'Industrial':cfg.type==='mixed'?(floors>3?'Commercial':'Mixed-use'):cfg.type==='estate'?'Residential':'Residential';
+  // The city is not one zoning colour: give ordinary plots recognisable local uses, while keeping landmarks reserved.
+  if(cfg.type==='mixed'){
+   const roll=rand();
+   if(roll>.86)usage=pick(['Retail','Bank','Healthcare','Education','Hotel']);
+   else if(roll>.48)usage='Mixed-use';
+   else usage=floors>=7?'Tower':'Commercial';
+  }else if(cfg.type==='market'){
+   const roll=rand();usage=roll>.79?'Retail':roll>.58?'Shop':'Market';
+  }else if(cfg.type==='industrial'){
+   const roll=rand();usage=roll>.91?'Transport':roll>.77?'Retail':'Industrial';
+  }else if(cfg.type==='residential'&&rand()>.9)usage=pick(['Retail','Education','Healthcare']);
+  else if(cfg.type==='estate'&&rand()>.91)usage='Retail';
+  const nme=(district==='Central District'&&rand()>.87)?'Central Exchange':(district==='North Heights'&&rand()>.9?'Northgate View':null);
+  const bodyColor=pick(cfg.palette);
+  addBuilding(cx,cz,w,d,floors,district,usage,nme,bodyColor);
+  // Side kiosks and little market counters create scale at street level.
+  if(cfg.type==='market'&&rand()>.54){const kx=px+w*.72,kz=pz+d*.6;item(data.market,kx,1.05,kz,1.2,1.55,1.0,pick(['#86654b','#a75b37','#5a6650']));item(data.awnings,kx,2.02,kz,1.4,.18,1.25,pick(['#d84b3a','#ddad42','#397b58','#eee1cc']));for(let q=0;q<3;q++)item(data.produce,kx-.4+q*.4,1.35,kz+.15,.3,.3,.3,pick(['#be4b32','#e0ab35','#63814c']));}
+ }
+ // Small shop shades and roadside tree spots around major commercial streets.
+ if(rand()>.75&&Math.abs(cx)>20&&!intersectsLandmark(cx,cz,bw,bz,.6)){item(data.market,cx,1.1,cz,2.5,1.9,2.4,'#84664e');item(data.awnings,cx,2.15,cz,2.8,.18,2.6,pick(['#ba303f','#d5a339','#34725a']));}
+}
+
+// District landmarks and civic silhouettes. Each reserved plot gets a recognizable use and a clear perimeter.
+function landmark(x,z,w,d,h,name,district,usage,color){const i=addBuilding(x,z,w,d,Math.max(1,Math.round(h/3.05)),district,usage,name,color);if(signs.length<145)signs.push({x,y:Math.min(h-.6,3.4),z:z+d/2+.22,w:Math.min(w-.7,Math.max(7.5,name.length*.34)),text:name,district,color:usage==='Healthcare'?'#245d52':usage==='Education'?'#24543b':usage==='Fire'?'#a32c37':usage==='Tower'||usage==='Bank'?'#263f4a':pick(signPalette)});return i;}
+function addStadium(x,z,w,d,name,district){
+ const idx=data.buildings.length;item(data.buildings,x,.005,z,.001,.001,.001,'#ffffff');
+ buildingInfo.push({name,district,usage:'Sports stadium',height:10,style:'Four-sided grandstands around a marked football pitch',x,z,w,d});
+ item(data.fields,x,.04,z,w*.49,.08,d*.48,'#2f7541');
+ // Four stepped stand banks frame the pitch instead of a solid rectangular building shell.
+ const seatCols=['#8f9291','#a8a69d','#b74b48','#c6b9a6'];
+ for(let tier=0;tier<3;tier++){
+  const sh=1.05,sy=1.0+tier*1.15;
+  item(data.stands,x,sy,z-d*.38-tier*.42,w*.78-tier*.7,sh,.72,pick(seatCols));
+  item(data.stands,x,sy,z+d*.38+tier*.42,w*.78-tier*.7,sh,.72,pick(seatCols));
+  item(data.stands,x-w*.37-tier*.42,sy,z,.72,sh,d*.66-tier*.45,pick(seatCols));
+  item(data.stands,x+w*.37+tier*.42,sy,z,.72,sh,d*.66-tier*.45,pick(seatCols));
+ }
+ item(data.stands,x,4.9,z-d*.39,w*.73,.28,.72,'#4b5255');item(data.stands,x,4.9,z+d*.39,w*.73,.28,.72,'#4b5255');
+ // Pitch boundaries, halfway line and centre circle approximation.
+ item(data.parkPaths,x,.095,z,w*.43,.018,.055,'#f1e8cf');item(data.parkPaths,x,.095,z,.045,.018,d*.42,'#f1e8cf');
+ item(data.parkPaths,x-w*.2,.095,z,.045,.018,d*.42,'#f1e8cf');item(data.parkPaths,x+w*.2,.095,z,.045,.018,d*.42,'#f1e8cf');
+ signs.push({x,y:7.0,z:z+d*.39,w:Math.min(w*.8,14),text:'VORA NATIONAL STADIUM',district,color:'#8e192d'});
+ return idx;
+}
+function addPark(x,z,w,d,name,district){
+ item(data.parkGrounds,x,-.19,z,w,.18,d,'#456d42');
+ item(data.parkPaths,x,-.075,z,w*.78,.055,.85,'#c6b89d');item(data.parkPaths,x,-.075,z,.85,.055,d*.78,'#c6b89d');
+ item(data.parkPaths,x,-.07,z,w*.56,.045,.22,'#d9c8a9');item(data.parkPaths,x,-.07,z,w*.22,.045,d*.56,'#d9c8a9');
+ for(const sx of [-1,1])for(const sz of [-1,1]){
+  const tx=x+sx*w*.39,tz=z+sz*d*.36;item(data.trunks,tx,.9,tz,.32,1.8,.32,'#71503a');item(data.crowns,tx,2.7,tz,2.4,2.7,2.4,pick(['#315b3b','#3d6946','#557447']));
+ }
+ for(let i=-1;i<=1;i++){
+  const bx=x+i*w*.22;item(data.streetFurniture,bx,.52,z+d*.22,1.5,.18,.35,'#755b45');item(data.streetFurniture,bx,.72,z+d*.22,.1,.25,.1,'#4c4d4a');item(data.streetFurniture,bx+1.35,.52,z+d*.22,.1,.18,.35,'#4c4d4a');
+ }
+ for(const sx of [-1,1])for(const sz of [-1,1]){const lx=x+sx*w*.28,lz=z+sz*d*.27;item(data.poles,lx,2.1,lz,.12,4.2,.12,'#505554');item(data.lamps,lx,4.1,lz,.45,.16,.45,'#ffdfa2');}
+ signs.push({x,y:3.4,z:z+d/2+.12,w:Math.min(w*.78,13),text:name.toUpperCase(),district,color:'#245b42'});
+}
+function addFuelStop(x,z,w,d,name,district){
+ landmark(x,z,w,d,7,name,district,'Retail','#bdb09a');
+ item(data.awnings,x,4.0,z,w*.94,.25,d*.78,'#e4ddcc');item(data.awnings,x,4.16,z,w*.94,.12,d*.78,'#be3b35');
+ for(const sx of [-1,1])for(const sz of [-1,1])item(data.poles,x+sx*w*.39,2.05,z+sz*d*.31,.16,4.0,.16,'#555a59');
+ for(let i=-1;i<=1;i++){
+  const px=x+i*w*.23,pz=z+d*.08;item(data.fuelEquipment,px,.85,pz,.52,1.65,.52,'#c8c9bd');item(data.fuelEquipment,px,.95,pz+.29,.23,.75,.04,'#313b3f');item(data.props,px,.12,pz,.7,.12,.8,'#5b5d5a');
+ }
+}
+function addRoofDome(x,z,baseY,r,color='#c5a45e'){
+ const dome=new THREE.Mesh(new THREE.SphereGeometry(r,12,8,0,Math.PI*2,0,Math.PI/2),mat(color,{roughness:.58,metalness:.1}));dome.position.set(x,baseY,z);dome.castShadow=true;scene.add(dome);
+ const fin=new THREE.Mesh(new THREE.ConeGeometry(r*.16,r*.62,8),mat('#c0a06a',{metalness:.28,roughness:.45}));fin.position.set(x,baseY+r*.72,z);scene.add(fin);
+}
+function addMinaret(x,z,baseY,h=7){const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.28,.42,h,8),mat('#d8cfbc',{roughness:.8}));shaft.position.set(x,baseY+h/2,z);shaft.castShadow=true;scene.add(shaft);const cap=new THREE.Mesh(new THREE.ConeGeometry(.43,1.2,8),mat('#bba16b',{metalness:.15}));cap.position.set(x,baseY+h+.55,z);scene.add(cap);}
+function decorateLandmark(x,z,w,d,h,type){
+ const front=z+d/2;
+ if(type==='Tower'||type==='Bank'){
+  // A visible skyline crown and narrow rooftop antenna distinguish towers from apartment slabs.
+  const crown=new THREE.Mesh(new THREE.BoxGeometry(w*.52,.75,d*.56),mat('#697a80',{metalness:.22,roughness:.45}));crown.position.set(x,h+.85,z);crown.castShadow=true;scene.add(crown);
+  const aerial=new THREE.Mesh(new THREE.CylinderGeometry(.07,.11,4.6,6),mat('#42484b',{metalness:.25}));aerial.position.set(x,h+3.4,z);scene.add(aerial);
+ }
+ if(type==='Religious'){
+  addRoofDome(x,z,h+.2,Math.min(w,d)*.23,'#c6a95f');addMinaret(x-w*.34,z-d*.18,h,Math.min(h*.52,8));addMinaret(x+w*.34,z-d*.18,h,Math.min(h*.52,8));
+ }
+ if(type==='Church'){
+  const tower=new THREE.Mesh(new THREE.BoxGeometry(1.4,4.2,1.4),mat('#d3c6b0'));tower.position.set(x-w*.31,h+2,z+d*.12);scene.add(tower);
+  const spire=new THREE.Mesh(new THREE.ConeGeometry(.86,2.1,4),mat('#6d4940'));spire.position.set(x-w*.31,h+5.1,z+d*.12);scene.add(spire);
+  const v=new THREE.Mesh(new THREE.BoxGeometry(.16,1.05,.16),mat('#b7a16d'));v.position.set(x-w*.31,h+6.1,z+d*.12);scene.add(v);const cross=new THREE.Mesh(new THREE.BoxGeometry(.75,.15,.16),mat('#b7a16d'));cross.position.set(x-w*.31,h+6.25,z+d*.12);scene.add(cross);
+ }
+ if(type==='Civic'||type==='Court'){
+  for(let i=-2;i<=2;i++){const col=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,3.1,8),mat('#ded3c0'));col.position.set(x+i*Math.min(w*.13,1.9),1.65,front+.45);scene.add(col);}
+  const flagpole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.06,5,6),mat('#5e5d58'));flagpole.position.set(x, h+2.5,z);scene.add(flagpole);
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(1.5,.7),new THREE.MeshBasicMaterial({color:'#e11d48',side:THREE.DoubleSide}));flag.position.set(x+.72,h+4.2,z);scene.add(flag);
+ }
+ if(type==='Education'){
+  // Campus marker, front steps and modest sports court make school grounds legible from above.
+  item(data.parkGrounds,x, -.18,z-d*.74,w*.78,.12,2.2,'#71836e');
+  for(let q=-1;q<=1;q++)item(data.parkPaths,x+q*w*.17,.01,z-d*.75,w*.09,.05,.12,'#d9d0bd');
+ }
+ if(type==='Hotel'){
+  const canopy=new THREE.Mesh(new THREE.BoxGeometry(w*.62,.28,2.1),mat('#9e343f'));canopy.position.set(x,3.25,front+.9);scene.add(canopy);
+  for(let q=-1;q<=1;q++){const p=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,2.9,8),mat('#d5c8b6'));p.position.set(x+q*w*.2,1.55,front+1.65);scene.add(p);}
+ }
+}
+landmark(-37.5,10,14.5,9.5,44,'Northgate Towers','North Heights','Tower','#c5b59f');
+landmark(13,10,14,10,14,'Vora Galleria','Central District','Mall','#9da9a8');
+landmark(34,32,16,11,10,'Vora Central Market Hall','Market Quarter','Market','#c2a17a');
+landmark(-14,-20,15,12,15,'Old Town Market','Old Town','Market','#b98d6d');
+landmark(62.5,-50,12,10,12,'West Foundry Works','Industrial District','Industrial','#9a8e7f');
+landmark(87.5,70,16,11,16,'Greenline Civic Centre','Green Estates','Civic','#b9c2b0');
+landmark(112.5,30,13,10,13,'Family Health Centre','Green Estates','Healthcare','#d6d0c2');
+landmark(-87.5,-50,15,12,12,'Mechanic Village','Industrial District','Industrial','#8a887e');
+// Dense central skyline: two towers rise from the commercial core, not from random residential blocks.
+landmark(12.5,-10,12,9.5,58,'Vora Central Exchange','Central District','Tower','#87979b');
+landmark(37.5,-10,13,9.5,49,'Meridian Finance Tower','Central District','Bank','#a5aaa5');
+landmark(62.5,-10,13,9.5,19,'The Meridian Hotel','Central District','Hotel','#c3b49f');
+landmark(62.5,50,14,11,20,'Vora City Hall','Green Estates','Civic','#c6bca9');
+landmark(87.5,50,14,12,18,'Vora General Hospital','Green Estates','Healthcare','#d9d5c9');
+landmark(-62.5,70,15.5,11.5,16,'Vora Metropolitan University','North Heights','Education','#bdb7a6');
+landmark(-62.5,10,14,9.5,12,'Intercity Transport Exchange','Westside Compounds','Transport','#a7a49a');
+landmark(12.5,70,12,10,10,'Central Grand Mosque','Market Quarter','Religious','#d6cbb5');
+landmark(-12.5,50,12,10,12,'St. Anne Community Church','Market Quarter','Church','#d3c6b2');
+landmark(-12.5,-10,13,9.5,13,'Vora Arts & Heritage Centre','Old Town','Culture','#c3a27d');
+landmark(-112.5,10,13,10,10,'Vora Fire & Rescue Station','Westside Compounds','Fire','#b7a69a');
+landmark(-12.5,-50,12,10,9,'Central Police Division','Industrial District','Police','#999e9f');
+landmark(112.5,-70,14,12,9,'Municipal Water & Power Works','Industrial District','Utility','#a19f92');
+landmark(-37.5,-10,13,10,14,'Vora District Courthouse','Old Town','Court','#c5b79f');
+landmark(-87.5,50,14,10,11,'North Heights Public Library','North Heights','Civic','#c9c1b3');
+landmark(87.5,30,12,10,10,'Green Estates Community Clinic','Green Estates','Healthcare','#d8d4c8');
+landmark(-12.5,10,12,10,13,'First Vora Bank','Old Town','Bank','#a3aaa7');
+landmark(37.5,50,12,10,10,'Market Quarter Primary School','Market Quarter','Education','#cfb998');
+landmark(-112.5,-30,15,11,11,'Vora Rail & Freight Depot','Industrial District','Transport','#9e9586');
+addFuelStop(87.5,-50,10,8,'Vora Fuel & Service','Industrial District');
+addStadium(112.5,-10,16,10,'Vora National Stadium','Central District');
+addPark(112.5,70,16,11,'Vora Peoples Park','Green Estates');
+// Roof geometry and institutional features make the landmark silhouettes distinguishable at a glance.
+for(const [x,z,w,d,h,type] of [
+ [12.5,-10,12,10,58,'Tower'],[37.5,-10,13,10,49,'Bank'],[62.5,50,14,11,20,'Civic'],
+ [87.5,50,14,12,18,'Healthcare'],[-62.5,70,17,12,16,'Education'],[62.5,-10,13,10,19,'Hotel'],
+ [-12.5,50,12,10,12,'Church'],[-12.5,10,12,10,13,'Bank']
+])decorateLandmark(x,z,w,d,h,type);
+addRoofDome(12.5,70,10.8,2.1,'#bfa45f');addMinaret(12.5-3.9,70-1.8,10,5.4);addMinaret(12.5+3.9,70-1.8,10,5.4);
+// Market shed rows: metal posts, colored canopies, tables and produce crates.
+for(const cx of [30,35,40,45])for(const cz of [45.5,50.5]){const col=pick(['#a92337','#d9a739','#f0dfbd','#28785b','#275a7b']);item(data.market,cx,1.15,cz,3.5,1.8,2.6,'#7b6552');item(data.awnings,cx,2.2,cz,3.9,.2,3.0,col);for(let k=0;k<3;k++)item(data.produce,cx-1+k,1.45,cz+1.15,.55,.35,.45,pick(['#bd402e','#d69f28','#4d7948','#e7d0a0']));}
+
+// Low concrete compound walls, gates, roadside drains and utility poles.
+for(let x=-175;x<=175;x+=25)for(const z of [-120,-100,-80,-60,-40,-20,0,20,40,60,80,100,120]){
+ if(rand()>.35){item(data.poles,x+3.6,5.4,z+5,.32,10.8,.32,'#514f4d');item(data.poles,x+3.6,10.5,z+5,2.6,.28,.35,'#504d4b');item(data.lamps,x+4.2,10.1,z+5,.65,.25,.6,'#c5b08a');}
+}
+// Planted trees are kept out of building footprints and carriageways. They cluster around yards, parks and the estate edge.
+function isNearRoad(x,z,clearance=1.2){
+ for(const rx of xRoads)if(Math.abs(x-rx)<roadWidthX(rx)/2+clearance)return true;
+ for(const rz of zRoads)if(Math.abs(z-rz)<roadWidthZ(rz)/2+clearance)return true;
+ return false;
+}
+function isInsideBuilding(x,z,buffer=1.0){
+ return buildingInfo.some(b=>Math.abs(x-b.x)<b.w/2+buffer&&Math.abs(z-b.z)<b.d/2+buffer);
+}
+let treeMade=0,treeTries=0;
+while(treeMade<92&&treeTries<1400){treeTries++;const x=(rand()-.5)*342,z=(rand()-.5)*234;
+ if(isNearRoad(x,z,1.05)||isInsideBuilding(x,z,1.5)||intersectsLandmark(x,z,2.8,2.8,1.6))continue;
+ if(rand()>.38){const h=2.4+rand()*1.6,r=1.5+rand()*.9;item(data.trunks,x,h*.42,z,.34,h*.84,.34,'#6d4a31');item(data.crowns,x,h+1.0,z,r,2.8,r,pick(['#31573a','#3a6640','#496e45','#667747','#315f46']));}
+ else {const h=4.0+rand()*1.8;item(data.trunks,x,h/2,z,.28,h,.28,'#76523a');for(let k=0;k<5;k++){const a=k*Math.PI*2/5;item(data.crowns,x+Math.cos(a)*.95,h,z+Math.sin(a)*.95,1.9,.22,.52,'#3b6844',a);}}
+ treeMade++;
+}
+// Street planters and utility furniture sit beside the footpath, not in the driving lane.
+for(const rx of [-125,-75,-25,25,75,125])for(const rz of [-80,-40,0,40,80]){
+ if(rand()>.36){const side=rand()>.5?1:-1,x=rx+side*(roadWidthX(rx)/2+1.9),z=rz+4.8;
+  if(!isInsideBuilding(x,z,.1)){item(data.streetFurniture,x,.35,z,.75,.55,.75,'#817762');item(data.crowns,x,.95,z,.62,.68,.62,'#54724b');}}
+}
+// Bus shelters, benches, bins, pedestrian signals and service cabinets at selected busy streets.
+for(const [x,z] of [[-25,-40],[25,0],[75,40],[-100,0],[100,0],[0,40]]){
+ const sx=x+roadWidthX(x)/2+1.9,sz=z+5.5;
+ if(isInsideBuilding(sx,sz,1.45))continue;
+ item(data.poles,sx-.72,1.45,sz,.12,2.9,.12,'#55595a');item(data.poles,sx+.72,1.45,sz,.12,2.9,.12,'#55595a');
+ item(data.roofs,sx,2.95,sz,1.75,.22,1.35,'#6a7070');item(data.shopGlass,sx,1.65,sz,1.45,1.45,.055,'#718b8d');
+ item(data.streetFurniture,sx,.58,sz+.2,1.15,.16,.38,'#755b45');item(data.streetFurniture,sx+1.0,.62,sz+.55,.32,.68,.32,'#373b3c');
+}
+// Compact utility cabinets and waste bins help streets feel serviced and occupied.
+for(let i=0;i<36;i++){const x=pick(xRoads)+pick([-1,1])*(roadWidthX(pick(xRoads))/2+1.8),z=pick(zRoads)+(-5+rand()*10);if(!isInsideBuilding(x,z,1.2)){item(data.streetFurniture,x,.48,z,.42,.86,.42,pick(['#4b5755','#535a59','#5b5148']));}}
+// Light poles on the outer bypass and traffic-signal heads at major intersections.
+for(const x of [-150,-100,-50,0,50,100,150])for(const z of [-137,137]){item(data.poles,x,5.2,z+Math.sign(z)*3.8,.16,10.4,.16,'#4d5050');item(data.poles,x,10.1,z+Math.sign(z)*3.8,.9,.12,.12,'#4d5050');item(data.lamps,x+.42,9.85,z+Math.sign(z)*3.8,.3,.22,.3,'#f5d9a0');}
+for(const z of [-100,-50,0,50,100])for(const x of [-182,182]){item(data.poles,x+Math.sign(x)*3.8,5.0,z,.16,10,.16,'#4d5050');item(data.poles,x+Math.sign(x)*3.8,9.8,z,.12,.12,.95,'#4d5050');item(data.streetFurniture,x+Math.sign(x)*3.8,8.8,z+.34,.28,.85,.28,'#34383a');item(data.props,x+Math.sign(x)*3.8,9.2,z+.34,.18,.14,.18,'#bd343c');}
+for(const [ix,iz] of [[0,0],[50,0],[0,-40],[50,-40]])for(const sx of [-1,1])for(const sz of [-1,1]){const x=ix+sx*(roadWidthX(ix)/2+1.0),z=iz+sz*(roadWidthZ(iz)/2+1.0);item(data.poles,x,2.7,z,.12,5.4,.12,'#43494a');item(data.streetFurniture,x,4.7,z,.35,.82,.35,'#3c4244');item(data.props,x,4.75,z+.2,.18,.12,.08,'#c52e36');item(data.props,x,4.55,z+.2,.18,.12,.08,'#c9b03f');item(data.props,x,4.35,z+.2,.18,.12,.08,'#2d8a4b');}
+
+// Make street signs as actual small textured plates rather than unreadable colored boxes.
+function labelTexture(text,bg,fg){const c=document.createElement('canvas');c.width=512;c.height=128;const g=c.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,512,128);g.fillStyle='rgba(255,255,255,.12)';g.fillRect(0,0,512,7);g.fillStyle=fg;g.font='700 31px Arial,sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText(text.toUpperCase().slice(0,25),256,67);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(renderer.capabilities.getMaxAnisotropy(),4);return t;}
+for(const s of signs){const panel=new THREE.Mesh(new THREE.PlaneGeometry(s.w,.7),new THREE.MeshBasicMaterial({map:labelTexture(s.text,s.color,'#fff6e9'),side:THREE.DoubleSide}));panel.position.set(s.x,s.y,s.z);scene.add(panel);}
+const staticSigns=[];
+for(const s of staticSigns){const t=labelTexture(s.text,s.bg,'#fff3e7');const p=new THREE.Mesh(new THREE.PlaneGeometry(s.w,.85),new THREE.MeshBasicMaterial({map:t,side:THREE.DoubleSide}));p.position.set(s.x,s.y,s.z);scene.add(p);}
+
+// A small number of human silhouettes adds scale around shops and transport hubs.
+const skinTones=['#6b4533','#81583f','#9c694b','#4f352c','#b17a5b'];
+let peopleMade=0,peopleTries=0;
+while(peopleMade<86&&peopleTries<1800){peopleTries++;let x,z;
+ if(peopleMade<24){x=27+rand()*20;z=42+rand()*11;}else if(peopleMade<40){x=-5+rand()*15;z=-12+rand()*7;}else if(peopleMade<52){x=-68+rand()*12;z=7+rand()*5;}else{x=(rand()-.5)*342;z=(rand()-.5)*234;}
+ if(isNearRoad(x,z,.75)||isInsideBuilding(x,z,.35))continue;
+ const shirt=pick(['#d6b15b','#b34238','#2c6a58','#e6ded0','#29577c','#413e49','#b98e71','#f0c6a7','#3d5140']);
+ item(data.people,x,.9,z,.42,1.42,.36,shirt);item(data.heads,x,1.82,z,.34,.37,.34,pick(skinTones));item(data.legs,x-.12,.27,z,.14,.55,.15,'#353236');item(data.legs,x+.12,.27,z,.14,.55,.15,'#353236');peopleMade++;
+}
+// overhead wiring in each neighborhood. Poles and cables follow the streets; lines sag slightly.
+const wirePositions=[];for(const x of [-171,-121,-71,-21,29,79,129,171])for(let z=-114;z<120;z+=20){const y=9.6;wirePositions.push(x+3.6,y,z,x+3.6+25,y-.9,z+20);wirePositions.push(x+3.6,y-.3,z,x+3.6+25,y-1.1,z+20);}
+const wireGeo=new THREE.BufferGeometry();wireGeo.setAttribute('position',new THREE.Float32BufferAttribute(wirePositions,3));const wires=new THREE.LineSegments(wireGeo,new THREE.LineBasicMaterial({color:'#282a2c',transparent:true,opacity:.8}));scene.add(wires);
+
+// Instanced render batches keep the scene usable on low-memory Android devices.
+const buildingMat=mat('#ffffff',{roughness:.96});
+buildingMat.onBeforeCompile=(sh)=>{sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vWorldPos;').replace('#include <begin_vertex>','#include <begin_vertex>\nvWorldPos=(modelMatrix*instanceMatrix*vec4(position,1.)).xyz;');sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWorldPos;float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1.,0.)),f.x),mix(h2(i+vec2(0.,1.)),h2(i+vec2(1.,1.)),f.x),f.y);}').replace('#include <color_fragment>','#include <color_fragment>\nfloat grain=n2(vWorldPos.xz*.9+vWorldPos.y*.23)*.38+n2(vWorldPos.xz*2.1)*.2;diffuseColor.rgb*=.79+grain;diffuseColor.rgb*=1.-.2*smoothstep(.83,1.,n2(vWorldPos.xz*3.4+vWorldPos.y*.1));diffuseColor.rgb*=mix(.83,1.,smoothstep(0.,3.,vWorldPos.y));');};
+const buildingMesh=instances(data.buildings,cube,buildingMat,!smallScreen);
+instances(data.roofs,cube,mat('#fff',{roughness:.92}),!smallScreen);
+instances(data.roofSlopes,cube,mat('#fff',{roughness:.9}),!smallScreen);
+instances(data.plinth,cube,mat('#fff',{roughness:.96}),!smallScreen);
+instances(data.trim,cube,mat('#fff',{roughness:.82}),!smallScreen);
+instances(data.balconies,cube,mat('#515655',{metalness:.38,roughness:.68}),!smallScreen);
+instances(data.shopGlass,cube,mat('#fff',{metalness:.32,roughness:.24,envMapIntensity:.45}),!smallScreen);
+const windowsMat=new THREE.MeshStandardMaterial({color:'#fff4c9',emissive:'#ffad63',emissiveIntensity:.12,roughness:.35});
+const windowMesh=instances(data.windows,cube,windowsMat);
+instances(data.doors,cube,mat('#fff',{roughness:.9}));instances(data.awnings,cube,mat('#fff',{roughness:.8}));instances(data.walls,cube,mat('#fff',{roughness:1}));instances(data.fences,cube,mat('#68615a',{metalness:.45,roughness:.8}));instances(data.poles,cube,mat('#625d58',{metalness:.28,roughness:.78}));instances(data.lamps,cube,new THREE.MeshStandardMaterial({color:'#fff1c2',emissive:'#f5b86f',emissiveIntensity:.4}));
+instances(data.trunks,new THREE.CylinderGeometry(.5,.65,1,6),mat('#76523b',{roughness:1}));instances(data.crowns,new THREE.IcosahedronGeometry(.5,1),mat('#fff',{roughness:1}));instances(data.tanks,new THREE.CylinderGeometry(.42,.48,.8,8),mat('#7d8585',{roughness:.65}));instances(data.props,cube,mat('#3c3a39',{metalness:.25,roughness:.7}));instances(data.market,cube,mat('#fff',{roughness:.9}));instances(data.produce,cube,mat('#fff',{roughness:.8}));instances(data.barrels,new THREE.CylinderGeometry(.4,.4,1,8),mat('#79654c'));
+instances(data.people,cube,mat('#fff',{roughness:.85}));instances(data.heads,new THREE.SphereGeometry(.5,6,5),mat('#92664d',{roughness:.9}));instances(data.legs,cube,mat('#343338',{roughness:.9}));
+instances(data.fields,cube,mat('#fff',{roughness:1}));instances(data.stands,cube,mat('#fff',{roughness:.92}));
+instances(data.parkGrounds,cube,mat('#fff',{roughness:1}));instances(data.parkPaths,cube,mat('#fff',{roughness:.98}));
+instances(data.streetFurniture,cube,mat('#fff',{roughness:.9}));instances(data.fuelEquipment,cube,mat('#fff',{roughness:.7}));
+
+// Vehicle fleet: compact city movement, with sedans, minibuses, tricycles and motorcycles.
+const fleet=[];const vehicleColors=['#d6b32c','#e5ddc7','#b6332d','#367355','#4f718b','#39383b','#c0a078','#ece5da'];
+const vehicleTypes=['sedan','danfo','keke','okada'];
+for(let i=0;i<86;i++){
+ const type=i<28?'sedan':i<46?'danfo':i<68?'keke':'okada';
+ let a=pick(xRoads.slice(1,-1)),b=pick(xRoads.slice(1,-1));if(a===b)b=a===150?-125:150;if(a>b)[a,b]=[b,a];
+ let z0=pick(zRoads.slice(1,-1)),z1=pick(zRoads.slice(1,-1));if(z0===z1)z1=z0<60?z0+20:z0-20;if(z0>z1)[z0,z1]=[z1,z0];
+ fleet.push({type,x0:a,x1:b,z0,z1,progress:rand()*2*((b-a)+(z1-z0)),speed:type==='okada'?7+rand()*3:3.3+rand()*4,color:pick(vehicleColors),scale:type==='danfo'?1.18:1});
+}
+const vehicleMeshes={};
+const glassVehicleMat=mat('#22383f',{metalness:.18,roughness:.28});
+const trimVehicleMat=mat('#242426',{metalness:.28,roughness:.6});
+const tailLightMat=new THREE.MeshBasicMaterial({color:'#c93235'});
+for(const type of vehicleTypes){
+ const arr=fleet.filter(v=>v.type===type);
+ const body=new THREE.InstancedMesh(cube,mat('#fff',{metalness:.18,roughness:.62}),arr.length);body.frustumCulled=false;scene.add(body);
+ const cab=new THREE.InstancedMesh(cube,mat(type==='danfo'?'#e3ba38':type==='keke'?'#32644b':type==='okada'?'#262a2b':'#334047',{metalness:.1,roughness:.48}),arr.length);cab.frustumCulled=false;scene.add(cab);
+ const wheelGeometry=new THREE.CylinderGeometry(.28,.28,.18,10);wheelGeometry.rotateZ(Math.PI/2);const wheels=new THREE.InstancedMesh(wheelGeometry,mat('#171819',{roughness:1}),arr.length*4);wheels.frustumCulled=false;scene.add(wheels);
+ const headlamps=new THREE.InstancedMesh(cube,new THREE.MeshBasicMaterial({color:'#ffe7bd'}),arr.length*2);headlamps.frustumCulled=false;scene.add(headlamps);
+ const glass=new THREE.InstancedMesh(cube,glassVehicleMat,arr.length*3);glass.frustumCulled=false;scene.add(glass);
+ const bumpers=new THREE.InstancedMesh(cube,trimVehicleMat,arr.length*2);bumpers.frustumCulled=false;scene.add(bumpers);
+ const taillights=new THREE.InstancedMesh(cube,tailLightMat,arr.length*2);taillights.frustumCulled=false;scene.add(taillights);
+ const stripes=new THREE.InstancedMesh(cube,mat(type==='danfo'?'#286447':'#d8d2c5',{roughness:.7}),arr.length);stripes.frustumCulled=false;scene.add(stripes);
+ arr.forEach((v,i)=>{colorTemp.set(v.color);body.setColorAt(i,colorTemp)});
+ vehicleMeshes[type]={arr,body,cab,wheels,headlamps,glass,bumpers,taillights,stripes};
+}
+function setTransform(mesh,index,x,y,z,w,h,d,r=0){dummy.position.set(x,y,z);dummy.scale.set(w,h,d);dummy.rotation.set(0,r,0);dummy.updateMatrix();mesh.setMatrixAt(index,dummy.matrix);}
+function route(v){const margin=1.3;const left=v.x0+margin,right=v.x1-margin,top=v.z0+margin,bottom=v.z1-margin;const w=right-left,h=bottom-top;let t=v.progress%(2*(w+h));if(t<w)return{x:left+t,z:top,r:Math.PI/2};t-=w;if(t<h)return{x:right,z:top+t,r:0};t-=h;if(t<w)return{x:right-t,z:bottom,r:-Math.PI/2};t-=w;return{x:left,z:bottom-t,r:Math.PI};}
+let trafficOn=true;
+function updateTraffic(dt){
+ for(const type of vehicleTypes){
+  const b=vehicleMeshes[type];
+  b.arr.forEach((v,i)=>{
+   if(trafficOn)v.progress+=dt*v.speed;
+   const p=route(v),s=v.scale;
+   let w,h,d;
+   if(type==='sedan')[w,h,d]=[1.15,.52,2.25];
+   else if(type==='danfo')[w,h,d]=[1.36,.85,3.5];
+   else if(type==='keke')[w,h,d]=[1.05,.9,1.55];
+   else [w,h,d]=[.34,.38,1.5];
+   w*=s;h*=s;d*=s;
+   const isBike=type==='okada';
+   setTransform(b.body,i,p.x,isBike?.34:.42,p.z,w,h,d,p.r);
+   if(isBike){setTransform(b.cab,i,p.x,.58,p.z-.08,.19,.27,.42,p.r);}
+   else setTransform(b.cab,i,p.x,.42+h*.8,p.z-.12,w*.78,h*.66,d*.52,p.r);
+   // Keep the wheel count batched, but use only the two aligned wheels on motorcycles.
+   for(let q=0;q<4;q++){
+    if(isBike){
+     if(q<2){const zoff=q===0?d*.4:-d*.4;setTransform(b.wheels,i*4+q,p.x+Math.sin(p.r)*zoff,.2,p.z+Math.cos(p.r)*zoff,.14,.31,.31,p.r+Math.PI/2);}
+     else setTransform(b.wheels,i*4+q,p.x,-4,p.z,.001,.001,.001,p.r);
+    }else{
+     const sx=q<2?-1:1,sz=q%2?1:-1;
+     setTransform(b.wheels,i*4+q,p.x+Math.cos(p.r)*sx*w*.43,.23,p.z-Math.sin(p.r)*sx*w*.43+Math.cos(p.r)*sz*d*.32,.16,.34,.34,p.r+Math.PI/2);
+    }
+   }
+   // Glazing: front screen, rear glass and side windows.
+   const frontX=p.x+Math.sin(p.r)*d*.2,frontZ=p.z+Math.cos(p.r)*d*.2;
+   const rearX=p.x-Math.sin(p.r)*d*.22,rearZ=p.z-Math.cos(p.r)*d*.22;
+   if(isBike){
+    setTransform(b.glass,i*3,frontX,.7,frontZ,.13,.13,.04,p.r);
+    setTransform(b.glass,i*3+1,p.x,.65,p.z-.15,.12,.09,.04,p.r);
+    setTransform(b.glass,i*3+2,p.x,-4,p.z,.001,.001,.001,p.r);
+   }else{
+    setTransform(b.glass,i*3,frontX,.42+h*.8+h*.16,frontZ,w*.58,.22,.045,p.r);
+    setTransform(b.glass,i*3+1,rearX,.42+h*.8+h*.16,rearZ,w*.52,.2,.045,p.r);
+    setTransform(b.glass,i*3+2,p.x+Math.cos(p.r)*w*.39,.42+h*.8,p.z-Math.sin(p.r)*w*.39,.045,.22,d*.31,p.r);
+   }
+   // Dark bumpers, paired warm headlamps and red tail lamps.
+   const fx=p.x+Math.sin(p.r)*d*.51,fz=p.z+Math.cos(p.r)*d*.51;
+   const rx=p.x-Math.sin(p.r)*d*.51,rz=p.z-Math.cos(p.r)*d*.51;
+   setTransform(b.bumpers,i*2,fx,isBike?.34:.31,fz,w*.78,.1,.09,p.r);
+   setTransform(b.bumpers,i*2+1,rx,isBike?.28:.31,rz,w*.78,.1,.09,p.r);
+   for(let q=0;q<2;q++){
+    const side=q===0?-.31:.31;
+    setTransform(b.headlamps,i*2+q,p.x+Math.sin(p.r)*d*.53+Math.cos(p.r)*side*w,.42,p.z+Math.cos(p.r)*d*.53-Math.sin(p.r)*side*w,.13,.12,.06,p.r);
+    setTransform(b.taillights,i*2+q,p.x-Math.sin(p.r)*d*.51+Math.cos(p.r)*side*w,.41,p.z-Math.cos(p.r)*d*.51-Math.sin(p.r)*side*w,.1,.13,.055,p.r);
+   }
+   setTransform(b.stripes,i,p.x+Math.cos(p.r)*w*.45,.47,p.z-Math.sin(p.r)*w*.45,.055,.075,d*.7,p.r);
+  });
+  for(const mesh of [b.body,b.cab,b.wheels,b.headlamps,b.glass,b.bumpers,b.taillights,b.stripes])mesh.instanceMatrix.needsUpdate=true;
+ }
+}
+
+// Atmosphere transitions from Harmattan-style warm daylight to humid blue night.
+const timeSlider=document.getElementById('time');const timeLabel=document.getElementById('timeLabel');const periodLabel=document.getElementById('period');
+function atmosphere(value){const hour=Number(value)*24/100;const daylight=clamp(Math.sin((hour-6)/12*Math.PI),0,1);const twilight=clamp(1-Math.abs(hour-18.4)/1.8,0,1)*.9+clamp(1-Math.abs(hour-6.2)/1.5,0,1)*.35;const night=1-daylight;const sky=new THREE.Color('#17202d').lerp(new THREE.Color('#c8a486'),daylight*.86).lerp(new THREE.Color('#60475b'),Math.min(.85,twilight));scene.background.copy(sky);scene.fog.color.copy(sky);hemi.intensity=.36+daylight*1.65+twilight*.45;sun.intensity=.08+daylight*2.25+twilight*.7;sun.color.set(daylight>.45?'#fff0d7':'#f6a57c');fill.intensity=.22+daylight*.64;windowsMat.emissiveIntensity=.04+night*.9;renderer.toneMappingExposure=1.08+night*.14;timeLabel.textContent=String(Math.floor(hour)).padStart(2,'0')+':'+String(Math.floor((hour%1)*60)).padStart(2,'0');periodLabel.textContent=daylight>.58?'DAYLIGHT':twilight>.12?'GOLDEN HOUR':'AFTER DARK';}
+timeSlider.addEventListener('input',()=>atmosphere(timeSlider.value));atmosphere(timeSlider.value);
+function toggle(btn,on){btn.classList.toggle('active',on);btn.setAttribute('aria-pressed',String(on));}
+const trafficBtn=document.getElementById('traffic'),orbitBtn=document.getElementById('orbit');trafficBtn.onclick=()=>{trafficOn=!trafficOn;toggle(trafficBtn,trafficOn);};orbitBtn.onclick=()=>{controls.autoRotate=!controls.autoRotate;toggle(orbitBtn,controls.autoRotate);};
+let flight=null;function fly(position,target){flight={start:camera.position.clone(),end:new THREE.Vector3(...position),targetStart:controls.target.clone(),targetEnd:new THREE.Vector3(...target),elapsed:0};}
+const views={overview:{pos:[270,220,285],target:[0,10,0]},central:{pos:[75,62,92],target:[13,8,10]},market:{pos:[71,57,88],target:[34,7,32]},north:{pos:[24,34,53],target:[-37.5,15,10]},oldtown:{pos:[27,34,49],target:[-14,7,-20]},industrial:{pos:[47,40,66],target:[62.5,6,-50]},green:{pos:[96,49,88],target:[87.5,8,70]}};
+document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fly(views[btn.dataset.view].pos,views[btn.dataset.view].target);toast(`Moving to ${btn.textContent.trim().replace(/\s+\d+$/,'')}`);}));
+document.getElementById('overview').onclick=()=>{document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));fly(...[views.overview.pos,views.overview.target]);};
+document.getElementById('street').onclick=()=>{fly([48,24,40],[8,4,6]);};
+const selection=document.getElementById('selection');const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();let down=null;const ring=new THREE.Mesh(new THREE.RingGeometry(1,1.08,40),new THREE.MeshBasicMaterial({color:'#e11d48',side:THREE.DoubleSide,transparent:true,opacity:.8,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.y=.55;ring.visible=false;scene.add(ring);
+function hideSelection(){selection.classList.remove('visible');ring.visible=false;}
+document.getElementById('close').onclick=hideSelection;
+renderer.domElement.addEventListener('pointerdown',e=>down={x:e.clientX,y:e.clientY});
+renderer.domElement.addEventListener('pointerup',e=>{if(!down||Math.hypot(e.clientX-down.x,e.clientY-down.y)>7)return;pointer.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);raycaster.setFromCamera(pointer,camera);const hit=raycaster.intersectObject(buildingMesh);if(!hit.length){hideSelection();return;}const info=buildingInfo[hit[0].instanceId];if(!info)return;document.getElementById('placeName').textContent=info.name;document.getElementById('districtName').textContent=info.district;document.getElementById('buildingUse').textContent=info.usage;document.getElementById('buildingHeight').textContent=Math.max(1,Math.round(info.height/3.05))+' floors';document.getElementById('buildingStyle').textContent=info.style;selection.classList.add('visible');ring.position.set(info.x,.57,info.z);const s=Math.max(info.w,info.d)*.65;ring.scale.set(s,s,s);ring.visible=true;});
+function toast(message){const el=document.getElementById('toast');el.textContent=message;el.style.opacity='1';clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.style.opacity='0',3200);}
+document.getElementById('reset').onclick=()=>{fly(views.overview.pos,views.overview.target);timeSlider.value=72;atmosphere(72);controls.autoRotate=false;toggle(orbitBtn,false);hideSelection();};
+document.addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='BUTTON')return;if(e.code==='Space'){e.preventDefault();orbitBtn.click();}if(e.key.toLowerCase()==='r')document.getElementById('reset').click();});
+
+// Startup counters are generated from the actual world geometry, not hard-coded claims.
+document.getElementById('buildingCount').textContent=buildingInfo.length.toLocaleString();document.getElementById('residentCount').textContent=(data.people.length).toLocaleString();
+let previous=performance.now(),elapsed=0;
+function animate(now){requestAnimationFrame(animate);const dt=Math.min((now-previous)/1000,.045);previous=now;elapsed+=dt;if(flight){flight.elapsed+=dt;const t=clamp(flight.elapsed/1.45,0,1),ease=t*t*(3-2*t);camera.position.lerpVectors(flight.start,flight.end,ease);controls.target.lerpVectors(flight.targetStart,flight.targetEnd,ease);if(t===1)flight=null;}updateTraffic(reducedMotion?0:dt);if(!reducedMotion&&ring.visible)ring.material.opacity=.65+Math.sin(elapsed*3)*.15;controls.update();const az=controls.getAzimuthalAngle();document.getElementById('needle').style.transform=`rotate(${-az*180/Math.PI}deg)`;renderer.render(scene,camera);}
+updateTraffic(0);requestAnimationFrame(animate);
+requestAnimationFrame(()=>{const loader=document.getElementById('loader');loader.style.opacity='0';setTimeout(()=>loader.remove(),750);setTimeout(()=>{const el=document.getElementById('toast');if(el)el.style.opacity='0';},6400);});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,smallScreen?1.15:1.5));});
+</script>
+</body>
+</html>
