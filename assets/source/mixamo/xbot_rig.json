@@ -1,0 +1,526 @@
+{
+ "source": "character.fbx (Mixamo X Bot, FBX 6100, T-pose bind, no animation curves, no textures)",
+ "units": "cm",
+ "bones": {
+  "mixamorig:Hips": {
+   "parent": null,
+   "pos_cm": [
+    -7.727290721959434e-06,
+    104.27487182617188,
+    1.5543158054351807
+   ]
+  },
+  "mixamorig:Spine": {
+   "parent": "mixamorig:Hips",
+   "pos_cm": [
+    -1.2828927538068554e-05,
+    114.45645904541018,
+    1.6858367919921884
+   ]
+  },
+  "mixamorig:Spine1": {
+   "parent": "mixamorig:Spine",
+   "pos_cm": [
+    -1.283931199672004e-05,
+    124.35042239221895,
+    0.2151254439192094
+   ]
+  },
+  "mixamorig:Spine2": {
+   "parent": "mixamorig:Spine1",
+   "pos_cm": [
+    -1.2848989892782088e-05,
+    133.57119840012686,
+    -1.1555181104463788
+   ]
+  },
+  "mixamorig:Neck": {
+   "parent": "mixamorig:Spine2",
+   "pos_cm": [
+    -1.1632276864212932e-05,
+    150.31158448448357,
+    -3.204552560661874
+   ]
+  },
+  "mixamorig:Head": {
+   "parent": "mixamorig:Neck",
+   "pos_cm": [
+    -1.1167740467540036e-05,
+    159.92947388295272,
+    -1.519544836013904
+   ]
+  },
+  "mixamorig:HeadTop_End": {
+   "parent": "mixamorig:Head",
+   "pos_cm": [
+    -9.032325006838463e-06,
+    181.96684254533193,
+    5.981550311246772
+   ]
+  },
+  "mixamorig:RightShoulder": {
+   "parent": "mixamorig:Spine2",
+   "pos_cm": [
+    -4.569982086496929,
+    144.58610535851452,
+    -3.31640209752816
+   ]
+  },
+  "mixamorig:RightArm": {
+   "parent": "mixamorig:RightShoulder",
+   "pos_cm": [
+    -15.162827141868377,
+    144.06129423041162,
+    -5.548499729823593
+   ]
+  },
+  "mixamorig:RightForeArm": {
+   "parent": "mixamorig:RightArm",
+   "pos_cm": [
+    -43.00434516530863,
+    144.06129641894498,
+    -5.548503799133087
+   ]
+  },
+  "mixamorig:RightHand": {
+   "parent": "mixamorig:RightForeArm",
+   "pos_cm": [
+    -71.33318351367814,
+    144.06129417324604,
+    -5.548485070931586
+   ]
+  },
+  "mixamorig:RightHandThumb1": {
+   "parent": "mixamorig:RightHand",
+   "pos_cm": [
+    -73.79798906754483,
+    142.48731038443736,
+    -2.8666334881430924
+   ]
+  },
+  "mixamorig:RightHandThumb2": {
+   "parent": "mixamorig:RightHandThumb1",
+   "pos_cm": [
+    -77.01317864323842,
+    140.61453272160477,
+    -0.9423520350092622
+   ]
+  },
+  "mixamorig:RightHandThumb3": {
+   "parent": "mixamorig:RightHandThumb2",
+   "pos_cm": [
+    -79.66801700056696,
+    139.08654351500144,
+    0.5702585782550695
+   ]
+  },
+  "mixamorig:RightHandThumb4": {
+   "parent": "mixamorig:RightHandThumb3",
+   "pos_cm": [
+    -81.68683313113226,
+    137.93454105229316,
+    1.6783110764053042
+   ]
+  },
+  "mixamorig:RightHandIndex1": {
+   "parent": "mixamorig:RightHand",
+   "pos_cm": [
+    -80.44146740224393,
+    143.5434327591923,
+    -3.2886513313660655
+   ]
+  },
+  "mixamorig:RightHandIndex2": {
+   "parent": "mixamorig:RightHandIndex1",
+   "pos_cm": [
+    -84.14146720273779,
+    143.54343753394087,
+    -3.287436291149135
+   ]
+  },
+  "mixamorig:RightHandIndex3": {
+   "parent": "mixamorig:RightHandIndex2",
+   "pos_cm": [
+    -86.99146715506613,
+    143.54344121268713,
+    -3.2879575539852555
+   ]
+  },
+  "mixamorig:RightHandIndex4": {
+   "parent": "mixamorig:RightHandIndex3",
+   "pos_cm": [
+    -89.76365776784786,
+    143.5434447896182,
+    -3.2879771126055055
+   ]
+  },
+  "mixamorig:RightHandMiddle1": {
+   "parent": "mixamorig:RightHand",
+   "pos_cm": [
+    -80.86568473440799,
+    144.0612550668732,
+    -5.54851014811217
+   ]
+  },
+  "mixamorig:RightHandMiddle2": {
+   "parent": "mixamorig:RightHandMiddle1",
+   "pos_cm": [
+    -84.56568287155386,
+    144.06126259618017,
+    -5.5447973243161
+   ]
+  },
+  "mixamorig:RightHandMiddle3": {
+   "parent": "mixamorig:RightHandMiddle2",
+   "pos_cm": [
+    -87.51568215646527,
+    144.06126861471554,
+    -5.546851341368094
+   ]
+  },
+  "mixamorig:RightHandMiddle4": {
+   "parent": "mixamorig:RightHandMiddle3",
+   "pos_cm": [
+    -90.46231088610809,
+    144.0612746037648,
+    -5.547006313378017
+   ]
+  },
+  "mixamorig:RightHandRing1": {
+   "parent": "mixamorig:RightHand",
+   "pos_cm": [
+    -80.43677556056942,
+    144.01822525225458,
+    -7.413619620513897
+   ]
+  },
+  "mixamorig:RightHandRing2": {
+   "parent": "mixamorig:RightHandRing1",
+   "pos_cm": [
+    -83.81604840261204,
+    144.01822504728736,
+    -7.414673292681834
+   ]
+  },
+  "mixamorig:RightHandRing3": {
+   "parent": "mixamorig:RightHandRing2",
+   "pos_cm": [
+    -86.70573305638166,
+    144.01822487118628,
+    -7.414294091534568
+   ]
+  },
+  "mixamorig:RightHandRing4": {
+   "parent": "mixamorig:RightHandRing3",
+   "pos_cm": [
+    -89.34454856358145,
+    144.01822471055002,
+    -7.413352467132266
+   ]
+  },
+  "mixamorig:RightHandPinky1": {
+   "parent": "mixamorig:RightHand",
+   "pos_cm": [
+    -79.40985922265244,
+    143.57459114056766,
+    -9.354763679952702
+   ]
+  },
+  "mixamorig:RightHandPinky2": {
+   "parent": "mixamorig:RightHandPinky1",
+   "pos_cm": [
+    -83.00985727235272,
+    143.57455779439576,
+    -9.358510817893936
+   ]
+  },
+  "mixamorig:RightHandPinky3": {
+   "parent": "mixamorig:RightHandPinky2",
+   "pos_cm": [
+    -85.10984942758924,
+    143.57453836367927,
+    -9.364250815067884
+   ]
+  },
+  "mixamorig:RightHandPinky4": {
+   "parent": "mixamorig:RightHandPinky3",
+   "pos_cm": [
+    -87.22562730145525,
+    143.57451875117627,
+    -9.367931806157314
+   ]
+  },
+  "mixamorig:LeftShoulder": {
+   "parent": "mixamorig:Spine2",
+   "pos_cm": [
+    4.570434058827984,
+    144.58590699501536,
+    -3.3163728307836102
+   ]
+  },
+  "mixamorig:LeftArm": {
+   "parent": "mixamorig:LeftShoulder",
+   "pos_cm": [
+    15.16280398737345,
+    144.0613169434197,
+    -5.548493116334514
+   ]
+  },
+  "mixamorig:LeftForeArm": {
+   "parent": "mixamorig:LeftArm",
+   "pos_cm": [
+    43.00432564154204,
+    144.0612843998952,
+    -5.548470182817228
+   ]
+  },
+  "mixamorig:LeftHand": {
+   "parent": "mixamorig:LeftForeArm",
+   "pos_cm": [
+    71.3331601752272,
+    144.06125184318304,
+    -5.548452286627384
+   ]
+  },
+  "mixamorig:LeftHandThumb1": {
+   "parent": "mixamorig:LeftHand",
+   "pos_cm": [
+    73.79930097583673,
+    142.48505615797941,
+    -2.866718806843708
+   ]
+  },
+  "mixamorig:LeftHandThumb2": {
+   "parent": "mixamorig:LeftHandThumb1",
+   "pos_cm": [
+    77.0171036834158,
+    140.6130031455518,
+    -0.9502315862892832
+   ]
+  },
+  "mixamorig:LeftHandThumb3": {
+   "parent": "mixamorig:LeftHandThumb2",
+   "pos_cm": [
+    79.67311994929713,
+    139.08420278085717,
+    0.5642735030615138
+   ]
+  },
+  "mixamorig:LeftHandThumb4": {
+   "parent": "mixamorig:LeftHandThumb3",
+   "pos_cm": [
+    81.6940079710372,
+    137.9301277541478,
+    1.6794071285865717
+   ]
+  },
+  "mixamorig:LeftHandIndex1": {
+   "parent": "mixamorig:LeftHand",
+   "pos_cm": [
+    80.44246662018536,
+    143.54320687400264,
+    -3.2885818548270533
+   ]
+  },
+  "mixamorig:LeftHandIndex2": {
+   "parent": "mixamorig:LeftHandIndex1",
+   "pos_cm": [
+    84.1424666060649,
+    143.54319761646747,
+    -3.2889049733068427
+   ]
+  },
+  "mixamorig:LeftHandIndex3": {
+   "parent": "mixamorig:LeftHandIndex2",
+   "pos_cm": [
+    86.9924665845382,
+    143.54318854355162,
+    -3.288554802246191
+   ]
+  },
+  "mixamorig:LeftHandIndex4": {
+   "parent": "mixamorig:LeftHandIndex3",
+   "pos_cm": [
+    89.76733221262572,
+    143.54317785204873,
+    -3.288581527452206
+   ]
+  },
+  "mixamorig:LeftHandMiddle1": {
+   "parent": "mixamorig:LeftHand",
+   "pos_cm": [
+    80.86656166454125,
+    144.06127324020878,
+    -5.548407829448358
+   ]
+  },
+  "mixamorig:LeftHandMiddle2": {
+   "parent": "mixamorig:LeftHandMiddle1",
+   "pos_cm": [
+    84.56656165731454,
+    144.0612658926314,
+    -5.548638965109337
+   ]
+  },
+  "mixamorig:LeftHandMiddle3": {
+   "parent": "mixamorig:LeftHandMiddle2",
+   "pos_cm": [
+    87.51656165734059,
+    144.0612609995725,
+    -5.548698191712874
+   ]
+  },
+  "mixamorig:LeftHandMiddle4": {
+   "parent": "mixamorig:LeftHandMiddle3",
+   "pos_cm": [
+    90.46942511611348,
+    144.06125862699358,
+    -5.548635289249731
+   ]
+  },
+  "mixamorig:LeftHandRing1": {
+   "parent": "mixamorig:LeftHand",
+   "pos_cm": [
+    80.43769038202059,
+    144.0182129663205,
+    -7.413525827475825
+   ]
+  },
+  "mixamorig:LeftHandRing2": {
+   "parent": "mixamorig:LeftHandRing1",
+   "pos_cm": [
+    83.58769038195831,
+    144.01820534746685,
+    -7.413483459122235
+   ]
+  },
+  "mixamorig:LeftHandRing3": {
+   "parent": "mixamorig:LeftHandRing2",
+   "pos_cm": [
+    86.53769038190077,
+    144.01819769136398,
+    -7.413446424112027
+   ]
+  },
+  "mixamorig:LeftHandRing4": {
+   "parent": "mixamorig:LeftHandRing3",
+   "pos_cm": [
+    89.18200681682134,
+    144.01819275635648,
+    -7.413387583008608
+   ]
+  },
+  "mixamorig:LeftHandPinky1": {
+   "parent": "mixamorig:LeftHand",
+   "pos_cm": [
+    79.4109415601394,
+    143.5743653862144,
+    -9.354708848005295
+   ]
+  },
+  "mixamorig:LeftHandPinky2": {
+   "parent": "mixamorig:LeftHandPinky1",
+   "pos_cm": [
+    83.01091144311097,
+    143.57439700191372,
+    -9.339983336174745
+   ]
+  },
+  "mixamorig:LeftHandPinky3": {
+   "parent": "mixamorig:LeftHandPinky2",
+   "pos_cm": [
+    85.11089736117005,
+    143.5744128045394,
+    -9.33227821942831
+   ]
+  },
+  "mixamorig:LeftHandPinky4": {
+   "parent": "mixamorig:LeftHandPinky3",
+   "pos_cm": [
+    87.23641541005766,
+    143.5744283503633,
+    -9.324764594210082
+   ]
+  },
+  "mixamorig:RightUpLeg": {
+   "parent": "mixamorig:Hips",
+   "pos_cm": [
+    -8.207794189453123,
+    97.52320098876964,
+    -0.04524400085210689
+   ]
+  },
+  "mixamorig:RightLeg": {
+   "parent": "mixamorig:RightUpLeg",
+   "pos_cm": [
+    -8.207795136924904,
+    53.153087615966854,
+    0.3006949126720426
+   ]
+  },
+  "mixamorig:RightFoot": {
+   "parent": "mixamorig:RightLeg",
+   "pos_cm": [
+    -8.207794193704466,
+    8.729410171508846,
+    -2.7428412437438388
+   ]
+  },
+  "mixamorig:RightToeBase": {
+   "parent": "mixamorig:RightFoot",
+   "pos_cm": [
+    -8.207796980437466,
+    0.0007403186173498,
+    7.967719554901234
+   ]
+  },
+  "mixamorig:RightToe_End": {
+   "parent": "mixamorig:RightToeBase",
+   "pos_cm": [
+    -8.207799778823729,
+    6.367982137992477e-05,
+    17.245840072631964
+   ]
+  },
+  "mixamorig:LeftUpLeg": {
+   "parent": "mixamorig:Hips",
+   "pos_cm": [
+    8.207783699035648,
+    97.52317047119146,
+    -0.04523950815200806
+   ]
+  },
+  "mixamorig:LeftLeg": {
+   "parent": "mixamorig:LeftUpLeg",
+   "pos_cm": [
+    8.20778179815179,
+    53.15313720703123,
+    0.30171799659729054
+   ]
+  },
+  "mixamorig:LeftFoot": {
+   "parent": "mixamorig:LeftLeg",
+   "pos_cm": [
+    8.207781787278632,
+    8.729486465454109,
+    -2.74267363548298
+   ]
+  },
+  "mixamorig:LeftToeBase": {
+   "parent": "mixamorig:LeftFoot",
+   "pos_cm": [
+    8.207779003812599,
+    0.0008178479620539747,
+    7.967886447906329
+   ]
+  },
+  "mixamorig:LeftToe_End": {
+   "parent": "mixamorig:LeftToeBase",
+   "pos_cm": [
+    8.20777620817337,
+    0.00014117703546079026,
+    17.246023178100437
+   ]
+  }
+ }
+}
