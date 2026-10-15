@@ -1,37 +1,21 @@
 {
-  "when": "2026-10-15T11:23:42.789Z",
+  "when": "2026-10-15T11:27:56.650Z",
   "shots": [
-    {
-      "name": "master-bedroom",
-      "file": "docs/screenshots/game/master-bedroom.png",
-      "place": "Master bedroom",
-      "fps": "1 fps · 515 calls",
-      "calls": 515,
-      "tris": 1169102
-    },
     {
       "name": "kitchen",
       "file": "docs/screenshots/game/kitchen.png",
       "place": "Kitchen",
-      "fps": "0 fps · 462 calls",
-      "calls": 461,
-      "tris": 1043811
-    },
-    {
-      "name": "pool",
-      "file": "docs/screenshots/game/pool.png",
-      "place": "JAG House",
-      "fps": "1 fps · 413 calls",
-      "calls": 413,
-      "tris": 1083898
+      "fps": "0 fps · 459 calls",
+      "calls": 459,
+      "tris": 1140820
     },
     {
       "name": "night-living",
       "file": "docs/screenshots/game/night-living.png",
       "place": "Living room",
-      "fps": "1 fps · 494 calls",
-      "calls": 494,
-      "tris": 1255341
+      "fps": "1 fps · 467 calls",
+      "calls": 468,
+      "tris": 1234884
     }
   ],
   "household": [
@@ -106,13 +90,13 @@
       ]
     },
     {
-      "key": "guest",
-      "name": "Ayo Madu",
-      "clip": "phone",
+      "key": "gatehouse",
+      "name": "Segun Fashola",
+      "clip": "sit",
       "pos": [
         -339.5,
         24.5,
-        -397.9
+        -339.3
       ]
     },
     {
@@ -126,13 +110,13 @@
       ]
     },
     {
-      "key": "gatehouse",
-      "name": "Segun Fashola",
-      "clip": "sit",
+      "key": "guest",
+      "name": "Ayo Madu",
+      "clip": "phone",
       "pos": [
         -339.5,
         24.5,
-        -339.3
+        -397.9
       ]
     }
   ],
