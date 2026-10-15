@@ -1,69 +1,69 @@
 {
-  "when": "2026-10-15T10:47:52.599Z",
+  "when": "2026-10-15T11:02:09.788Z",
   "shots": [
-    {
-      "name": "landing-stairs",
-      "file": "docs/screenshots/game/landing-stairs.png",
-      "place": "Landing",
-      "fps": "2 fps · 560 calls",
-      "calls": 560,
-      "tris": 1438153
-    },
-    {
-      "name": "kitchen",
-      "file": "docs/screenshots/game/kitchen.png",
-      "place": "Kitchen",
-      "fps": "1 fps · 520 calls",
-      "calls": 520,
-      "tris": 1089968
-    },
     {
       "name": "dining",
       "file": "docs/screenshots/game/dining.png",
       "place": "Dining room",
-      "fps": "0 fps · 580 calls",
-      "calls": 580,
-      "tris": 1266967
-    },
-    {
-      "name": "front-porch",
-      "file": "docs/screenshots/game/front-porch.png",
-      "place": "Veranda",
-      "fps": "0 fps · 700 calls",
-      "calls": 700,
-      "tris": 2133730
+      "fps": "2 fps · 547 calls",
+      "calls": 547,
+      "tris": 1278048
     },
     {
       "name": "forecourt-fountain",
       "file": "docs/screenshots/game/forecourt-fountain.png",
       "place": "JAG House",
-      "fps": "0 fps · 510 calls",
-      "calls": 510,
-      "tris": 1104672
-    },
-    {
-      "name": "carport",
-      "file": "docs/screenshots/game/carport.png",
-      "place": "JAG House",
-      "fps": "0 fps · 622 calls",
-      "calls": 622,
-      "tris": 1624863
+      "fps": "1 fps · 608 calls",
+      "calls": 608,
+      "tris": 1157846
     },
     {
       "name": "gate",
       "file": "docs/screenshots/game/gate.png",
       "place": "JAG House",
-      "fps": "1 fps · 670 calls",
-      "calls": 670,
-      "tris": 2074765
+      "fps": "1 fps · 644 calls",
+      "calls": 644,
+      "tris": 2026145
     },
     {
       "name": "pool",
       "file": "docs/screenshots/game/pool.png",
       "place": "JAG House",
-      "fps": "0 fps · 400 calls",
-      "calls": 400,
-      "tris": 1062957
+      "fps": "0 fps · 419 calls",
+      "calls": 419,
+      "tris": 1090124
+    },
+    {
+      "name": "roof-terrace",
+      "file": "docs/screenshots/game/roof-terrace.png",
+      "place": "Roof terrace",
+      "fps": "1 fps · 595 calls",
+      "calls": 595,
+      "tris": 1971844
+    },
+    {
+      "name": "night-living",
+      "file": "docs/screenshots/game/night-living.png",
+      "place": "Living room",
+      "fps": "0 fps · 517 calls",
+      "calls": 517,
+      "tris": 1260365
+    },
+    {
+      "name": "night-pool",
+      "file": "docs/screenshots/game/night-pool.png",
+      "place": "JAG House",
+      "fps": "0 fps · 424 calls",
+      "calls": 424,
+      "tris": 1110587
+    },
+    {
+      "name": "street-outside",
+      "file": "docs/screenshots/game/street-outside.png",
+      "place": "JAG House",
+      "fps": "1 fps · 546 calls",
+      "calls": 546,
+      "tris": 1875227
     }
   ],
   "errors": []

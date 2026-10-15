@@ -38,7 +38,7 @@ export class ChaseCamera {
     // three rays (centre + a camera-width to each side) so the near plane never pokes into a wall
     let f = this.world.rayFraction(pivotS.x, pivotS.z, far.x, far.z, target.y + 0.6, target.y + 2.2);
     for (const side of [-0.35, 0.35]) f = Math.min(f, this.world.rayFraction(pivotS.x + right.x * side, pivotS.z + right.z * side, far.x + right.x * side, far.z + right.z * side, target.y + 0.6, target.y + 2.2));
-    let dist = Math.max(this.minDistance * 0.6, wantDist * f - 0.3);
+    let dist = Math.max(this.minDistance * 0.6, wantDist * f - 0.45);
     // ground clearance
     const probe = pivotS.clone().addScaledVector(dir, dist);
     const g = this.world.groundAt(probe.x, probe.z, probe.y, 0.3) + 0.35;

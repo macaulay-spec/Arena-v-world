@@ -69,6 +69,12 @@ async function main() {
   for (const b of city.buildings) for (const m of b.masses) collision.addPolygon(m.footprint as [number, number][], m.baseY - 2, m.baseY + m.floors * m.floorHeight + 2);
   const mansion: Mansion = buildMansion({ origin: MANSION_ORIGIN, collision, shadows: Q.shadows > 0, textureSize: Q.tex });
   scene.add(mansion.group);
+  // the pool is dug below the plateau: cut a rectangular hole in the city terrain with intersecting clip planes
+  {
+    const [x0, z0, x1, z1] = mansion.pits[0] ?? [34, 5, 48, 13]; const ox = MANSION_ORIGIN[0], oz = MANSION_ORIGIN[2];
+    const planes = [new THREE.Plane(new THREE.Vector3(-1, 0, 0), ox + x0), new THREE.Plane(new THREE.Vector3(1, 0, 0), -(ox + x1)), new THREE.Plane(new THREE.Vector3(0, 0, -1), oz + z0), new THREE.Plane(new THREE.Vector3(0, 0, 1), -(oz + z1))];
+    const tm = built.materials.terrain; tm.clippingPlanes = planes; tm.clipIntersection = true; tm.needsUpdate = true; renderer.localClippingEnabled = true;
+  }
   await progress('Furnishing…', 0.72);
 
   // household + player assets
@@ -216,8 +222,8 @@ async function main() {
 
   // ─── main loop ───
   let last = performance.now(), frame = 0, fpsFrames = 0, fpsT = last, autosaveT = 0, clockAcc = 0, lastRoom: string | null = null, indoorMix = 0;
-  let ambientRef = { hour: -1, ambient: 0, hemi: 0 };
-  const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity }; } };
+  let ambientRef = { hour: -1, ambient: 0, hemi: 0, color: new THREE.Color() }; const warmAmbient = new THREE.Color('#ffd7a8');
+  const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity, color: sky.ambient.color.clone() }; } };
   const baseAmbient = () => { refresh(); return ambientRef.ambient; }, baseHemi = () => { refresh(); return ambientRef.hemi; };
   const tick = () => {
     requestAnimationFrame(tick);
@@ -248,7 +254,9 @@ async function main() {
       const indoor = !!room && room !== 'roof';
       // interiors only get sky/ambient light (the sun is shadowed) → lift the ambient term indoors
       indoorMix += ((indoor ? 1 : 0) - indoorMix) * Math.min(1, dt * 3);
-      sky.ambient.intensity = baseAmbient() + indoorMix * 0.55; sky.hemi.intensity = baseHemi() + indoorMix * 0.35;
+      const nightNow = isNight() ? 1 : 0;
+      sky.ambient.intensity = baseAmbient() + indoorMix * (0.55 + nightNow * 0.25); sky.hemi.intensity = baseHemi() + indoorMix * 0.35;
+      sky.ambient.color.copy(ambientRef.color).lerp(warmAmbient, Math.min(1, indoorMix * (0.4 + nightNow * 0.5)));
       if (state !== 'paused') chase.update(dt, player.pos, player.yaw, inp.lookDX, inp.lookDY, inp.zoom, player.moving, indoor);
       if (room !== lastRoom && state === 'game') {
         lastRoom = room;
@@ -272,7 +280,7 @@ async function main() {
         const d = tmp.set(s.pos[0], s.pos[1], s.pos[2]).distanceToSquared(focus); if (d < 30 * 30) cands.push({ d, s });
       }
       cands.sort((a, b) => a.d - b.d);
-      lightPool.forEach((l, i) => { const c = cands[i]; if (!c) { l.visible = false; return; } l.visible = true; l.position.set(c.s.pos[0], c.s.pos[1], c.s.pos[2]); l.color.setHex(c.s.color); l.intensity = c.s.intensity * 6; l.distance = c.s.distance; });
+      lightPool.forEach((l, i) => { const c = cands[i]; if (!c) { l.visible = false; return; } l.visible = true; l.position.set(c.s.pos[0], c.s.pos[1] - (c.s.outdoor ? 0 : 0.55), c.s.pos[2]); l.color.setHex(c.s.color); l.intensity = c.s.intensity * (night ? 16 : 9); l.distance = c.s.distance * 1.3; });
     }
     if (crowd) crowd.update(dt, camera, focus, 0);
     if (frame % 6 === 0) cullDetail(built.detailMeshes, camera.position, Q.detail);

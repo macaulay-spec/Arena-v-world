@@ -33,7 +33,7 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
     K.wall('poolTile', ax, az, bxx, bzz, PY, 1.3, 0.1, [0.85, 0.95, 1]);
   }
   // pit: inside the pool the ground is the basin floor (you can wade in and climb out by the steps)
-  addPit(c, PX0, PZ0, PX1, PZ1, PY);
+  c.pit(PX0, PZ0, PX1, PZ1, PY);
   for (let i = 0; i < 4; i++) K.box('poolTile', PX1 - 0.6 - i * 0.4 + 0.2, PY + (4 - i) * 0.3 / 2, (PZ0 + PZ1) / 2, 0.4, (4 - i) * 0.3, PZ1 - PZ0 - 0.2, [0.9, 0.97, 1]);
   for (let i = 0; i < 4; i++) c.sink.addSurface(PX1 - 0.6 - i * 0.4, PZ0 + 0.1, PX1 - 0.2 - i * 0.4, PZ1 - 0.1, PY + (4 - i) * 0.3);
   K.box('stone', (PX0 + PX1) / 2, 0.16, PZ0 - 0.2, PX1 - PX0 + 0.8, 0.06, 0.4, rgb('#ddd8ce')); K.box('stone', (PX0 + PX1) / 2, 0.16, PZ1 + 0.2, PX1 - PX0 + 0.8, 0.06, 0.4, rgb('#ddd8ce'));
@@ -109,9 +109,6 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   c.spot('bq', 8, 0.15, 10.2, 0);
 }
 
-function addPit(c: MansionContext, x0: number, z0: number, x1: number, z1: number, y: number) {
-  c.sink.world.addPit(c.sink.ox + x0, c.sink.oz + z0, c.sink.ox + x1, c.sink.oz + z1, c.sink.oy + y);
-}
 
 function gatePanel(c: MansionContext, w: number, h: number): THREE.Object3D {
   const k = new MeshKit(c.mats); const dark = rgb('#1f2226'), gold = rgb('#c9a24a');

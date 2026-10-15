@@ -25,6 +25,8 @@ export interface MansionContext {
   light(l: LightSpot): void;
   spot(id: string, x: number, y: number, z: number, yaw: number): void;
   interact(i: MansionInteractable): void;
+  /** dig a rectangular pit (pool): collision floor + terrain hole */
+  pit(x0: number, z0: number, x1: number, z1: number, y: number): void;
   screen(center: [number, number, number], rot: number, w: number, h: number): Screen;
   fan(x: number, y: number, z: number): Fan;
   /** named room volumes (local) for "which room am I in" */
@@ -36,6 +38,8 @@ export interface Mansion {
   origin: [number, number, number];
   doors: Door[]; sliders: Slider[]; fans: Fan[]; screens: Screen[];
   lights: LightSpot[]; spots: Record<string, Spot>; interactables: MansionInteractable[];
+  /** local rects dug below ground level (pools) */
+  pits: [number, number, number, number][];
   update(dt: number): void;
   /** local rect of the compound */
   bounds: [number, number, number, number];
@@ -52,6 +56,7 @@ export function buildMansion(o: { origin: [number, number, number]; collision: C
   const group = new THREE.Group(); group.name = 'mansion'; group.position.set(ox, oy, oz);
   const doors: Door[] = [], sliders: Slider[] = [], fans: Fan[] = [], screens: Screen[] = [], lights: LightSpot[] = [], interactables: MansionInteractable[] = [];
   const spots: Record<string, Spot> = {};
+  const pits: [number, number, number, number][] = [];
   const rooms: { name: string; x0: number; z0: number; x1: number; z1: number; y0: number; y1: number }[] = [];
   const toWorld = (x: number, y: number, z: number): [number, number, number] => [ox + x, oy + y, oz + z];
   const ctx: MansionContext = {
@@ -66,6 +71,7 @@ export function buildMansion(o: { origin: [number, number, number]; collision: C
     light(l) { lights.push({ ...l, pos: toWorld(l.pos[0], l.pos[1], l.pos[2]) }); },
     spot(id, x, y, z, yaw) { spots[id] = { pos: toWorld(x, y, z), yaw }; },
     interact(i) { interactables.push({ ...i, pos: toWorld(i.pos[0], i.pos[1], i.pos[2]) }); },
+    pit(x0, z0, x1, z1, y) { pits.push([x0, z0, x1, z1]); o.collision.addPit(ox + x0, oz + z0, ox + x1, oz + z1, oy + y); },
     screen(center, rot, w, h) {
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.02), mats.screen.material); mesh.position.set(center[0], center[1], center[2]); mesh.rotation.y = rot;
       group.add(mesh); const s = new Screen(mesh); screens.push(s); return s;
@@ -81,7 +87,7 @@ export function buildMansion(o: { origin: [number, number, number]; collision: C
   group.add(staticGroup);
 
   return {
-    group, origin: o.origin, doors, sliders, fans, screens, lights, spots, interactables, bounds,
+    group, origin: o.origin, doors, sliders, fans, screens, lights, spots, interactables, pits, bounds,
     update(dt) { for (const d of doors) d.update(dt); for (const s of sliders) s.update(dt); for (const f of fans) f.update(dt); for (const s of screens) s.update(dt); },
     inCompound(x, z) { const lx = x - ox, lz = z - oz; return lx >= bounds[0] && lx <= bounds[2] && lz >= bounds[1] && lz <= bounds[3]; },
     roomAt(x, y, z) { const lx = x - ox, ly = y - oy, lz = z - oz; for (const r of rooms) if (lx >= r.x0 && lx <= r.x1 && lz >= r.z0 && lz <= r.z1 && ly >= r.y0 - 0.3 && ly <= r.y1) return r.name; return null; },
