@@ -1,5 +1,5 @@
 /** Menu/overlay screens: JAG logo, loading, title, character creation, pause, settings. */
-import type { Appearance, KitInfo } from './player';
+import { FACE_KEYS, FACE_LABEL, normalizeAppearance, type Appearance, type FaceKey, type KitInfo } from './player';
 import { type Settings, type QualityId, autoQuality } from './save';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -41,36 +41,65 @@ export class Screens {
   }
 
   /** character creation; `onChange` is called with every edit so the 3D preview can follow */
-  create(info: KitInfo[], initial: Appearance, onChange: (a: Appearance) => void): Promise<Appearance> {
+  create(info: KitInfo[], initial: Appearance, onChange: (a: Appearance) => void, onTab?: (tab: 'look' | 'body' | 'face') => void): Promise<Appearance> {
     this.show('create');
-    const a: Appearance = { ...initial };
+    const a: Appearance = normalizeAppearance(initial, info);
     if (!a.name) a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[Math.floor(Math.random() * 12)];
     const name = $<HTMLInputElement>('c-name'), tone = $<HTMLInputElement>('c-tone'), height = $<HTMLInputElement>('c-height');
-    const sexSeg = $('c-sex'); const hairL = $('c-hair'), outfitL = $('c-outfit');
+    const build = $<HTMLInputElement>('c-build'), muscle = $<HTMLInputElement>('c-muscle');
+    const sexSeg = $('c-sex'), tabSeg = $('c-tab'); const hairL = $('c-hair'), outfitL = $('c-outfit');
     const kit = () => info.find(k => k.sex === a.sex) ?? info[0];
+    const hasMorph = (k: KitInfo, n: string) => (k.morphs ?? []).includes(n);
+    // face sliders are generated from FACE_KEYS; each is shown only when the kit carries that morph target
+    const faceBox = $('c-tab-face'); faceBox.innerHTML = '';
+    const faceInputs = new Map<FaceKey, HTMLInputElement>();
+    for (const key of FACE_KEYS) {
+      const lab = document.createElement('label'); lab.dataset.key = key; lab.textContent = FACE_LABEL[key] + ' ';
+      const inp = document.createElement('input'); inp.type = 'range'; inp.min = '-1'; inp.max = '1'; inp.step = '0.1'; inp.id = `c-face-${key}`;
+      lab.appendChild(inp); faceBox.appendChild(lab); faceInputs.set(key, inp);
+      inp.addEventListener('input', () => { a.face[key] = +inp.value; onChange({ ...a, face: { ...a.face } }); });
+    }
+    const emit = () => onChange({ ...a, face: { ...a.face } });
     const sync = () => {
       const k = kit(); tone.max = String(k.skin.length - 1);
       if (!k.hair.some(h => h.id === a.hair)) a.hair = k.hair[0].id;
       if (!k.outfits.some(o => o.id === a.outfit)) a.outfit = k.outfits[0].id;
-      name.value = a.name; tone.value = String(a.tone); height.value = String(a.height);
+      name.value = a.name; tone.value = String(a.tone); height.value = String(a.height); build.value = String(a.build); muscle.value = String(a.muscle);
       hairL.textContent = k.hair.find(h => h.id === a.hair)?.name ?? a.hair; outfitL.textContent = k.outfits.find(o => o.id === a.outfit)?.name ?? a.outfit;
       sexSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === a.sex));
-      onChange({ ...a });
+      // only offer what the loaded kit can actually show
+      const bodyOk = hasMorph(k, 'shape_weight_hi'), muscleOk = hasMorph(k, 'shape_muscle_hi');
+      build.parentElement!.classList.toggle('hidden', !bodyOk); muscle.parentElement!.classList.toggle('hidden', !muscleOk);
+      let faceAny = false;
+      for (const [key, inp] of faceInputs) { const ok = hasMorph(k, `face_${key}_pos`); inp.parentElement!.classList.toggle('hidden', !ok); faceAny ||= ok; inp.value = String(a.face[key] ?? 0); }
+      tabSeg.querySelector('[data-v="body"]')!.classList.toggle('hidden', !bodyOk && !muscleOk);
+      tabSeg.querySelector('[data-v="face"]')!.classList.toggle('hidden', !faceAny);
+      emit();
     };
+    const showTab = (id: string) => { for (const t of ['look', 'body', 'face']) $(`c-tab-${t}`).classList.toggle('hidden', t !== id); tabSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === id)); onTab?.(id as 'look' | 'body' | 'face'); };
     const step = (list: { id: string }[], cur: string, d: number) => list[(list.findIndex(x => x.id === cur) + d + list.length) % list.length].id;
+    const rnd = (n: number) => Math.floor(Math.random() * n);
     const handlers: [HTMLElement, string, (e: Event) => void][] = [
-      [name, 'input', () => { a.name = name.value.slice(0, 14); onChange({ ...a }); }],
-      [tone, 'input', () => { a.tone = +tone.value; onChange({ ...a }); }],
-      [height, 'input', () => { a.height = +height.value; onChange({ ...a }); }],
-      [sexSeg, 'click', e => { const v = (e.target as HTMLElement).dataset.v as 'f' | 'm' | undefined; if (v && v !== a.sex) { a.sex = v; if (!name.value || FIRST_NAMES_M.includes(a.name) || FIRST_NAMES_F.includes(a.name)) a.name = (v === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[Math.floor(Math.random() * 12)]; sync(); } }],
+      [name, 'input', () => { a.name = name.value.slice(0, 14); emit(); }],
+      [tone, 'input', () => { a.tone = +tone.value; emit(); }],
+      [height, 'input', () => { a.height = +height.value; emit(); }],
+      [build, 'input', () => { a.build = +build.value; emit(); }],
+      [muscle, 'input', () => { a.muscle = +muscle.value; emit(); }],
+      [tabSeg, 'click', e => { const v = (e.target as HTMLElement).dataset.v; if (v) showTab(v); }],
+      [sexSeg, 'click', e => { const v = (e.target as HTMLElement).dataset.v as 'f' | 'm' | undefined; if (v && v !== a.sex) { a.sex = v; if (!name.value || FIRST_NAMES_M.includes(a.name) || FIRST_NAMES_F.includes(a.name)) a.name = (v === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[rnd(12)]; sync(); } }],
       [$('c-hair-prev'), 'click', () => { a.hair = step(kit().hair, a.hair, -1); sync(); }], [$('c-hair-next'), 'click', () => { a.hair = step(kit().hair, a.hair, 1); sync(); }],
       [$('c-outfit-prev'), 'click', () => { a.outfit = step(kit().outfits, a.outfit, -1); sync(); }], [$('c-outfit-next'), 'click', () => { a.outfit = step(kit().outfits, a.outfit, 1); sync(); }],
-      [$('c-random'), 'click', () => { const k0 = info[Math.floor(Math.random() * info.length)]; a.sex = k0.sex; a.tone = Math.floor(Math.random() * k0.skin.length); a.hair = k0.hair[Math.floor(Math.random() * k0.hair.length)].id; a.outfit = k0.outfits[Math.floor(Math.random() * k0.outfits.length)].id; a.height = Math.round(Math.random() * 20) / 20; a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[Math.floor(Math.random() * 12)]; sync(); }],
+      [$('c-random'), 'click', () => {
+        const k0 = info[rnd(info.length)]; a.sex = k0.sex; a.tone = rnd(k0.skin.length); a.hair = k0.hair[rnd(k0.hair.length)].id; a.outfit = k0.outfits[rnd(k0.outfits.length)].id;
+        a.height = Math.round(Math.random() * 20) / 20; a.build = Math.round((0.2 + Math.random() * 0.6) * 20) / 20; a.muscle = Math.round(Math.random() * 20) / 20;
+        for (const key of FACE_KEYS) a.face[key] = Math.round((Math.random() * 1.4 - 0.7) * 10) / 10;
+        a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[rnd(12)]; sync();
+      }],
     ];
     for (const [el, ev, fn] of handlers) el.addEventListener(ev, fn);
-    sync();
+    showTab('look'); sync();
     return new Promise(resolve => {
-      const done = () => { if (!a.name.trim()) a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[0]; for (const [el, ev, fn] of handlers) el.removeEventListener(ev, fn); $('c-done').removeEventListener('click', done); this.show('create', false); resolve({ ...a }); };
+      const done = () => { if (!a.name.trim()) a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[0]; for (const [el, ev, fn] of handlers) el.removeEventListener(ev, fn); $('c-done').removeEventListener('click', done); this.show('create', false); resolve(normalizeAppearance(a, info)); };
       $('c-done').addEventListener('click', done);
     });
   }
