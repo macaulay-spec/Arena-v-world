@@ -6,7 +6,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getEleme
 export class Hud {
   root = $('hud');
   radar = $<HTMLCanvasElement>('radar');
-  private clock = $('clock'); private cash = $('cash'); private health = $('health-bar'); private day = $('day');
+  private clock = $('clock'); private cash = $('cash'); private health = $('health-bar'); private day = $('day'); private healthShown = -1;
   private prompt = $('prompt'); private promptText = $('prompt-text');
   private place = $('place'); private placeSub = $('place-sub');
   private toast = $('toast'); private speech = $('speech'); private speechWho = $('speech-who'); private speechText = $('speech-text');
@@ -21,7 +21,7 @@ export class Hud {
   setStats(minutes: number, day: number, cash: number, health: number) {
     const c = clockLabel(minutes); if (c !== this.clockShown) { this.clock.textContent = c; this.clockShown = c; this.day.textContent = `Day ${day}`; }
     if (cash !== this.cashShown) { this.cash.innerHTML = `<span class="cur">₦</span>${Math.round(cash).toLocaleString('en-NG')}`; this.cashShown = cash; }
-    this.health.style.width = `${Math.max(0, Math.min(100, health))}%`;
+    const hw = Math.round(Math.max(0, Math.min(100, health))); if (hw !== this.healthShown) { this.healthShown = hw; this.health.style.width = `${hw}%`; }
   }
   setPrompt(text: string | null) {
     if (!text) { this.prompt.classList.add('hidden'); return; }
