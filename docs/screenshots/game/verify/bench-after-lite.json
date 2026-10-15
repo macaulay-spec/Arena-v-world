@@ -1,7 +1,7 @@
 {
   "quality": "lite",
   "renderer": "SwiftShader (headless, software GL)",
-  "when": "2026-10-15T13:55:45.541Z",
+  "when": "2026-10-15T14:07:45.182Z",
   "checks": {},
   "bench": {
     "living-room": {
@@ -9,24 +9,24 @@
       "seconds": 45,
       "fps": 0.76,
       "msPerFrame": 1324,
-      "cpuMsPerFrame": 14.7,
-      "calls": 338,
-      "tris": 961229,
-      "programs": 45,
-      "geometries": 646,
-      "textures": 650
+      "cpuMsPerFrame": 16,
+      "calls": 337,
+      "tris": 954135,
+      "programs": 42,
+      "geometries": 593,
+      "textures": 582
     },
     "street-outside": {
-      "frames": 39,
+      "frames": 37,
       "seconds": 45,
-      "fps": 0.87,
-      "msPerFrame": 1154,
-      "cpuMsPerFrame": 9.4,
+      "fps": 0.82,
+      "msPerFrame": 1217,
+      "cpuMsPerFrame": 71.9,
       "calls": 250,
       "tris": 1046948,
       "programs": 48,
-      "geometries": 651,
-      "textures": 650
+      "geometries": 598,
+      "textures": 582
     }
   },
   "errors": []

@@ -100,12 +100,12 @@ real page with emulated touch events under headless Chromium/SwiftShader and wri
 | Settings / saves | `sanitizeSettings` / `sanitizeSave`: unknown presets → `auto`, numbers clamped, booleans coerced, malformed JSON or wrong version → defaults / `null`, `localStorage` failures caught | `tests/save.test.ts` |
 
 **Benchmark (headless Chromium + SwiftShader software GL, 960 × 540, 45 s per spot, same spots and clock).**
-These compare code paths only; they are not Android frame rates.
+These compare code paths only; they are not Android frame rates, and the ms-per-frame column varies ±10 % between runs on the shared sandbox CPU (the "after" Lite row is from the final commit, `d688133` code).
 
 | Preset · spot | before (b16189f) calls / tris / ms per frame | after calls / tris / ms per frame |
 |---|---|---|
-| Lite · living room | 460 / 1.21 M / 1406 | 338 / 0.96 M / 1324 |
-| Lite · street outside the gate | 479 / 1.61 M / 1407 | 250 / 1.05 M / 1154 |
+| Lite · living room | 460 / 1.21 M / 1406 | 337 / 0.95 M / 1324 |
+| Lite · street outside the gate | 479 / 1.61 M / 1407 | 250 / 1.05 M / 1217 |
 | Standard · living room | 447 / 1.21 M / 4503 | 418 / 1.17 M / 3216 |
 | Standard · street outside the gate | 567 / 1.91 M / 4501 | 529 / 1.89 M / 3462 |
 
