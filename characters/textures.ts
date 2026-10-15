@@ -61,3 +61,33 @@ export function paintPlain(size = 64, amp = 0.05): Canvas {
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) { const l = 1 + (hash2(x, y) - 0.5) * amp; c.set(x, y, [l, l, l, 1]); }
   c.encodeSRGB(); return c;
 }
+
+/** Box braids / cornrows: vertical plaits with the herring-bone knot rhythm (neutral, tinted by COLOR_0). */
+export function paintBraids(size = 256): Canvas {
+  const c = new Canvas(size, size);
+  const cols = 8;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = x / size, v = y / size;
+    const cu = (u * cols) % 1; const d = Math.abs(cu - 0.5) * 2;           // 0 centre of braid … 1 gap
+    const knot = 0.5 + 0.5 * Math.sin(v * Math.PI * 2 * 14 + (cu < 0.5 ? 0 : Math.PI)); // alternating strand bumps
+    const body = Math.max(0, 1 - d * d) * (0.75 + 0.35 * knot);
+    const gap = d > 0.86 ? 0.25 : 1;
+    const l = (0.35 + 0.9 * body) * gap + 0.15 * (fbm(u * 60, v * 60, 2) - 0.5);
+    c.set(x, y, [l, l * 0.98, l * 0.96, 1]);
+  }
+  c.encodeSRGB(); return c;
+}
+
+/** Chunky two-strand twists. */
+export function paintTwists(size = 256): Canvas {
+  const c = new Canvas(size, size);
+  const cols = 5;
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const u = x / size, v = y / size;
+    const cu = (u * cols) % 1; const d = Math.abs(cu - 0.5) * 2;
+    const rope = 0.5 + 0.5 * Math.sin((v * 10 + cu * 1.2) * Math.PI * 2);
+    const l = (0.4 + 0.8 * Math.max(0, 1 - d * d) * (0.6 + 0.5 * rope)) * (d > 0.9 ? 0.4 : 1) + 0.12 * (fbm(u * 40, v * 40, 3) - 0.5);
+    c.set(x, y, [l, l * 0.98, l * 0.96, 1]);
+  }
+  c.encodeSRGB(); return c;
+}

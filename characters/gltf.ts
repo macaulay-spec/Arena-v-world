@@ -9,7 +9,7 @@ import { BONES, BONE_PARENT, N_BONES } from './rig';
 
 export interface GltfMaterial { name: string; baseColor?: [number, number, number, number]; texture?: number; roughness?: number; metallic?: number; doubleSided?: boolean; emissive?: [number, number, number]; alphaMode?: 'OPAQUE' | 'MASK' | 'BLEND'; alphaCutoff?: number }
 export interface AnimTrack { bone: string; rotation?: Float32Array; translation?: Float32Array }
-export interface AnimClip { name: string; times: Float32Array; tracks: AnimTrack[] }
+export interface AnimClip { name: string; times: Float32Array; tracks: AnimTrack[]; /** Hips translation offsets from rest (metres) */ hipsOffset?: Float32Array }
 
 export class GltfBuilder {
   private json: any = { asset: { version: '2.0', generator: 'V-WORLD character pipeline' }, extensionsUsed: ['KHR_mesh_quantization'], extensionsRequired: ['KHR_mesh_quantization'], scene: 0, scenes: [{ nodes: [] }], nodes: [], meshes: [], skins: [], materials: [], textures: [], images: [], samplers: [{ magFilter: 9729, minFilter: 9987, wrapS: 10497, wrapT: 10497 }], accessors: [], bufferViews: [], buffers: [], animations: [] };
@@ -107,8 +107,9 @@ export class GltfBuilder {
   }
 
   /** Static (unskinned) mesh node under the armature root, e.g. a prop pre-positioned in bind pose. */
-  animation(clip: AnimClip): void {
+  animation(clip: AnimClip, hipsRest?: number[]): void {
     const samplers: any[] = []; const channels: any[] = [];
+    if (clip.hipsOffset && hipsRest) { const n = clip.times.length; const tr = new Float32Array(n * 3); for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) tr[i * 3 + k] = hipsRest[k] + clip.hipsOffset[i * 3 + k]; clip = { ...clip, tracks: [...clip.tracks.filter(t => t.bone !== 'Hips' || !t.translation), { bone: 'Hips', translation: tr, rotation: clip.tracks.find(t => t.bone === 'Hips')?.rotation }] }; }
     const tv = this.view(Buffer.from(clip.times.buffer.slice(clip.times.byteOffset, clip.times.byteOffset + clip.times.byteLength)));
     const tAcc = this.accessor(tv, 5126, clip.times.length, 'SCALAR', { min: [clip.times[0]], max: [clip.times[clip.times.length - 1]] });
     const boneIdx = new Map(BONES.map((b, i) => [b.name, i]));

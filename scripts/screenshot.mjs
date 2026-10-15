@@ -29,7 +29,10 @@ const VIEWS = [
   { name: 'green-estates', pos: [60, 60, -300], target: [120, 25, -400], hour: 14 },
   { name: 'stadium', landmark: 'stadium', hour: 13 },
   { name: 'night-central', pos: [200, 120, 300], target: [40, 20, 40], hour: 20.5 },
-  { name: 'walk-market-quarter', walk: [-60, 240], yaw: 0.6, hour: 10 },
+  { name: 'walk-market-quarter', walk: [-60, 240], yaw: 0.6, hour: 10, crowd: true },
+  { name: 'crowd-market-street', walk: [-156.5, 305], yaw: -0.25, hour: 10.5, crowd: true },
+  { name: 'crowd-assembly-street', pos: [-2, 9, -68], target: [-60, 4, -88], hour: 16, crowd: true },
+  { name: 'crowd-central-walk', walk: [-20, -84.7], yaw: 1.75, hour: 9.5, crowd: true },
 ];
 
 // optional filters: VIEWS=name1,name2  QUALITY=low|medium|high  (defaults: all views, medium)
@@ -80,6 +83,12 @@ for (const v of views) {
     else if (v.walk) { controls.setMode('walk'); controls.walkPos.set(v.walk[0], 0, v.walk[1]); controls.yaw = v.yaw ?? 0; controls.pitch = 0.02; }
     else controls.lookAt(v.pos, v.target);
   }, v);
+  // crowd views: wait until the cast has streamed in and the agents have been recycled around the new focus
+  if (v.crowd) {
+    await page.waitForFunction(() => !window.vworld.crowd || !window.vworld.crowd.enabled || window.vworld.crowd.progress >= 1, { timeout: 300000 });
+    const fc = await page.evaluate(() => window.vworld.frame);
+    await page.waitForFunction((fc) => window.vworld.frame >= fc + 12, { timeout: 300000 }, fc);
+  }
   // let a few frames render (software GL is slow: wait for the frame counter, not the clock)
   const f0 = await page.evaluate(() => window.vworld.frame);
   await page.waitForFunction((f0) => window.vworld.frame >= f0 + 4, { timeout: 120000 }, f0);

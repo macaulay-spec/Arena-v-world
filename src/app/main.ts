@@ -18,6 +18,7 @@ import { makeSky } from './sky';
 import { CityControls } from './controls';
 import { Hud } from './hud';
 import { Minimap } from './minimap';
+import { Crowd, CROWD_PRESETS } from './crowd';
 
 type Quality = 'low' | 'medium' | 'high';
 const isMobile = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 1000;
@@ -198,6 +199,11 @@ async function main() {
   loading.classList.add('hidden');
   await setProgress('Ready', 1);
 
+  // ambient crowd (streams in after the city is interactive; ?crowd=0 disables, ?crowd=high forces a preset)
+  const crowdParam = params.get('crowd');
+  const crowd = crowdParam === '0' ? null : new Crowd(city, (x, z) => base.ground.height(x, z), CROWD_PRESETS[(crowdParam as Quality) in CROWD_PRESETS ? (crowdParam as Quality) : quality]);
+  if (crowd) { scene.add(crowd.group); crowd.load(controls.focus()).catch(err => console.warn('[crowd]', err)); }
+
   // main loop
   const districtAt = (x: number, z: number) => city.districts.find(d => pointInPolygon([x, z], d.polygon));
   let last = performance.now(), frames = 0, fpsT = performance.now(), fps = 0, frame = 0;
@@ -208,19 +214,20 @@ async function main() {
     GLOBAL.uTime.value = now / 1000;
     focus.copy(controls.focus());
     sky.follow(focus, controls.mode === 'walk' ? 160 : Math.min(420, 120 + controls.distance * 0.6));
+    if (crowd) crowd.update(dt, camera, focus, controls.mode === 'orbit' ? controls.distance : 0);
     if (frame % 6 === 0) {
       const cam = camera.position; const detailR = Q.detail + (controls.mode === 'orbit' ? controls.distance * 0.25 : 0);
       for (const d of detailMeshes) { const dist = Math.hypot(d.cx - cam.x, d.cz - cam.z) - d.r; d.obj.visible = dist < detailR; }
     }
     renderer.render(scene, camera);
-    frames++; if (now - fpsT >= 500) { fps = frames / ((now - fpsT) / 1000); frames = 0; fpsT = now; const d = districtAt(focus.x, focus.z); hud.update(d?.name ?? 'Outskirts', focus.x, focus.z, fps, `${renderer.info.render.calls} draw calls · ${(renderer.info.render.triangles / 1e6).toFixed(2)} M tris`); }
+    frames++; if (now - fpsT >= 500) { fps = frames / ((now - fpsT) / 1000); frames = 0; fpsT = now; const d = districtAt(focus.x, focus.z); hud.update(d?.name ?? 'Outskirts', focus.x, focus.z, fps, `${renderer.info.render.calls} draw calls · ${(renderer.info.render.triangles / 1e6).toFixed(2)} M tris${crowd && crowd.enabled ? ` · ${crowd.stats.visible} people${crowd.progress < 1 ? ` (loading ${Math.round(crowd.progress * 100)}%)` : ''}` : ''}`); }
     if (frame % 3 === 0) minimap.update(focus.x, focus.z, controls.yaw);
     frame++;
     requestAnimationFrame(tick);
   };
   console.info(`[v-world] ${city.meta.name} v${city.meta.version}: ${city.stats.buildings} buildings, ${city.stats.edges} road edges, ${instanceCount} instanced props`);
   const setHour = (h: number) => { sky.setHour(h); hud.setHourLabel(h); };
-  (window as unknown as { vworld: unknown }).vworld = { city, scene, camera, controls, renderer, sky, setHour, get frame() { return frame; } };
+  (window as unknown as { vworld: unknown }).vworld = { city, scene, camera, controls, renderer, sky, setHour, crowd, get frame() { return frame; } };
   requestAnimationFrame(tick);
 }
 

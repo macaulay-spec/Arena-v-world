@@ -24,8 +24,7 @@ export function fromGroup(rig: Rig, group: string, faceFilter?: (vs: number[]) =
     }
     f.push(poly);
   }
-  recomputeNormals({ v, f });
-  return { v, f };
+  const m = { v, f }; weld(m); return m;
 }
 
 export function recomputeNormals(m: SoftMesh): void {
@@ -181,4 +180,54 @@ export function limbFrame(rig: Rig): LimbFrame {
     return { r, dir };
   };
   return { rig, heads, dominant, along, radial };
+}
+
+/** Merge vertices closer than eps (helper shells have unwelded seams at the top of the head). */
+export function weld(m: SoftMesh, eps = 1e-4): void {
+  const map = new Map<string, number>(); const remap = new Int32Array(m.v.length); const v: SoftVert[] = [];
+  m.v.forEach((vv, i) => { const k = `${Math.round(vv.p[0] / eps)},${Math.round(vv.p[1] / eps)},${Math.round(vv.p[2] / eps)}`; let j = map.get(k); if (j === undefined) { j = v.length; map.set(k, j); v.push(vv); } remap[i] = j; });
+  m.v = v;
+  m.f = m.f.map(poly => { const out: number[] = []; for (const i of poly) { const j = remap[i]; if (!out.length || out[out.length - 1] !== j) out.push(j); } if (out.length > 1 && out[0] === out[out.length - 1]) out.pop(); return out; }).filter(poly => poly.length >= 3);
+  recomputeNormals(m);
+}
+
+/** One Catmull–Clark subdivision step (positions, skinning, uv interpolated). */
+export function subdivide(m: SoftMesh): SoftMesh {
+  const nv = m.v.length;
+  const avg = (vs: SoftVert[]): SoftVert => {
+    const p = [0, 0, 0]; const wm = new Map<number, number>(); let uv: [number, number] | undefined = vs.every(v => v.uv) ? [0, 0] : undefined;
+    for (const v of vs) { for (let k = 0; k < 3; k++) p[k] += v.p[k] / vs.length; for (let k = 0; k < 4; k++) if (v.w[k] > 0) wm.set(v.j[k], (wm.get(v.j[k]) ?? 0) + v.w[k] / vs.length); if (uv) { uv[0] += v.uv![0] / vs.length; uv[1] += v.uv![1] / vs.length; } }
+    const arr = [...wm.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4); const s = arr.reduce((q, e) => q + e[1], 0) || 1;
+    const j = [0, 0, 0, 0], w = [0, 0, 0, 0]; arr.forEach((e, k) => { j[k] = e[0]; w[k] = e[1] / s; });
+    return { p, n: [0, 1, 0], j, w, src: -1, uv };
+  };
+  const out: SoftMesh = { v: m.v.map(v => ({ ...v, p: [...v.p], n: [...v.n] })), f: [] };
+  // face points
+  const facePt = m.f.map(poly => { out.v.push(avg(poly.map(i => m.v[i]))); return out.v.length - 1; });
+  // edge points
+  const edgeFaces = new Map<string, number[]>(); const ekey = (a: number, b: number) => (a < b ? `${a}_${b}` : `${b}_${a}`);
+  m.f.forEach((poly, fi) => { for (let i = 0; i < poly.length; i++) { const k = ekey(poly[i], poly[(i + 1) % poly.length]); const arr = edgeFaces.get(k); if (arr) arr.push(fi); else edgeFaces.set(k, [fi]); } });
+  const edgePt = new Map<string, number>();
+  for (const [k, faces] of edgeFaces) { const [a, b] = k.split('_').map(Number); const pts = [m.v[a], m.v[b]]; if (faces.length === 2) pts.push(out.v[facePt[faces[0]]], out.v[facePt[faces[1]]]); out.v.push(avg(pts)); edgePt.set(k, out.v.length - 1); }
+  // move original vertices (Catmull–Clark rule; boundary vertices use the boundary rule)
+  const vFaces: number[][] = Array.from({ length: nv }, () => []); const vEdges: string[][] = Array.from({ length: nv }, () => []);
+  m.f.forEach((poly, fi) => { for (let i = 0; i < poly.length; i++) { vFaces[poly[i]].push(fi); const k = ekey(poly[i], poly[(i + 1) % poly.length]); if (!vEdges[poly[i]].includes(k)) vEdges[poly[i]].push(k); if (!vEdges[poly[(i + 1) % poly.length]].includes(k)) vEdges[poly[(i + 1) % poly.length]].push(k); } });
+  for (let i = 0; i < nv; i++) {
+    const bEdges = vEdges[i].filter(k => edgeFaces.get(k)!.length === 1);
+    const P = m.v[i].p; let np: number[];
+    if (bEdges.length >= 2) { // boundary: 3/4 P + 1/8 (neighbours along the boundary)
+      const ns = bEdges.slice(0, 2).map(k => { const [a, b] = k.split('_').map(Number); return m.v[a === i ? b : a].p; });
+      np = [0, 1, 2].map(k => 0.75 * P[k] + 0.125 * (ns[0][k] + ns[1][k]));
+    } else {
+      const n = vFaces[i].length; if (!n) continue;
+      const F = [0, 0, 0]; for (const fi of vFaces[i]) for (let k = 0; k < 3; k++) F[k] += out.v[facePt[fi]].p[k] / n;
+      const R = [0, 0, 0]; for (const k of vEdges[i]) { const [a, b] = k.split('_').map(Number); for (let c = 0; c < 3; c++) R[c] += (m.v[a].p[c] + m.v[b].p[c]) / 2 / vEdges[i].length; }
+      np = [0, 1, 2].map(k => (F[k] + 2 * R[k] + (n - 3) * P[k]) / n);
+    }
+    out.v[i].p = np;
+  }
+  for (let fi = 0; fi < m.f.length; fi++) { const poly = m.f[fi]; const c = facePt[fi]; const L = poly.length;
+    for (let i = 0; i < L; i++) { const a = poly[i]; const e1 = edgePt.get(ekey(a, poly[(i + 1) % L]))!, e0 = edgePt.get(ekey(poly[(i + L - 1) % L], a))!; out.f.push([a, e1, c, e0]); } }
+  recomputeNormals(out);
+  return out;
 }

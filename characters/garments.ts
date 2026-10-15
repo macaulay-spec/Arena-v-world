@@ -158,8 +158,13 @@ export interface TopOpts {
 }
 export function buildTop(ctx: GarmentCtx, look: Look, o: TopOpts): GarmentResult {
   const thick = o.thickness ?? 0.011;
+  // the tights helper splits into two legs below the crotch; a hem lower than that would end like shorts, so the
+  // tunic part below the crotch hangs from the skirt helper instead (it bridges the legs)
+  const crotch = ctx.hipsY - 0.06 * (ctx.height / 1.75);
+  const tunic = o.hem < crotch - 0.015;
+  const hem = tunic ? crotch : o.hem;
   let m = fromGroup(ctx.rig, 'helper-tights');
-  m = clip(m, maxField(v => o.hem - v.p[1], neckField(ctx, o.neck), sleeveField(ctx, o.sleeve)));
+  m = clip(m, maxField(v => hem - v.p[1], neckField(ctx, o.neck), sleeveField(ctx, o.sleeve)));
   if (o.wideSleeve || o.wideTorso) loosenLimbs(ctx, m, {
     arms: o.wideSleeve ? t => o.wideSleeve! * Math.min(1, t / Math.max(0.05, o.sleeve / (ctx.armLen + ctx.foreLen))) ** 1.2 : undefined,
     torso: o.wideTorso ? y => o.wideTorso! * Math.max(0, Math.min(1, (ctx.chestY - y) / Math.max(0.05, ctx.chestY - o.hem))) : undefined,
@@ -175,7 +180,12 @@ export function buildTop(ctx: GarmentCtx, look: Look, o: TopOpts): GarmentResult
   }
   rims(m, v => [-v.n[0] * thick * 0.85, -v.n[1] * thick * 0.85, -v.n[2] * thick * 0.85]);
   const part = finish(ctx, m, name, mat, look, { vScale: o.vScale });
-  return { parts: [part], hide: hideUnderTights(ctx, m, boundary, o.tuck ? 0.015 : 0.02), materials: [materialFor(mat, look)] };
+  const res: GarmentResult = { parts: [part], hide: hideUnderTights(ctx, m, boundary, o.tuck ? 0.015 : 0.02), materials: [materialFor(mat, look)] };
+  if (tunic) {
+    const sk = buildSkirt(ctx, look, { top: crotch + 0.035, hem: o.hem, flare: Math.max(0.02, (o.wideTorso ?? 0) + 0.015), thickness: thick, name: name + '_skirt', hideLegs: false });
+    res.parts.push(...sk.parts);
+  }
+  return res;
 }
 
 // ---- bottoms -------------------------------------------------------------------------------------
@@ -277,7 +287,7 @@ export function buildGarment(ctx: GarmentCtx, item: OutfitItem): GarmentResult {
     // ---- tops
     case 'briefs': return buildTrousers(c, look, { top: c.hipsY + 0.06 * H, leg: 0.07, thickness: 0.004, name: 'briefs' });
     case 'tank': return buildTop(c, look, { sleeve: 0.02, hem: hipHem(-0.03), neck: { r: 0.085, dip: 0.06 }, thickness: 0.006, name: 'tank' });
-    case 'tshirt': return buildTop(c, look, { sleeve: 0.18 * H, hem: hipHem(-0.04), neck: { r: 0.07, dip: 0.025 }, name: 'tshirt' });
+    case 'tshirt': return buildTop(c, look, { sleeve: 0.18 * H, hem: hipHem(-0.04), neck: { r: 0.082, dip: 0.035, up: 0.01 }, name: 'tshirt' });
     case 'polo': return buildTop(c, look, { sleeve: 0.17 * H, hem: hipHem(-0.05), neck: { r: 0.065, dip: 0.02 }, collar: 'shirt', name: 'polo' });
     case 'shirt_long': return buildTop(c, look, { sleeve: 0.56 * H, hem: hipHem(-0.08), neck: { r: 0.065, dip: 0.02 }, collar: 'shirt', name: 'shirt' });
     case 'shirt_short': return buildTop(c, look, { sleeve: 0.2 * H, hem: hipHem(-0.08), neck: { r: 0.065, dip: 0.02 }, collar: 'shirt', name: 'shirt' });
@@ -291,7 +301,7 @@ export function buildGarment(ctx: GarmentCtx, item: OutfitItem): GarmentResult {
     case 'jacket': return buildTop(c, look, { sleeve: 0.58 * H, hem: hipHem(-0.03), neck: { r: 0.085, dip: 0.12 }, thickness: 0.018, collar: 'shirt', name: 'jacket' });
     case 'hivis': return buildTop(c, look, { sleeve: 0.02, hem: hipHem(-0.01), neck: { r: 0.09, dip: 0.06 }, thickness: 0.02, name: 'hivis', vScale: 1.75 / c.height });
     case 'vest': return buildTop(c, look, { sleeve: 0.02, hem: hipHem(-0.02), neck: { r: 0.08, dip: 0.08 }, thickness: 0.016, name: 'vest' });
-    case 'jersey': return buildTop(c, look, { sleeve: 0.2 * H, hem: hipHem(-0.05), neck: { r: 0.07, dip: 0.03 }, name: 'jersey' });
+    case 'jersey': return buildTop(c, look, { sleeve: 0.2 * H, hem: hipHem(-0.05), neck: { r: 0.08, dip: 0.04, up: 0.01 }, name: 'jersey' });
     case 'lab_coat': return buildKaftan(c, look, { hem: c.kneeY + 0.04, sleeve: 0.56 * H, collar: 'shirt', name: 'labcoat', thickness: 0.018 });
     // ---- bottoms
     case 'trousers': return buildTrousers(c, look, { top: c.waistY, leg: c.upLegLen + c.legLen - 0.005, name: 'trousers' });

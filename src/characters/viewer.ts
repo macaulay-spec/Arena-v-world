@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { libraryFrom, retargetAll, type AnimLibrary } from './retarget';
 
 interface ManifestEntry { id: string; name?: string; role?: string; file: string; height: number; tris: number; district?: string; sex?: string; age?: number; tags?: string[] }
 interface Manifest { characters: ManifestEntry[]; clips?: string[]; animations?: string }
@@ -39,8 +40,8 @@ const grid = new THREE.GridHelper(40, 40, 0x6f746f, 0x7e837d); (grid.material as
 const loader = new GLTFLoader();
 const base = './assets/characters/';
 const manifest: Manifest = await (await fetch(base + 'manifest.json')).json();
-let animLib: THREE.AnimationClip[] = [];
-if (manifest.animations) { try { const g = await loader.loadAsync(base + manifest.animations); animLib = g.animations; } catch (e) { console.warn('no animation library', e); } }
+let animLib: AnimLibrary | null = null;
+if (manifest.animations) { try { const g = await loader.loadAsync(base + manifest.animations); animLib = libraryFrom(g); } catch (e) { console.warn('no animation library', e); } }
 
 interface Loaded { entry: ManifestEntry; root: THREE.Group; mixer: THREE.AnimationMixer; lods: THREE.Object3D[]; clips: THREE.AnimationClip[]; action?: THREE.AnimationAction; skel?: THREE.SkeletonHelper }
 const loaded: Loaded[] = [];
@@ -60,7 +61,8 @@ function prepare(g: GLTF, entry: ManifestEntry): Loaded {
   });
   lods.sort((a, b) => a.name.localeCompare(b.name));
   const mixer = new THREE.AnimationMixer(root);
-  const clips = [...g.animations, ...animLib.filter(c => !g.animations.some(x => x.name === c.name))];
+  const lib = animLib ? retargetAll(animLib, root, entry.height) : [];
+  const clips = [...g.animations, ...lib.filter(c => !g.animations.some(x => x.name === c.name))];
   return { entry, root, mixer, lods, clips };
 }
 
@@ -89,7 +91,9 @@ function clear() { for (const l of loaded) { scene.remove(l.root); if (l.skel) s
 const turntable = new THREE.Group(); scene.add(turntable);
 let lineup = false;
 function frame(view: string) {
-  const h = loaded.length ? Math.max(...loaded.map(l => l.entry.height)) : 1.75;
+  // frame on the real extents (head loads, raised arms …) rather than the nominal height
+  let h = 1.75;
+  if (loaded.length) { h = 0; for (const l of loaded) { const b = new THREE.Box3().setFromObject(l.root); h = Math.max(h, isFinite(b.max.y) ? b.max.y : l.entry.height, l.entry.height); } }
   const spread = lineup ? (loaded.length - 1) * 0.9 : 0;
   const cx = lineup ? spread / 2 : 0;
   let target = new THREE.Vector3(cx, h * 0.52, 0), dist = h * 1.9 + spread * 0.75, up = 0;
