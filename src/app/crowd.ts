@@ -18,6 +18,7 @@ import { carriagewayHalfWidth, ROAD_PROFILES } from '../shared/types';
 import { pointInPolygon } from '../shared/geom';
 import { profileHeightAt } from '../shared/roadgeom';
 import { libraryFrom, retargetAll, type AnimLibrary } from '../characters/retarget';
+import { setSkinnedBounds } from '../characters/bounds';
 
 export interface ManifestEntry {
   id: string; file: string; name?: string; height: number; tris: number; tags?: string[]; role?: string;
@@ -38,7 +39,8 @@ export interface CrowdOptions {
   assetsBase: string;
 }
 
-export const CROWD_PRESETS: Record<'low' | 'medium' | 'high', CrowdOptions> = {
+export const CROWD_PRESETS: Record<'lite' | 'low' | 'medium' | 'high', CrowdOptions> = {
+  lite: { cast: 6, agents: 18, radius: 70, lod: [7, 16], shadows: false, assetsBase: 'assets/characters/' },
   low: { cast: 8, agents: 30, radius: 90, lod: [9, 22], shadows: false, assetsBase: 'assets/characters/' },
   medium: { cast: 16, agents: 64, radius: 130, lod: [14, 36], shadows: true, assetsBase: 'assets/characters/' },
   high: { cast: 24, agents: 120, radius: 170, lod: [18, 45], shadows: true, assetsBase: 'assets/characters/' },
@@ -75,6 +77,7 @@ export class Crowd {
   private rng = mulberry(20260419);
   private tmp = new THREE.Vector3();
   private frustum = new THREE.Frustum();
+  private sphere = new THREE.Sphere();
   private projView = new THREE.Matrix4();
   private frame = 0;
   private recycleTimer = 0;
@@ -125,7 +128,8 @@ export class Crowd {
     const loadOne = async (entry: ManifestEntry) => {
       try {
         const gltf = await this.loader.loadAsync(base + entry.file);
-        gltf.scene.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = this.opts.shadows; m.receiveShadow = false; m.frustumCulled = false; const mat = m.material as THREE.MeshStandardMaterial; if (mat.map) mat.map.anisotropy = 4; } });
+        gltf.scene.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = this.opts.shadows; m.receiveShadow = false; const mat = m.material as THREE.MeshStandardMaterial; if (mat.map) mat.map.anisotropy = 4; } });
+        setSkinnedBounds(gltf.scene, entry.height); // explicit pose-independent bounds → the renderer's frustum culling stays on
         const clips = this.lib ? retargetAll(this.lib, gltf.scene, entry.height) : [];
         const member: CastMember = { entry, gltf, clips, districts: new Set((entry.districts ?? []).map(d => DISTRICT_CODE[d]).filter(Boolean)) };
         this.cast.push(member);
@@ -267,7 +271,8 @@ export class Crowd {
       if (a.state === 'walk') this.advance(a, a.speed * dt);
       // visibility / LOD
       const d = camPos.distanceTo(a.pos);
-      const visible = (d < this.opts.radius && this.frustum.containsPoint(this.tmp.set(a.pos.x, a.pos.y + 1, a.pos.z))) || d < 6;
+      this.sphere.center.set(a.pos.x, a.pos.y + 1, a.pos.z); this.sphere.radius = 1.2;
+      const visible = (d < this.opts.radius && this.frustum.intersectsSphere(this.sphere)) || d < 6;
       a.root.visible = visible || d < 3;
       if (!visible) continue;
       st.visible++;

@@ -2,6 +2,7 @@
  * Character viewer: turntable inspection of generated characters (glTF), clips, LODs, line-ups.
  * Query: ?id=<character>  ?clip=<name>  ?view=full|face|hands|back  ?lineup=all|id1,id2  ?cols=8  ?lod=0|1|2  ?q=low
  */
+import { setSkinnedBounds } from './bounds';
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -58,9 +59,10 @@ function prepare(g: GLTF, entry: ManifestEntry): Loaded {
   const root = g.scene; const lods: THREE.Object3D[] = [];
   root.traverse(o => {
     const m = o as THREE.Mesh;
-    if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; m.frustumCulled = false; const mat = m.material as THREE.MeshStandardMaterial; if (mat.map) mat.map.anisotropy = 8; }
+    if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; const mat = m.material as THREE.MeshStandardMaterial; if (mat.map) mat.map.anisotropy = 8; }
     if (/^LOD\d$/.test(o.name)) lods.push(o);
   });
+  setSkinnedBounds(root, entry.height); // pose-independent bounds → frustum culling stays on
   lods.sort((a, b) => a.name.localeCompare(b.name));
   const mixer = new THREE.AnimationMixer(root);
   const lib = animLib ? retargetAll(animLib, root, entry.height) : [];

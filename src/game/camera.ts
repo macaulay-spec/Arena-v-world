@@ -2,12 +2,17 @@
 import * as THREE from 'three';
 import type { CollisionWorld } from './collision';
 
+const SIDE_OFFSETS = [-0.35, 0.35];
+
 export class ChaseCamera {
   yaw = Math.PI; pitch = 0.22;
   distance = 3.8; targetDistance = 3.8;
   minDistance = 1.2; maxDistance = 7;
   shoulder = 0.35;
   private cur = new THREE.Vector3(); private look = new THREE.Vector3();
+  // scratch vectors reused every frame (no per-update allocation)
+  private dir = new THREE.Vector3(); private right = new THREE.Vector3(); private pivotS = new THREE.Vector3();
+  private far = new THREE.Vector3(); private probe = new THREE.Vector3(); private want = new THREE.Vector3();
   private initialised = false;
   mode: 'near' | 'far' | 'front' = 'near';
   constructor(public camera: THREE.PerspectiveCamera, private world: CollisionWorld) {}
@@ -29,23 +34,24 @@ export class ChaseCamera {
     const wantDist = Math.min(this.targetDistance, indoor ? 3.0 : this.maxDistance);
     const pivot = this.look.set(target.x, target.y + 1.45, target.z);
     const yawUse = this.mode === 'front' ? facingYaw : this.yaw;
-    const dir = new THREE.Vector3(Math.sin(yawUse) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(yawUse) * Math.cos(this.pitch));
+    const cp = Math.cos(this.pitch);
+    const dir = this.dir.set(Math.sin(yawUse) * cp, Math.sin(this.pitch), Math.cos(yawUse) * cp);
     // shoulder offset (right of the player)
-    const right = new THREE.Vector3(Math.cos(yawUse), 0, -Math.sin(yawUse));
-    const pivotS = pivot.clone().addScaledVector(right, this.mode === 'front' ? 0 : this.shoulder);
+    const right = this.right.set(Math.cos(yawUse), 0, -Math.sin(yawUse));
+    const pivotS = this.pivotS.copy(pivot).addScaledVector(right, this.mode === 'front' ? 0 : this.shoulder);
     // occlusion: 2D ray against blockers at head height band
-    const far = pivotS.clone().addScaledVector(dir, wantDist);
+    const far = this.far.copy(pivotS).addScaledVector(dir, wantDist);
     // three rays (centre + a camera-width to each side) so the near plane never pokes into a wall
-    let f = this.world.rayFraction(pivotS.x, pivotS.z, far.x, far.z, target.y + 0.6, target.y + 2.2);
-    for (const side of [-0.35, 0.35]) f = Math.min(f, this.world.rayFraction(pivotS.x + right.x * side, pivotS.z + right.z * side, far.x + right.x * side, far.z + right.z * side, target.y + 0.6, target.y + 2.2));
-    let dist = Math.max(this.minDistance * 0.6, wantDist * f - 0.45);
+    const y0 = target.y + 0.6, y1 = target.y + 2.2;
+    let f = this.world.rayFraction(pivotS.x, pivotS.z, far.x, far.z, y0, y1);
+    for (let i = 0; i < SIDE_OFFSETS.length; i++) { const side = SIDE_OFFSETS[i]; f = Math.min(f, this.world.rayFraction(pivotS.x + right.x * side, pivotS.z + right.z * side, far.x + right.x * side, far.z + right.z * side, y0, y1)); }
+    const dist = Math.max(this.minDistance * 0.6, wantDist * f - 0.45);
     // ground clearance
-    const probe = pivotS.clone().addScaledVector(dir, dist);
+    const probe = this.probe.copy(pivotS).addScaledVector(dir, dist);
     const g = this.world.groundAt(probe.x, probe.z, probe.y, 0.3) + 0.35;
-    if (probe.y < g) { const up = g - probe.y; probe.y = g; void up; }
     // smooth distance (pull in fast, release slowly)
     this.distance += (dist - this.distance) * Math.min(1, dt * (dist < this.distance ? 20 : 4));
-    const want = pivotS.clone().addScaledVector(dir, this.distance); if (want.y < g) want.y = g;
+    const want = this.want.copy(pivotS).addScaledVector(dir, this.distance); if (want.y < g) want.y = g;
     if (!this.initialised) { this.cur.copy(want); this.initialised = true; }
     else this.cur.lerp(want, Math.min(1, dt * 18));
     this.camera.position.copy(this.cur);

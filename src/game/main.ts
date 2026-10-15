@@ -12,7 +12,7 @@ import { GLOBAL } from '../app/materials';
 import { Crowd, CROWD_PRESETS, type Manifest } from '../app/crowd';
 import { Input } from './input';
 import { CollisionWorld } from './collision';
-import { Avatar, PlayerController, DEFAULT_APPEARANCE, ASSETS, loadKitInfo, promptOf, type Appearance, type Interactable, type KitInfo } from './player';
+import { Avatar, PlayerController, DEFAULT_APPEARANCE, ASSETS, loadKitInfo, promptOf, normalizeAppearance, type Appearance, type Interactable, type KitInfo } from './player';
 import { ChaseCamera } from './camera';
 import { buildMansion, type Mansion } from './mansion/index';
 import { Household } from './npcs';
@@ -21,10 +21,11 @@ import { Hud, fade } from './hud';
 import { Screens } from './screens';
 import { loadSave, writeSave, newSave, deleteSave, loadSettings, writeSettings, autoQuality, clockLabel, type SaveData, type Settings, type QualityId } from './save';
 
-const PRESETS: Record<QualityId, { label: string; pixelRatio: number; aa: boolean; shadows: number; atlasPx: number; detail: number; far: number; lights: number; crowd: 'low' | 'medium' | 'high' | null; tex: number; anisotropy: number }> = {
-  lite: { label: 'Lite', pixelRatio: 1, aa: false, shadows: 0, atlasPx: 128, detail: 300, far: 2200, lights: 2, crowd: 'low', tex: 256, anisotropy: 1 },
-  standard: { label: 'Standard', pixelRatio: 1.5, aa: true, shadows: 1024, atlasPx: 192, detail: 520, far: 3000, lights: 5, crowd: 'medium', tex: 512, anisotropy: 4 },
-  high: { label: 'High', pixelRatio: 2, aa: true, shadows: 2048, atlasPx: 256, detail: 800, far: 3800, lights: 8, crowd: 'high', tex: 1024, anisotropy: 8 },
+export interface Preset { label: string; pixelRatio: number; aa: boolean; shadows: number; atlasPx: number; detail: number; far: number; lights: number; crowd: 'lite' | 'low' | 'medium' | 'high' | null; tex: number; anisotropy: number; /** crowd simulation every n frames */ crowdStep: number; /** detail culling every n frames */ cullStep: number; /** household NPC LOD / visibility distance scale */ npcLod: number }
+export const PRESETS: Record<QualityId, Preset> = {
+  lite: { label: 'Lite', pixelRatio: 1, aa: false, shadows: 0, atlasPx: 128, detail: 220, far: 1800, lights: 2, crowd: 'lite', tex: 256, anisotropy: 1, crowdStep: 2, cullStep: 4, npcLod: 0.5 },
+  standard: { label: 'Standard', pixelRatio: 1.5, aa: true, shadows: 1024, atlasPx: 192, detail: 520, far: 3000, lights: 5, crowd: 'medium', tex: 512, anisotropy: 4, crowdStep: 1, cullStep: 6, npcLod: 1 },
+  high: { label: 'High', pixelRatio: 2, aa: true, shadows: 2048, atlasPx: 256, detail: 800, far: 3800, lights: 8, crowd: 'high', tex: 1024, anisotropy: 8, crowdStep: 1, cullStep: 6, npcLod: 1.2 },
 };
 const MANSION_ORIGIN: [number, number, number] = [-374.1, 24.3, -411.9];
 const HOUSE_NAME = 'JAG House', HOUSE_ADDR = '1 Ridge Street, North Heights';
@@ -81,7 +82,7 @@ async function main() {
   const kitInfo: KitInfo[] = await loadKitInfo(ASSETS);
   const manifest: Manifest = await (await fetch(ASSETS + 'manifest.json')).json();
   const avatar = new Avatar(ASSETS, Q.shadows > 0); scene.add(avatar.root);
-  const household = new Household(ASSETS, Q.shadows > 0); scene.add(household.group);
+  const household = new Household(ASSETS, Q.shadows > 0, Q.npcLod); scene.add(household.group);
   const spotsLocal: Record<string, { x: number; y: number; z: number; yaw: number }> = {};
   for (const [id, s] of Object.entries(mansion.spots)) spotsLocal[id] = { x: s.pos[0], y: s.pos[1], z: s.pos[2], yaw: s.yaw };
   await progress('Waking the household…', 0.8);
@@ -105,7 +106,7 @@ async function main() {
 
   // ─── state ───
   let save: SaveData | null = loadSave();
-  let appearance: Appearance = save?.appearance ?? { ...DEFAULT_APPEARANCE };
+  let appearance: Appearance = normalizeAppearance(save?.appearance ?? DEFAULT_APPEARANCE, kitInfo);
   let state: 'title' | 'create' | 'game' | 'paused' | 'cutscene' = 'title';
   let gameMinutes = save?.minutes ?? 7 * 60 + 12, day = save?.day ?? 1;
   let interactables: Interactable[] = [];
@@ -159,8 +160,8 @@ async function main() {
     if (!save) return; state = 'create'; player.busy = true; input.clear(); input.enabled = false;
     const wake = mansion.spots.mirror ?? mansion.spots.wake; if (wake) player.teleport(wake.pos[0], wake.pos[1], wake.pos[2], wake.yaw + Math.PI);
     avatar.play('idle', 0.2);
-    appearance = await screens.create(kitInfo, appearance, a => { appearance = a; avatar.setAppearance(a, kitInfo); });
-    await avatar.setAppearance(appearance, kitInfo); save.appearance = appearance; persist();
+    appearance = await screens.create(kitInfo, appearance, a => { appearance = a; avatar.setAppearance(a, kitInfo); }, tab => { creatorTab = tab; });
+    await avatar.setAppearance(appearance, kitInfo); save.appearance = appearance; persist(); endCreator();
     flash('Looking sharp.'); input.enabled = true; player.busy = false; chase.snapBehind(player.yaw); state = 'game';
   }
 
@@ -171,10 +172,28 @@ async function main() {
     cineT += dt; const a = cineT * 0.07 + 2.4, r = 46 + Math.sin(cineT * 0.11) * 8, h = 14 + Math.sin(cineT * 0.09) * 4;
     camera.position.set(centre.x + Math.cos(a) * r, centre.y + h, centre.z + Math.sin(a) * r); camera.lookAt(centre.x, centre.y + 1, centre.z);
   };
-  const creationCamera = () => {
-    const p = player.pos; const f = new THREE.Vector3(Math.sin(player.yaw), 0, Math.cos(player.yaw));
-    camera.position.set(p.x + f.x * 3.0 - f.z * 0.9, p.y + 1.25, p.z + f.z * 3.0 + f.x * 0.9); camera.lookAt(p.x, p.y + 0.95, p.z);
+  // creator camera: full body on the Look/Body tabs, head close-up on the Face tab (smoothly blended)
+  let creatorTab: 'look' | 'body' | 'face' = 'look', faceMix = 0;
+  const camWant = new THREE.Vector3(), camLook = new THREE.Vector3(), headPos = new THREE.Vector3(), camDir = new THREE.Vector3(), camRight = new THREE.Vector3();
+  // soft key light from the camera side so the face is readable whatever the time of day (creator only)
+  const creatorFill = new THREE.DirectionalLight(0xfff1e0, 0); creatorFill.castShadow = false; scene.add(creatorFill, creatorFill.target);
+  const creationCamera = (dt: number) => {
+    const p = player.pos; const fx = Math.sin(player.yaw), fz = Math.cos(player.yaw);
+    faceMix += ((creatorTab === 'face' ? 1 : 0) - faceMix) * Math.min(1, dt * 6);
+    avatar.headWorld(headPos);
+    const dist = 3.0 + (0.95 - 3.0) * faceMix, side = 0.9 + (0.2 - 0.9) * faceMix;
+    const camY = p.y + 1.25 + (headPos.y + 0.02 - (p.y + 1.25)) * faceMix, lookY = p.y + 0.95 + (headPos.y - (p.y + 0.95)) * faceMix;
+    camWant.set(p.x + fx * dist - fz * side, camY, p.z + fz * dist + fx * side);
+    camera.position.lerp(camWant, Math.min(1, dt * 8));
+    // the creator panel sits on the right: keep the character left of centre by looking a little to its right
+    camLook.set(headPos.x, lookY, headPos.z);
+    camDir.subVectors(camLook, camera.position).normalize(); camRight.crossVectors(camDir, camera.up).normalize();
+    camLook.addScaledVector(camRight, 0.35 + (0.16 - 0.35) * faceMix);
+    camera.lookAt(camLook);
+    creatorFill.intensity += (1.3 - creatorFill.intensity) * Math.min(1, dt * 4);
+    creatorFill.position.copy(camera.position).addScaledVector(camRight, -1.5).setY(camera.position.y + 1.2); creatorFill.target.position.copy(headPos);
   };
+  const endCreator = () => { creatorFill.intensity = 0; };
 
   async function openSettings() {
     const before = settings.quality;
@@ -208,9 +227,9 @@ async function main() {
       appearance = save?.appearance ?? { ...DEFAULT_APPEARANCE, name: '' };
       state = 'create'; const roof = mansion.spots.roof ?? mansion.spots.wake;
       if (roof) player.teleport(roof.pos[0], roof.pos[1], roof.pos[2], roof.yaw + Math.PI);
-      avatar.play('idle'); setClock(16 * 60 + 40); creationCamera(); await fade(false, 500);
-      appearance = await screens.create(kitInfo, appearance, a => { appearance = a; avatar.setAppearance(a, kitInfo); });
-      await avatar.setAppearance(appearance, kitInfo);
+      avatar.play('idle'); setClock(16 * 60 + 40); creatorTab = 'look'; faceMix = 0; creationCamera(1); await fade(false, 500);
+      appearance = await screens.create(kitInfo, appearance, a => { appearance = a; avatar.setAppearance(a, kitInfo); }, tab => { creatorTab = tab; });
+      await avatar.setAppearance(appearance, kitInfo); endCreator();
       save = newSave(appearance); writeSave(save);
       await fade(true, 500);
       await playerSpawn(true);
@@ -228,15 +247,25 @@ async function main() {
   const warmAmbient = new THREE.Color('#ffd7a8'), warmGround = new THREE.Color('#6b4f36');
   const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity, color: sky.ambient.color.clone(), hemiColor: sky.hemi.color.clone(), hemiGround: sky.hemi.groundColor.clone() }; } };
   const baseAmbient = () => { refresh(); return ambientRef.ambient; }, baseHemi = () => { refresh(); return ambientRef.hemi; };
+  let renderDirty = false; // paused: the last frame stays on the canvas; re-render only when the viewport changed
+  addEventListener('resize', () => { renderDirty = true; });
+  const bench = { frames: 0, ms: 0 };
   const tick = () => {
     requestAnimationFrame(tick);
     const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now; frame++;
-    GLOBAL.uTime.value = now / 1000;
     const inp = input.poll();
+    if (state === 'paused') {
+      // menus are DOM: no simulation, no NPC/crowd/lighting work and no GPU frame while paused
+      hud.update(dt);
+      if (renderDirty) { renderDirty = false; renderer.render(scene, camera); }
+      return;
+    }
+    const t0 = performance.now();
+    GLOBAL.uTime.value = now / 1000;
 
     if (state === 'title') { cinematicCamera(dt); }
-    else if (state === 'create') { creationCamera(); if (inp.lookDX) player.yaw -= inp.lookDX * 1.5; avatar.root.rotation.y = player.yaw; avatar.update(dt); }
-    else if (state === 'game' || state === 'cutscene' || state === 'paused') {
+    else if (state === 'create') { creationCamera(dt); if (inp.lookDX) player.yaw -= inp.lookDX * 1.5; avatar.root.rotation.y = player.yaw; avatar.update(dt); }
+    else if (state === 'game' || state === 'cutscene') {
       if (state === 'game') {
         if (inp.pausePressed) { pause(); }
         else {
@@ -262,7 +291,7 @@ async function main() {
       const warm = Math.min(1, indoorMix * (0.4 + nightNow * 0.55));
       sky.ambient.color.copy(ambientRef.color).lerp(warmAmbient, warm);
       sky.hemi.color.copy(ambientRef.hemiColor).lerp(warmAmbient, warm); sky.hemi.groundColor.copy(ambientRef.hemiGround).lerp(warmGround, warm);
-      if (state !== 'paused') chase.update(dt, player.pos, player.yaw, inp.lookDX, inp.lookDY, inp.zoom, player.moving, indoor);
+      chase.update(dt, player.pos, player.yaw, inp.lookDX, inp.lookDY, inp.zoom, player.moving, indoor);
       if (room !== lastRoom && state === 'game') {
         lastRoom = room;
         if (room) hud.setPlace(ROOM_LABEL[room] ?? room, HOUSE_NAME);
@@ -272,7 +301,7 @@ async function main() {
       if (save) hud.setStats(gameMinutes, day, save.cash, save.health);
       if (frame % 2 === 0) radar.update(player.pos.x, player.pos.z, chase.yaw);
     }
-    if (state !== 'paused') { mansion.update(dt); household.update(dt, player.pos, camera.position); }
+    mansion.update(dt); household.update(dt, player.pos, camera.position);
     hud.update(dt);
 
     // lighting: shadows follow the focus; nearest light spots fill the pool (night, or indoors by day)
@@ -287,9 +316,10 @@ async function main() {
       cands.sort((a, b) => a.d - b.d);
       lightPool.forEach((l, i) => { const c = cands[i]; if (!c) { l.visible = false; return; } l.visible = true; l.position.set(c.s.pos[0], c.s.pos[1] - (c.s.outdoor ? 0 : 0.55), c.s.pos[2]); l.color.setHex(c.s.color); l.intensity = c.s.intensity * (night ? 16 : 9); l.distance = c.s.distance * 1.3; });
     }
-    if (crowd) crowd.update(dt, camera, focus, 0);
-    if (frame % 6 === 0) cullDetail(built.detailMeshes, camera.position, Q.detail);
+    if (crowd && frame % Q.crowdStep === 0) crowd.update(dt * Q.crowdStep, camera, focus, 0);
+    if (frame % Q.cullStep === 0) cullDetail(built.detailMeshes, camera.position, Q.detail);
     renderer.render(scene, camera);
+    bench.frames++; bench.ms += performance.now() - t0;
     fpsFrames++; if (now - fpsT >= 500) { hud.setFps(fpsFrames / ((now - fpsT) / 1000), `${renderer.info.render.calls} calls`); fpsFrames = 0; fpsT = now; }
   };
   requestAnimationFrame(tick);
@@ -299,22 +329,28 @@ async function main() {
 
   async function pause() {
     if (state !== 'game') return;
-    state = 'paused'; input.enabled = false; input.clear();
+    state = 'paused'; input.enabled = false; input.clear(); renderDirty = true;
     for (;;) {
       const s = save!;
       const info = `${s.appearance.name} · Day ${day}, ${clockLabel(gameMinutes)} · ${Math.round(s.played / 60)} min played · ${s.stats.doors} doors, ${s.stats.meals} meals, ${s.stats.sleeps} nights, ${s.stats.talks} chats · ${Q.label} graphics`;
       const choice = await screens.pause(info);
       if (choice === 'settings') { await openSettings(); continue; }
       if (choice === 'save') { persist(); flash('Game saved.'); continue; }
-      if (choice === 'quit') { persist(); await fade(true, 500); hud.show(false); input.enabled = true; state = 'title'; await runTitle(); return; }
+      if (choice === 'quit') { persist(); await fade(true, 500); hud.show(false); input.clear(); input.enabled = true; last = performance.now(); state = 'title'; await runTitle(); return; }
       break;
     }
-    input.enabled = true; state = 'game';
+    // resume: nothing held during the menu may leak into the first game frame, and dt restarts from now
+    input.clear(); input.enabled = true; last = performance.now(); state = 'game';
   }
-  addEventListener('visibilitychange', () => { if (document.hidden && state === 'game') { persist(); pause(); } });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'game') { persist(); pause(); } });
   addEventListener('beforeunload', () => persist());
 
-  (window as unknown as { vora: unknown }).vora = { scene, camera, renderer, player, chase, mansion, household, sky, setClock, collision, get save() { return save; }, get state() { return state; }, get frame() { return frame; } };
+  (window as unknown as { vora: unknown }).vora = {
+    scene, camera, renderer, player, chase, mansion, household, sky, setClock, collision, input, avatar, crowd, quality: qualityId, preset: Q,
+    get save() { return save; }, get state() { return state; }, get frame() { return frame; },
+    /** cumulative CPU-side frame cost (simulation + render submit) since boot or the last reset */
+    get bench() { return { ...bench }; }, resetBench() { bench.frames = 0; bench.ms = 0; },
+  };
 }
 
 main().catch(err => { console.error(err); const el = document.getElementById('load-text'); if (el) { el.textContent = 'Failed to start: ' + (err?.message ?? err); } document.getElementById('screen-loading')?.classList.remove('hidden'); document.getElementById('screen-logo')?.classList.add('hidden'); });

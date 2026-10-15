@@ -4,6 +4,7 @@
  * player when approached and can be talked to (one-liners by role). Scheduling/walking comes in APK 2.
  */
 import * as THREE from 'three';
+import { setSkinnedBounds } from '../characters/bounds';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { retargetAll } from '../characters/retarget';
@@ -45,7 +46,8 @@ export class Household {
   readonly group = new THREE.Group();
   private loader = new GLTFLoader();
   onSay: (who: string, line: string) => void = () => {};
-  constructor(private base: string, private shadows: boolean) {}
+  /** `lodScale` shrinks the LOD / visibility distances (Lite preset < 1) */
+  constructor(private base: string, private shadows: boolean, private lodScale = 1) {}
 
   async load(manifest: Manifest, spots: Record<string, { x: number; y: number; z: number; yaw: number }>, playerSex: 'f' | 'm', progress?: (done: number, total: number) => void): Promise<void> {
     const lib = await loadAnimLibrary(this.base);
@@ -68,7 +70,8 @@ export class Household {
         const gltf = await this.loader.loadAsync(this.base + entry.file);
         const root = cloneSkinned(gltf.scene) as THREE.Object3D;
         const lods: THREE.Object3D[] = [];
-        root.traverse(o => { if (/^LOD\d$/.test(o.name)) lods.push(o); const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = this.shadows; m.receiveShadow = false; m.frustumCulled = false; } });
+        root.traverse(o => { if (/^LOD\d$/.test(o.name)) lods.push(o); const m = o as THREE.Mesh; if (m.isMesh) { m.castShadow = this.shadows; m.receiveShadow = false; } });
+        setSkinnedBounds(root, entry.height);
         lods.sort((a, b) => a.name < b.name ? -1 : 1); lods.forEach((l, i) => l.visible = i === 0);
         const clips = retargetAll(lib, root, entry.height);
         const mixer = new THREE.AnimationMixer(root); const actions = new Map<string, THREE.AnimationAction>();
@@ -104,7 +107,7 @@ export class Household {
 
   update(dt: number, player: THREE.Vector3, camPos: THREE.Vector3) {
     for (const npc of this.npcs) {
-      const d2 = npc.pos.distanceToSquared(camPos);
+      const d2 = npc.pos.distanceToSquared(camPos) / (this.lodScale * this.lodScale);
       if (d2 > 60 * 60) { npc.root.visible = false; continue; }
       npc.root.visible = true;
       const lod = d2 < 14 * 14 ? 0 : d2 < 30 * 30 ? 1 : 2;
