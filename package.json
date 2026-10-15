@@ -16,6 +16,7 @@
     "verify": "npm run generate && npm run test && npm run typecheck && npm run build"
   },
   "dependencies": {
+    "@fontsource/bebas-neue": "^5.3.0",
     "three": "0.170.0"
   },
   "devDependencies": {

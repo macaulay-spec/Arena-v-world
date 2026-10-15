@@ -49,7 +49,7 @@ function panelGeometry(w: number, h: number, t: number, style: 'door' | 'glass' 
   geoCache.set(key, g); return g;
 }
 
-export interface DoorSpec { x: number; y: number; z: number; /** direction the leaf runs from the hinge when closed (radians, THREE rotation.y) */ along: number; width: number; height: number; thick?: number; style?: 'door' | 'glass' | 'flat' | 'cabinet'; mat: MatId; color: string; /** +1 swings toward +local z of the leaf frame, -1 the other way */ swing?: 1 | -1; label?: string; collide?: boolean; openAngle?: number; glassMat?: MatId }
+export interface DoorSpec { x: number; y: number; z: number; /** direction the leaf runs from the hinge when closed (radians, THREE rotation.y) */ along: number; width: number; height: number; thick?: number; style?: 'door' | 'glass' | 'flat' | 'cabinet'; mat: MatId; color: string; /** +1 swings toward +local z of the leaf frame, -1 the other way */ swing?: 1 | -1; label?: string; collide?: boolean; openAngle?: number; glassMat?: MatId; /** start open */ open?: boolean }
 
 export class Door {
   group = new THREE.Group();
@@ -71,6 +71,7 @@ export class Door {
     this.group.add(mesh);
     this.group.position.set(spec.x, spec.y, spec.z); this.group.rotation.y = spec.along;
     this.label = spec.label ?? 'door';
+    if (spec.open) { this.toggle(true); this.angle = this.target; this.group.rotation.y = spec.along + this.angle; }
     this.updateBlocker();
   }
   /** world-space (mansion-local) leaf end point for the current angle */

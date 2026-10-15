@@ -44,6 +44,7 @@ export class Screens {
   create(info: KitInfo[], initial: Appearance, onChange: (a: Appearance) => void): Promise<Appearance> {
     this.show('create');
     const a: Appearance = { ...initial };
+    if (!a.name) a.name = (a.sex === 'm' ? FIRST_NAMES_M : FIRST_NAMES_F)[Math.floor(Math.random() * 12)];
     const name = $<HTMLInputElement>('c-name'), tone = $<HTMLInputElement>('c-tone'), height = $<HTMLInputElement>('c-height');
     const sexSeg = $('c-sex'); const hairL = $('c-hair'), outfitL = $('c-outfit');
     const kit = () => info.find(k => k.sex === a.sex) ?? info[0];

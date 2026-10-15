@@ -136,7 +136,7 @@ function gatehouse(c: MansionContext, x0: number, z0: number, x1: number, z1: nu
   K.wall('plaster', x0, z1, x1, z1, y, h, 0.2, wallC, [{ u0: 1.2, u1: 2.8, y0: y + 1.0, y1: y + 2.0, kind: 'window' }]);
   K.glazing(x0, z1, x1, z1, { u0: 1.2, u1: 2.8, y0: y + 1.0, y1: y + 2.0 }, rgb('#2b2f36'), 0.2, 1);
   K.slab('roof', x0 - 0.3, z0 - 0.3, x1 + 0.3, z1 + 0.3, y + h + 0.2, 0.2, rgb('#9a958c'), { walk: false });
-  c.door({ x: x0 + 1.0, y, z: z0, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#4a3220', swing: -1, label: 'gatehouse door' });
+  c.door({ x: x0 + 1.0, y, z: z0, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#9a7050', swing: -1, label: 'gatehouse door', open: true });
   F.desk(K, { x: x0 + 1.0, y, z: z0 + 2.6, rot: -Math.PI / 2 }); F.officeChair(K, { x: x0 + 1.9, y, z: z0 + 2.6, rot: Math.PI / 2 });
   F.bench(K, { x: x1 - 0.6, y, z: z0 + 2.2, rot: -Math.PI / 2 }, 1.6); F.ceilingLamp(K, { x: (x0 + x1) / 2, y: y + h, z: (z0 + z1) / 2 }, 0.15);
   F.bench(K, { x: x0 - 1.6, y: 0, z: z1 - 1.0, rot: Math.PI / 2 }, 1.6); // gateman's bench outside
@@ -151,8 +151,8 @@ function staffQuarters(c: MansionContext, x0: number, z0: number, x1: number, z1
   K.wall('plaster', x0, z0, x0, z1, y, h, 0.2, wallC); K.wall('plaster', x1, z0, x1, z1, y, h, 0.2, wallC); K.wall('plaster', mid, z0, mid, z1, y, h, 0.15, wallC);
   K.wall('plaster', x0, z1, x1, z1, y, h, 0.2, wallC, [{ u0: 1.0, u1: 2.0, y0: y, y1: y + 2.1, kind: 'door' }, { u0: 3.0, u1: 4.5, y0: y + 1.0, y1: y + 2.1, kind: 'window' }, { u0: x1 - x0 - 2.0, u1: x1 - x0 - 1.0, y0: y, y1: y + 2.1, kind: 'door' }, { u0: x1 - x0 - 4.5, u1: x1 - x0 - 3.0, y0: y + 1.0, y1: y + 2.1, kind: 'window' }]);
   K.glazing(x0, z1, x1, z1, { u0: 3.0, u1: 4.5, y0: y + 1.0, y1: y + 2.1 }, rgb('#2b2f36'), 0.2); K.glazing(x0, z1, x1, z1, { u0: x1 - x0 - 4.5, u1: x1 - x0 - 3.0, y0: y + 1.0, y1: y + 2.1 }, rgb('#2b2f36'), 0.2);
-  c.door({ x: x0 + 1.0, y, z: z1, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#4a3220', swing: 1, label: 'staff room door' });
-  c.door({ x: x1 - 2.0, y, z: z1, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#4a3220', swing: 1, label: 'staff room door' });
+  c.door({ x: x0 + 1.0, y, z: z1, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#9a7050', swing: 1, label: 'staff room door', open: true });
+  c.door({ x: x1 - 2.0, y, z: z1, along: 0, width: 1.0, height: 2.1, style: 'door', mat: 'woodDark', color: '#9a7050', swing: 1, label: 'staff room door' });
   // veranda roof on posts
   K.slab('roof', x0 - 0.3, z0 - 0.3, x1 + 0.3, z1 + 2.2, y + h + 0.2, 0.2, rgb('#8a5a3a'), { walk: false });
   for (const x of [x0 + 0.3, mid, x1 - 0.3]) K.box('woodDark', x, y + h / 2, z1 + 1.9, 0.18, h, 0.18, rgb('#4a2e18'), 0, { collide: true });

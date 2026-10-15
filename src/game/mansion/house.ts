@@ -19,7 +19,7 @@ export function buildHouse(c: MansionContext): void {
     K.wall(mat, ax, az, bx, bz, y, h, t, color, abs);
     for (const o of abs) if (o.kind === 'window') K.glazing(ax, az, bx, bz, o, TRIM, t, o.u1 - o.u0 > 2.2 ? 2 : 1);
   };
-  const hinged = (x: number, y: number, z: number, along: number, width: number, o: Partial<DoorSpec> = {}) => c.door({ x, y, z, along, width, height: o.height ?? 2.1, thick: 0.05, style: o.style ?? 'door', mat: o.mat ?? 'woodDark', color: o.color ?? '#5a3a22', swing: o.swing ?? 1, label: o.label ?? 'door', openAngle: o.openAngle, glassMat: o.glassMat });
+  const hinged = (x: number, y: number, z: number, along: number, width: number, o: Partial<DoorSpec> = {}) => c.door({ x, y, z, along, width, height: o.height ?? 2.1, thick: 0.05, style: o.style ?? 'door', mat: o.mat ?? 'woodDark', color: o.color ?? '#b08a60', swing: o.swing ?? 1, label: o.label ?? 'door', openAngle: o.openAngle, glassMat: o.glassMat, open: o.open });
   /** double door: two leaves hinged at both jambs of an X-wall opening [a,b] at z */
   const doubleX = (a: number, b: number, y: number, z: number, o: Partial<DoorSpec> = {}) => { const w = (b - a) / 2; hinged(a, y, z, 0, w, o); hinged(b, y, z, Math.PI, w, { ...o, swing: (o.swing ?? 1) * -1 as 1 | -1 }); };
   /** glass balustrade with collision */
@@ -82,9 +82,9 @@ export function buildHouse(c: MansionContext): void {
   K.box('stone', (X0 + X1) / 2, F1 - 0.05, Z1 + 0.18, X1 - X0 + 0.4, 0.12, 0.1, STONE); K.box('stone', (X0 + X1) / 2, F1 - 0.05, Z0 - 0.18, X1 - X0 + 0.4, 0.12, 0.1, STONE);
   K.box('stone', X0 - 0.18, F1 - 0.05, (Z0 + Z1) / 2, 0.1, 0.12, Z1 - Z0 + 0.4, STONE); K.box('stone', X1 + 0.18, F1 - 0.05, (Z0 + Z1) / 2, 0.1, 0.12, Z1 - Z0 + 0.4, STONE);
   // exterior doors
-  doubleX(31.8, 34.2, GF, Z1, { height: 2.6, style: 'door', color: '#3a2414', label: 'front door' });
-  hinged(34, GF, Z0, 0, 1.2, { style: 'glass', color: '#2b2f36', mat: 'metalDark', label: 'garden door', swing: 1 });
-  hinged(46, GF, Z0, 0, 1.0, { color: '#4a3220', label: 'kitchen door', swing: 1 });
+  doubleX(31.8, 34.2, GF, Z1, { height: 2.6, style: 'door', color: '#6a4426', label: 'front door', open: true });
+  hinged(34, GF, Z0, 0, 1.2, { style: 'glass', color: '#2b2f36', mat: 'metalDark', label: 'garden door', swing: 1, open: true });
+  hinged(46, GF, Z0, 0, 1.0, { color: '#a07a50', label: 'kitchen door', swing: 1, open: true });
   doubleX(31.8, 34.2, F1, Z1, { height: 2.4, style: 'glass', mat: 'metalDark', color: '#2b2f36', label: 'balcony door' });
   hinged(19.5, F1, Z1, 0, 1.0, { style: 'glass', mat: 'metalDark', color: '#2b2f36', label: 'balcony door' });
   hinged(44, F1, Z1, 0, 1.0, { style: 'glass', mat: 'metalDark', color: '#2b2f36', label: 'balcony door' });
@@ -103,8 +103,8 @@ export function buildHouse(c: MansionContext): void {
   hinged(30, GF, 22, -Math.PI / 2, 1.0, { label: 'toilet door', swing: 1 });
   hinged(30, GF, 28, -Math.PI / 2, 1.0, { label: 'store door', swing: 1 });
   hinged(39, GF, 22, -Math.PI / 2, 1.2, { label: 'kitchen door', swing: 1, style: 'glass', mat: 'metalDark', color: '#2b2f36' });
-  hinged(24, GF, 32, 0, 1.0, { label: 'office door', swing: -1 });
-  hinged(44, GF, 34, 0, 1.0, { label: 'kitchen door', swing: -1 });
+  hinged(24, GF, 32, 0, 1.0, { label: 'office door', swing: -1, open: true });
+  hinged(44, GF, 34, 0, 1.0, { label: 'kitchen door', swing: -1, open: true });
   // ceilings are the slab undersides; GF slab underside = F1 slab (built above)
   // stairs
   K.stair('marble', 27.15, 29.9, 43.5, -1, GF, 17, 0.2, 0.28, rgb('#ece7dd'), { rail: 'right' });
@@ -112,7 +112,7 @@ export function buildHouse(c: MansionContext): void {
   // stair penthouse on the roof
   wall('plaster', 26.85, 32.5, 30.15, 32.5, RF, 2.7, TE, EXT); wall('plaster', 26.85, 32.5, 26.85, 39.5, RF, 2.7, TE, EXT); wall('plaster', 26.85, 39.5, 30.15, 39.5, RF, 2.7, TE, EXT);
   wall('plaster', 30.15, 32.5, 30.15, 39.5, RF, 2.7, TE, EXT, [dr(3.5, 4.5)]);
-  hinged(30.15, RF, 36, -Math.PI / 2, 1.0, { label: 'terrace door', swing: 1, color: '#3a2414' });
+  hinged(30.15, RF, 36, -Math.PI / 2, 1.0, { label: 'terrace door', swing: 1, color: '#8a6040', open: true });
   K.slab('roof', 26.7, 32.35, 30.3, 39.65, RF + 2.7 + 0.2, 0.2, rgb('#9a958c'), { walk: false });
 
   // rooms (for the HUD + light logic)
@@ -202,8 +202,8 @@ export function buildHouse(c: MansionContext): void {
   wall('plaster', X0, 33.9, 30, 33.9, F1, H, TI, INT);
   wall('plaster', 36, 29, X1, 29, F1, H, TI, INT);
   wall('plaster', 36, 36, X1, 36, F1, H, TI, INT, [dr(9, 10)]);
-  hinged(27, F1, 40, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: -1 });
-  hinged(30, F1, 30, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: -1 });
+  hinged(27, F1, 40, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: -1, open: true });
+  hinged(30, F1, 30, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: -1, open: true });
   hinged(36, F1, 24, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: 1 });
   hinged(36, F1, 32, -Math.PI / 2, 0.9, { label: 'bathroom door', swing: 1, color: '#f0ece4', mat: 'white' });
   hinged(39, F1, 40, -Math.PI / 2, 1.0, { label: 'bedroom door', swing: 1 });

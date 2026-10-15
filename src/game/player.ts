@@ -55,7 +55,7 @@ export class Avatar {
       this.nodes.clear();
       let skin: THREE.MeshStandardMaterial | null = null;
       model.traverse(o => {
-        if (/^(LOD0|HAIR_|OUTFIT_)/.test(o.name)) this.nodes.set(o.name, o);
+        if (/^(LOD0|HAIR_[a-z_]+|OUTFIT_[a-z_]+)$/.test(o.name)) this.nodes.set(o.name, o);
         const m = o as THREE.Mesh;
         if (m.isMesh) {
           m.castShadow = this.shadows; m.receiveShadow = false; m.frustumCulled = false;

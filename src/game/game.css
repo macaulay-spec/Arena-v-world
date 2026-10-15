@@ -1,6 +1,7 @@
+@import '@fontsource/bebas-neue/index.css';
 :root {
   --accent: #f2c230; --ink: #f4f1ea; --panel: rgba(12, 12, 14, 0.78); --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --display: Impact, 'Arial Narrow Bold', 'Arial Black', sans-serif;
+  --display: 'Bebas Neue', Impact, 'Arial Narrow Bold', sans-serif;
   --sa-l: env(safe-area-inset-left, 0px); --sa-r: env(safe-area-inset-right, 0px); --sa-t: env(safe-area-inset-top, 0px); --sa-b: env(safe-area-inset-bottom, 0px);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -14,14 +15,15 @@ button { font: inherit; color: inherit; }
 #radar-wrap { position: absolute; left: calc(12px + var(--sa-l)); bottom: calc(12px + var(--sa-b)); width: 118px; height: 118px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(0,0,0,0.55), 0 6px 18px rgba(0,0,0,0.5); overflow: hidden; background: #333; }
 #radar { width: 100%; height: 100%; display: block; }
 #stats { position: absolute; right: calc(14px + var(--sa-r)); top: calc(10px + var(--sa-t)); text-align: right; text-shadow: 0 1px 2px #000, 0 0 8px rgba(0,0,0,0.6); }
-#cash { font-family: var(--display); font-size: 26px; letter-spacing: 1px; color: #7ed957; }
-#clock-wrap { font-family: var(--display); font-size: 20px; color: #fff; margin-top: 2px; }
+#cash { font-family: var(--display); font-size: 30px; letter-spacing: 1px; color: #7ed957; }
+#cash .cur { font-family: var(--font); font-weight: 700; font-size: 0.68em; vertical-align: 8%; margin-right: 2px; }
+#clock-wrap { font-family: var(--display); font-size: 24px; color: #fff; margin-top: 2px; }
 #clock-wrap #day { font-size: 12px; margin-left: 8px; color: #cfcfcf; font-family: var(--font); }
 #health { width: 150px; height: 8px; margin: 6px 0 0 auto; background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.35); border-radius: 4px; overflow: hidden; }
 #health-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #ff5d4a, #ffb347); transition: width 0.3s; }
 #place-card { position: absolute; right: calc(16px + var(--sa-r)); bottom: calc(18px + var(--sa-b)); text-align: right; transform: translateY(20px); opacity: 0; transition: all 0.6s ease; text-shadow: 0 2px 4px #000; }
 #place-card.in { transform: none; opacity: 1; }
-#place { font-family: var(--display); font-size: 30px; color: var(--accent); letter-spacing: 1px; line-height: 1; }
+#place { font-family: var(--display); font-size: 36px; color: var(--accent); letter-spacing: 1px; line-height: 1; }
 #place-sub { font-size: 13px; color: #e8e8e8; margin-top: 4px; }
 #prompt { position: absolute; left: 50%; bottom: calc(26% + var(--sa-b)); transform: translateX(-50%); background: rgba(0,0,0,0.62); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 8px 14px 8px 8px; font-size: 15px; display: flex; align-items: center; gap: 10px; white-space: nowrap; backdrop-filter: blur(4px); }
 #prompt .key { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; background: var(--accent); color: #111; font-weight: 700; }

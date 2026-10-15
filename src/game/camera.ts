@@ -35,11 +35,13 @@ export class ChaseCamera {
     const pivotS = pivot.clone().addScaledVector(right, this.mode === 'front' ? 0 : this.shoulder);
     // occlusion: 2D ray against blockers at head height band
     const far = pivotS.clone().addScaledVector(dir, wantDist);
-    const f = this.world.rayFraction(pivotS.x, pivotS.z, far.x, far.z, target.y + 0.6, target.y + 2.2);
+    // three rays (centre + a camera-width to each side) so the near plane never pokes into a wall
+    let f = this.world.rayFraction(pivotS.x, pivotS.z, far.x, far.z, target.y + 0.6, target.y + 2.2);
+    for (const side of [-0.35, 0.35]) f = Math.min(f, this.world.rayFraction(pivotS.x + right.x * side, pivotS.z + right.z * side, far.x + right.x * side, far.z + right.z * side, target.y + 0.6, target.y + 2.2));
     let dist = Math.max(this.minDistance * 0.6, wantDist * f - 0.3);
     // ground clearance
     const probe = pivotS.clone().addScaledVector(dir, dist);
-    const g = this.world.groundAt(probe.x, probe.z, probe.y + 2, 100) + 0.45;
+    const g = this.world.groundAt(probe.x, probe.z, probe.y, 0.3) + 0.35;
     if (probe.y < g) { const up = g - probe.y; probe.y = g; void up; }
     // smooth distance (pull in fast, release slowly)
     this.distance += (dist - this.distance) * Math.min(1, dt * (dist < this.distance ? 20 : 4));

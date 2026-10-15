@@ -1,5 +1,5 @@
 /** In-game HUD: radar, clock, cash, health, location card, interaction prompt, speech + toasts. */
-import { cashLabel, clockLabel } from './save';
+import { clockLabel } from './save';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -20,7 +20,7 @@ export class Hud {
 
   setStats(minutes: number, day: number, cash: number, health: number) {
     const c = clockLabel(minutes); if (c !== this.clockShown) { this.clock.textContent = c; this.clockShown = c; this.day.textContent = `Day ${day}`; }
-    if (cash !== this.cashShown) { this.cash.textContent = cashLabel(cash); this.cashShown = cash; }
+    if (cash !== this.cashShown) { this.cash.innerHTML = `<span class="cur">₦</span>${Math.round(cash).toLocaleString('en-NG')}`; this.cashShown = cash; }
     this.health.style.width = `${Math.max(0, Math.min(100, health))}%`;
   }
   setPrompt(text: string | null) {

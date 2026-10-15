@@ -215,7 +215,10 @@ async function main() {
   runTitle().catch(e => console.error(e));
 
   // ─── main loop ───
-  let last = performance.now(), frame = 0, fpsFrames = 0, fpsT = last, autosaveT = 0, clockAcc = 0, lastRoom: string | null = null;
+  let last = performance.now(), frame = 0, fpsFrames = 0, fpsT = last, autosaveT = 0, clockAcc = 0, lastRoom: string | null = null, indoorMix = 0;
+  let ambientRef = { hour: -1, ambient: 0, hemi: 0 };
+  const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity }; } };
+  const baseAmbient = () => { refresh(); return ambientRef.ambient; }, baseHemi = () => { refresh(); return ambientRef.hemi; };
   const tick = () => {
     requestAnimationFrame(tick);
     const now = performance.now(); const dt = Math.min(0.05, (now - last) / 1000); last = now; frame++;
@@ -243,6 +246,9 @@ async function main() {
       }
       const room = mansion.roomAt(player.pos.x, player.pos.y + 0.5, player.pos.z);
       const indoor = !!room && room !== 'roof';
+      // interiors only get sky/ambient light (the sun is shadowed) → lift the ambient term indoors
+      indoorMix += ((indoor ? 1 : 0) - indoorMix) * Math.min(1, dt * 3);
+      sky.ambient.intensity = baseAmbient() + indoorMix * 0.55; sky.hemi.intensity = baseHemi() + indoorMix * 0.35;
       if (state !== 'paused') chase.update(dt, player.pos, player.yaw, inp.lookDX, inp.lookDY, inp.zoom, player.moving, indoor);
       if (room !== lastRoom && state === 'game') {
         lastRoom = room;
