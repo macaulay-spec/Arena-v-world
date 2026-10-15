@@ -2,7 +2,7 @@
  * V-WORLD character pipeline entry: `npm run characters`
  * Generates shared textures, the character population (glTF) and data/characters.json.
  */
-import { mkdirSync, writeFileSync, existsSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, rmSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { morph, defaultBody } from './body';
 import { buildRig } from './rig';
@@ -83,7 +83,14 @@ for (const t of specs) {
   data.push({ ...entry, roleId: t.roleId, districtNames: (t.districts ?? []).map(d => DISTRICT_NAMES[d]), skinTone: t.tone, hair: t.hair, headwear: t.headwear, outfit: t.outfit.map(o => ({ garment: o.id, fabric: o.look.fabric, colour: o.look.colour })), props: t.props ?? [] });
   log(t.id, 'tris', r.lodTris.join('/'), 'verts', r.verts, 'draws', r.draws, 'bin', (r.bytes / 1024).toFixed(0) + 'kB');
 }
-const manifestJson = { generated: new Date().toISOString().slice(0, 10), seed: 20260419, animations: 'animations.gltf', clips: CLIPS.map(c => c.name), characters: manifest };
+// partial runs (ONLY=...) merge into the existing manifest instead of clobbering it
+let finalManifest = manifest;
+if (only && existsSync(join(OUT, 'manifest.json'))) {
+  const prev = JSON.parse(readFileSync(join(OUT, 'manifest.json'), 'utf8')).characters as any[] ?? [];
+  const ids = new Set(manifest.map(m => m.id));
+  finalManifest = [...prev.filter(p => !ids.has(p.id)), ...manifest].sort((a, b) => a.id < b.id ? -1 : 1);
+}
+const manifestJson = { generated: new Date().toISOString().slice(0, 10), seed: 20260419, animations: 'animations.gltf', clips: CLIPS.map(c => c.name), characters: finalManifest };
 writeFileSync(join(OUT, 'manifest.json'), JSON.stringify(manifestJson, null, 1));
 if (!only) { mkdirSync(join(process.cwd(), 'data'), { recursive: true }); writeFileSync(join(process.cwd(), 'data', 'characters.json'), JSON.stringify({ ...manifestJson, characters: data }, null, 1)); }
 log('done', manifest.length, 'characters');

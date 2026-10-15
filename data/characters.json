@@ -11,7 +11,12 @@
   "sit",
   "phone",
   "wave",
-  "sell"
+  "sell",
+  "jump",
+  "sweep",
+  "guard",
+  "work",
+  "lie"
  ],
  "characters": [
   {
@@ -3657,6 +3662,175 @@
     },
     {
      "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_housekeeper_1",
+   "file": "chr_housekeeper_1.gltf",
+   "name": "Amina Umaru",
+   "height": 1.578,
+   "tris": 27066,
+   "lodTris": [
+    27066,
+    11199,
+    4151
+   ],
+   "bytes": 1092300,
+   "sex": "f",
+   "age": 35,
+   "tags": [
+    "home",
+    "work",
+    "female"
+   ],
+   "role": "Housekeeper",
+   "district": "north",
+   "districts": [
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [],
+   "roleId": "housekeeper",
+   "districtNames": [
+    "North Heights"
+   ],
+   "skinTone": "#784B32",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "cotton",
+     "colour": "#F5EFE6"
+    },
+    {
+     "garment": "skirt_long",
+     "fabric": "cotton",
+     "colour": "#3E2F2F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#2B2B2B"
+    }
+   ]
+  },
+  {
+   "id": "chr_driver_1",
+   "file": "chr_driver_1.gltf",
+   "name": "Garba Garuba",
+   "height": 1.767,
+   "tris": 25830,
+   "lodTris": [
+    25830,
+    10658,
+    3943
+   ],
+   "bytes": 1020292,
+   "sex": "m",
+   "age": 34,
+   "tags": [
+    "home",
+    "work",
+    "male"
+   ],
+   "role": "Driver",
+   "district": "north",
+   "districts": [
+    "north",
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "driver",
+   "districtNames": [
+    "North Heights",
+    "Central District"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "cotton",
+     "colour": "#E3ECF5"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "polyester",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_gateman_1",
+   "file": "chr_gateman_1.gltf",
+   "name": "Seyi Garuba",
+   "height": 1.785,
+   "tris": 27672,
+   "lodTris": [
+    27672,
+    11434,
+    4239
+   ],
+   "bytes": 1115772,
+   "sex": "m",
+   "age": 50,
+   "tags": [
+    "home",
+    "uniform",
+    "male"
+   ],
+   "role": "Gateman",
+   "district": "north",
+   "districts": [
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "gateman",
+   "districtNames": [
+    "North Heights"
+   ],
+   "skinTone": "#784B32",
+   "hair": "low_cut",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "kaftan",
+     "fabric": "polyester",
+     "colour": "#374151"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#374151"
+    },
+    {
+     "garment": "sandals",
      "fabric": "leather",
      "colour": "#3E2723"
     }
