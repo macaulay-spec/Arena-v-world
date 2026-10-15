@@ -194,21 +194,56 @@ if (!BENCH_ONLY) {
   await frames(3);
   const r2 = await page.evaluate(() => ({ rendered: window.vora.renderer.info.render.frame, speed: window.vora.player.speed, mag: window.vora.input.state.moveMag }));
   check('resume renders again with no stale input', r2.rendered > r1.rendered && r2.speed === 0 && r2.mag === 0, r2);
+
+  // HUD layout: radar top-left, status top-right, pause top-centre, touch controls in the bottom corners,
+  // transient text in the free centre — nothing overlaps and nothing leaves the viewport, on the
+  // smallest Android landscape viewport up to a tablet
+  const layouts = [];
+  for (const [w, h] of [[640, 360], [780, 360], [844, 390], [1280, 720]]) {
+    await page.setViewport({ width: w, height: h, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+    await frames(2);
+    const r = await page.evaluate((w, h) => {
+      const show = (id, cls) => { const el = document.getElementById(id); el.classList.remove('hidden'); if (cls) el.classList.add(cls); return el; };
+      const toast = show('toast'); toast.textContent = 'Autosaved — JAG House, 1 Ridge Street';
+      const card = show('place-card', 'in'); document.getElementById('place').textContent = 'North Heights'; document.getElementById('place-sub').textContent = 'Vora City';
+      const prompt = show('prompt'); prompt.innerHTML = '<span class="key">E</span> Open front door';
+      const fps = show('fps'); fps.textContent = '60 fps · 9.1 ms';
+      const fixed = ['radar-wrap', 'stats', 'btn-pause', 'fps', 'stick', 'btn-jump', 'btn-interact', 'btn-run', 'btn-camera'];
+      const transient = ['toast', 'place-card', 'prompt'];
+      const box = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { id, l: b.left, t: b.top, r: b.right, b: b.bottom }; };
+      const all = [...fixed, ...transient].map(box);
+      const overlaps = (a, b) => a.l < b.r - 1 && b.l < a.r - 1 && a.t < b.b - 1 && b.t < a.b - 1;
+      const out = [], off = [];
+      for (const a of all) if (a.l < -0.5 || a.t < -0.5 || a.r > w + 0.5 || a.b > h + 0.5) off.push(a.id);
+      for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+        if (transient.includes(all[i].id) && transient.includes(all[j].id)) continue; // toast/card/prompt may coincide briefly by design
+        if (overlaps(all[i], all[j])) out.push(`${all[i].id}×${all[j].id}`);
+      }
+      const radar = box('radar-wrap');
+      for (const id of [...transient, 'fps']) document.getElementById(id).classList.add('hidden'); card.classList.remove('in');
+      return { w, h, off, overlaps: out, radarTopLeft: radar.l < 40 && radar.t < 40, boxes: Object.fromEntries(all.map(b => [b.id, [Math.round(b.l), Math.round(b.t), Math.round(b.r), Math.round(b.b)]])) };
+    }, w, h);
+    layouts.push(r);
+  }
+  await page.setViewport({ width: W, height: H, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
+  await frames(2);
+  check('HUD layout: radar top-left, no overlaps, nothing off-screen (640×360 … 1280×720)', layouts.every(l => l.radarTopLeft && !l.off.length && !l.overlaps.length), layouts.map(l => ({ w: l.w, h: l.h, off: l.off, overlaps: l.overlaps, radarTopLeft: l.radarTopLeft })));
+  results.layouts = layouts;
 }
 
 // ---- benchmark -------------------------------------------------------------------------------
-const O = [-374.1, 24.3, -411.9];
+// spots are mansion-local (the terrace origin comes from the live city data)
 const SPOTS = [
   { name: 'living-room', at: [24, 0.45, 42, -2.4], minutes: 9 * 60 },
-  { name: 'street-outside', at: [27, -0.1, 80, 0.4], minutes: 11 * 60 },
+  { name: 'street-outside', at: [27, 0.2, 80, 0.4], minutes: 11 * 60 },
 ];
 for (const s of SPOTS) {
-  await page.evaluate((s, O) => {
-    const v = window.vora; const [x, y, z, yaw] = s.at;
-    v.player.teleport(O[0] + x, O[1] + y, O[2] + z, yaw);
+  await page.evaluate((s) => {
+    const v = window.vora; const [x, y, z, yaw] = s.at; const O = v.mansion.origin;
+    v.player.teleport(O[0] + x, O[1] + y, O[2] + z, yaw); v.player.settle();
     if (v.chase.mode !== 'far') { v.chase.cycleMode(); if (v.chase.mode !== 'far') v.chase.cycleMode(); }
     v.chase.snapBehind(yaw); v.setClock(s.minutes);
-  }, s, O);
+  }, s);
   await frames(6);
   const b0 = await page.evaluate(() => ({ t: performance.now(), frame: window.vora.frame, cpu: window.vora.bench ? { ...window.vora.bench } : null }));
   await sleep(BENCH_SECONDS * 1000);

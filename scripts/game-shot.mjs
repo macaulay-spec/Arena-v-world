@@ -14,8 +14,8 @@ const outDir = process.argv[3] ?? 'docs/screenshots/game';
 const W = parseInt(process.env.SHOT_W ?? '1280', 10), H = parseInt(process.env.SHOT_H ?? '720', 10);
 mkdirSync(outDir, { recursive: true });
 
-// local mansion coords (x, y, z, yaw) + camera mode + clock; see docs/GAME.md for the room map
-const O = [-374.1, 24.3, -411.9];
+// local mansion coords (x, y, z, yaw) + camera mode + clock; see docs/GAME.md for the room map.
+// The world origin of the mansion is read from the live game (window.vora.mansion.origin).
 const SHOTS = [
   { name: 'title', title: true },
   { name: 'create', create: true },
@@ -33,7 +33,12 @@ const SHOTS = [
   { name: 'roof-terrace', at: [38, 7.25, 44, 0.3], mode: 'far', minutes: 17 * 60 + 30 },
   { name: 'night-living', at: [24, 0.45, 42, -2.4], mode: 'far', minutes: 20 * 60 + 30 },
   { name: 'night-pool', at: [41, 0.15, 17, Math.PI], mode: 'far', minutes: 21 * 60 },
-  { name: 'street-outside', at: [27, -0.1, 80, 0.4], mode: 'far', minutes: 11 * 60 },
+  { name: 'street-outside', at: [27, 0.2, 80, 0.4], mode: 'far', minutes: 11 * 60 },
+  { name: 'stair-foot', at: [31.5, 0.45, 42.5, Math.PI], mode: 'far', minutes: 9 * 60 + 30 },
+  { name: 'penthouse-door', at: [28.3, 7.25, 30.5, Math.PI], mode: 'far', minutes: 17 * 60 },
+  { name: 'pool-steps', at: [51, 0.15, 9, -Math.PI / 2], mode: 'far', minutes: 15 * 60 },
+  { name: 'side-gate', at: [22.2, 0.05, 72, 0], mode: 'far', minutes: 11 * 60 },
+  { name: 'west-lawn', at: [12, 0.05, 50, Math.PI * 0.8], mode: 'far', minutes: 12 * 60 },
 ];
 const only = process.env.SHOTS ? new Set(process.env.SHOTS.split(',')) : null;
 const shots = only ? SHOTS.filter(s => only.has(s.name)) : SHOTS;
@@ -88,12 +93,12 @@ for (const s of shots) {
     if (s.create) continue;
   }
   if (s.wake) { await frames(4); report.push({ name: s.name, file: await shot(s.name) }); await page.waitForFunction(() => window.vora.state === 'game', { timeout: 60000 }); continue; }
-  await page.evaluate((s, O) => {
-    const v = window.vora; const [x, y, z, yaw] = s.at;
-    v.player.teleport(O[0] + x, O[1] + y, O[2] + z, yaw);
+  await page.evaluate((s) => {
+    const v = window.vora; const [x, y, z, yaw] = s.at; const O = v.mansion.origin;
+    v.player.teleport(O[0] + x, O[1] + y, O[2] + z, yaw); if (v.player.settle) v.player.settle();
     v.chase.mode = s.mode === 'near' ? 'front' : 'near'; v.chase.cycleMode(); if (s.mode === 'far' && v.chase.mode !== 'far') v.chase.cycleMode();
     v.chase.snapBehind(yaw); if (s.minutes !== undefined) v.setClock(s.minutes);
-  }, s, O);
+  }, s);
   await frames(8);
   const info = await page.evaluate(() => ({ place: document.getElementById('place')?.textContent, fps: document.getElementById('fps')?.textContent, calls: window.vora.renderer.info.render.calls, tris: window.vora.renderer.info.render.triangles }));
   report.push({ name: s.name, file: await shot(s.name), ...info });
