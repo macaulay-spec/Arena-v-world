@@ -7,6 +7,8 @@ import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { libraryFrom, retargetAll, type AnimLibrary } from './retarget';
 
+async function main(): Promise<void> {
+
 interface ManifestEntry { id: string; name?: string; role?: string; file: string; height: number; tris: number; district?: string; sex?: string; age?: number; tags?: string[] }
 interface Manifest { characters: ManifestEntry[]; clips?: string[]; animations?: string }
 
@@ -170,3 +172,7 @@ renderer.setAnimationLoop(() => {
 });
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 (window as any).vwchars = { scene, camera, controls, renderer, loaded, select, showLineup, frame, play: (n: string) => loaded.forEach(l => play(l, n)), setLight, ready: true };
+
+}
+
+main().catch(err => { console.error(err); const el = document.getElementById('cv-info'); if (el) el.textContent = 'Failed to start: ' + (err?.message ?? err); });
