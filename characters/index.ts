@@ -71,6 +71,9 @@ import { BONE_INDEX } from './rig';
   log('animations', CLIPS.map(c => c.name).join(' '), 'ref height', refHeight.toFixed(3), (r.binBytes / 1024).toFixed(0) + 'kB');
 }
 const only = process.env.ONLY?.split(',');
+// ---- player kits (game protagonist: selectable hair/outfits as toggleable nodes) ----
+import { buildPlayerKits } from './player';
+if (!only || only.includes('player')) buildPlayerKits(OUT, log);
 const manifest: any[] = []; const data: any[] = [];
 for (const t of specs) {
   if (only && !only.includes(t.id)) continue;

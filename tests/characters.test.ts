@@ -166,7 +166,7 @@ describe('animation clips', () => {
     const m = morph(people.find(p => p.sex === 'm')!.body); const rig = buildRig(m.pos, m.groundDm);
     const footBones = ['LeftFoot', 'RightFoot', 'LeftToeBase', 'RightToeBase', 'LeftToe_End', 'RightToe_End'].map(n => BONE_INDEX.get(n)!);
     const footRest = Math.min(...footBones.map(i => rig.heads[i * 3 + 1]));
-    expect(CLIPS.map(c => c.name)).toEqual(['idle', 'idle_talk', 'walk', 'walk_carry', 'run', 'sit', 'phone', 'wave', 'sell']);
+    expect(CLIPS.map(c => c.name)).toEqual(['idle', 'idle_talk', 'walk', 'walk_carry', 'run', 'sit', 'phone', 'wave', 'sell', 'jump', 'sweep', 'guard', 'work', 'lie']);
     for (const def of CLIPS) {
       const clip = sampleClip(def, 30, 1);
       expect(clip.times.length).toBeGreaterThan(1);
@@ -174,7 +174,7 @@ describe('animation clips', () => {
         expect(BONE_INDEX.has(t.bone)).toBe(true);
         const q = t.rotation!; for (let i = 0; i < q.length; i += 4) { const l = Math.hypot(q[i], q[i + 1], q[i + 2], q[i + 3]); expect(Math.abs(l - 1)).toBeLessThan(1e-3); }
       }
-      if (def.name === 'sit') continue; // seated pose is authored for a bench, feet forward
+      if (def.name === 'sit' || def.name === 'jump' || def.name === 'lie') continue; // seated/airborne/lying poses are not ground-locked
       let lowest = 1e9, highest = -1e9;
       for (let k = 0; k <= 20; k++) {
         const pose = def.pose((k / 20) * def.duration, 1);

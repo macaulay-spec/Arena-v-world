@@ -187,6 +187,73 @@ export const CLIPS: ClipDef[] = [
       return p;
     },
   },
+  {
+    // standing jump: crouch (0–0.2), launch (0.2–0.35), airborne tuck (0.35–0.75), landing absorb (0.75–1); root motion = vertical only (runtime adds the arc)
+    name: 'jump', duration: 1.0, loop: false, pose: (t, _s) => {
+      const p = base(); const u = t / 1.0;
+      const crouch = u < 0.2 ? sm(u / 0.2) : u < 0.35 ? 1 - sm((u - 0.2) / 0.15) : u < 0.75 ? 0 : sm((u - 0.75) / 0.25) * 0.6 * (1 - sm(Math.max(0, (u - 0.9) / 0.1)));
+      const air = u < 0.35 ? 0 : u < 0.75 ? Math.sin(((u - 0.35) / 0.4) * Math.PI) : 0;
+      const thigh = 30 * crouch + 45 * air, knee = 55 * crouch + 80 * air;
+      legs(p, { thighL: thigh, thighR: thigh * 0.9, kneeL: knee, kneeR: knee * 0.95, footL: -10 * crouch + 25 * air, footR: -10 * crouch + 25 * air, spreadDeg: 4 });
+      const swing = u < 0.2 ? -25 * crouch : u < 0.35 ? lerp(-25, 60, sm((u - 0.2) / 0.15)) : u < 0.75 ? 60 - 30 * air : lerp(30, 0, sm((u - 0.75) / 0.25));
+      armsDown(p, { spread: 14 + 30 * air, fwd: swing, elbow: 20 + 40 * air });
+      p.rot.set('Spine', rot('x', 18 * crouch + 8 * air)); p.rot.set('Spine1', rot('x', 10 * crouch)); p.rot.set('Spine2', rot('x', 6 * crouch));
+      p.rot.set('Neck', rot('x', -12 * crouch)); p.rot.set('Head', rot('x', -8 * crouch - 6 * air));
+      p.hips = [0, -0.22 * crouch + 0.08 * air, 0];
+      return p;
+    },
+  },
+  {
+    // sweeping with a broom: bent forward, both hands on the handle, side-to-side strokes
+    name: 'sweep', duration: 1.6, loop: true, pose: (t, s) => {
+      const p = base(); const ph = (t / 1.6) % 1; const w = Math.sin(ph * Math.PI * 2 + s * 0.3);
+      legs(p, { thighL: 6, thighR: -2, kneeL: 10, kneeR: 6, spreadDeg: 6 });
+      p.rot.set('Hips', rot('y', w * 8)); p.rot.set('Spine', rot('x', 22, 'y', w * 6)); p.rot.set('Spine1', rot('x', 14)); p.rot.set('Spine2', rot('x', 8, 'y', w * 4));
+      p.rot.set('Neck', rot('x', -10)); p.rot.set('Head', rot('x', -12, 'y', w * 6));
+      p.rot.set(L('Arm'), rot('z', -58, 'x', -38 + w * 14, 'y', 8)); p.rot.set(R('Arm'), rot('z', 62, 'x', -30 - w * 14, 'y', -6));
+      p.rot.set(L('ForeArm'), rot('y', -62, 'x', 20)); p.rot.set(R('ForeArm'), rot('y', 48, 'x', -16));
+      p.rot.set(L('Hand'), rot('x', 20, 'z', -10)); p.rot.set(R('Hand'), rot('x', 20, 'z', 10)); fingers(p, 62, 20);
+      p.hips = [0, 0.02, 0];
+      return p;
+    },
+  },
+  {
+    // security stance: feet apart, hands clasped behind the back, slow scanning head turns
+    name: 'guard', duration: 6, loop: true, pose: (t, s) => {
+      const p = base(); const u = t / 6; const look = Math.sin(u * Math.PI * 2 + s) * 0.5 + Math.sin(u * Math.PI * 4 + s * 1.7) * 0.5;
+      legs(p, { thighL: 0, thighR: 0, kneeL: 2, kneeR: 2, spreadDeg: 9 });
+      p.rot.set(L('Arm'), rot('z', -78, 'x', 28, 'y', -20)); p.rot.set(R('Arm'), rot('z', 78, 'x', 28, 'y', 20));
+      p.rot.set(L('ForeArm'), rot('y', -48, 'x', -30)); p.rot.set(R('ForeArm'), rot('y', 48, 'x', 30));
+      p.rot.set(L('Hand'), rot('x', 20)); p.rot.set(R('Hand'), rot('x', 20)); fingers(p, 30, 10);
+      p.rot.set('Spine', rot('x', -3)); p.rot.set('Spine2', rot('x', -2)); p.rot.set('Neck', rot('y', look * 14)); p.rot.set('Head', rot('y', look * 22, 'x', 2));
+      breathing(p, t, 3.8, 0.7);
+      return p;
+    },
+  },
+  {
+    // working at a counter: hands busy at waist height (cooking, folding, wiping), slight weight shifts
+    name: 'work', duration: 2.4, loop: true, pose: (t, s) => {
+      const p = base(); const ph = (t / 2.4) % 1; const a = Math.sin(ph * Math.PI * 2 + s), b = Math.sin(ph * Math.PI * 4 + s * 0.7);
+      legs(p, { thighL: 2, thighR: 2, kneeL: 4, kneeR: 4, spreadDeg: 5 });
+      p.rot.set('Spine', rot('x', 10, 'y', a * 3)); p.rot.set('Spine1', rot('x', 6)); p.rot.set('Spine2', rot('x', 4));
+      p.rot.set('Neck', rot('x', 6)); p.rot.set('Head', rot('x', 14, 'y', a * 5));
+      p.rot.set(L('Arm'), rot('z', -70, 'x', -40 + b * 8, 'y', -6)); p.rot.set(R('Arm'), rot('z', 70, 'x', -44 - b * 10, 'y', 6));
+      p.rot.set(L('ForeArm'), rot('y', -95, 'x', 10 + a * 8)); p.rot.set(R('ForeArm'), rot('y', 92, 'x', -10 - b * 12));
+      p.rot.set(L('Hand'), rot('x', 25 + b * 10, 'z', -8)); p.rot.set(R('Hand'), rot('x', 25 - a * 12, 'z', 8)); fingers(p, 40, 14);
+      return p;
+    },
+  },
+  {
+    // lying on the back (bed / sunbed): the runtime places the root horizontally; here only limbs relax
+    name: 'lie', duration: 4, loop: true, pose: (t, s) => {
+      const p = base();
+      legs(p, { thighL: 4, thighR: 2, kneeL: 6, kneeR: 4, spreadDeg: 6 });
+      p.rot.set(L('Arm'), rot('z', -72, 'x', -8, 'y', -6)); p.rot.set(R('Arm'), rot('z', 72, 'x', -8, 'y', 6));
+      p.rot.set(L('ForeArm'), rot('y', -24)); p.rot.set(R('ForeArm'), rot('y', 24)); fingers(p, 22, 8);
+      p.rot.set('Head', rot('y', Math.sin(t * 0.4 + s) * 6)); breathing(p, t, 4.2, 1.2);
+      return p;
+    },
+  },
 ];
 
 // ---- sampling / export -------------------------------------------------------------------------
