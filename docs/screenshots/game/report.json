@@ -1,45 +1,139 @@
 {
-  "when": "2026-10-15T11:16:57.507Z",
+  "when": "2026-10-15T11:23:42.789Z",
   "shots": [
     {
-      "name": "living-room",
-      "file": "docs/screenshots/game/living-room.png",
-      "place": "Living room",
-      "fps": "0 fps · 464 calls",
-      "calls": 464,
-      "tris": 1224197
+      "name": "master-bedroom",
+      "file": "docs/screenshots/game/master-bedroom.png",
+      "place": "Master bedroom",
+      "fps": "1 fps · 515 calls",
+      "calls": 515,
+      "tris": 1169102
     },
     {
       "name": "kitchen",
       "file": "docs/screenshots/game/kitchen.png",
       "place": "Kitchen",
-      "fps": "0 fps · 496 calls",
-      "calls": 496,
-      "tris": 1080115
+      "fps": "0 fps · 462 calls",
+      "calls": 461,
+      "tris": 1043811
     },
     {
       "name": "pool",
       "file": "docs/screenshots/game/pool.png",
       "place": "JAG House",
-      "fps": "0 fps · 422 calls",
-      "calls": 422,
-      "tris": 1075460
+      "fps": "1 fps · 413 calls",
+      "calls": 413,
+      "tris": 1083898
     },
     {
       "name": "night-living",
       "file": "docs/screenshots/game/night-living.png",
       "place": "Living room",
-      "fps": "2 fps · 497 calls",
-      "calls": 497,
-      "tris": 1240096
+      "fps": "1 fps · 494 calls",
+      "calls": 494,
+      "tris": 1255341
+    }
+  ],
+  "household": [
+    {
+      "key": "gateman",
+      "name": "Seyi Garuba",
+      "clip": "guard",
+      "pos": [
+        -344.6,
+        24.3,
+        -339.1
+      ]
     },
     {
-      "name": "night-pool",
-      "file": "docs/screenshots/game/night-pool.png",
-      "place": "JAG House",
-      "fps": "1 fps · 427 calls",
-      "calls": 427,
-      "tris": 1070104
+      "key": "security",
+      "name": "Umar Obi",
+      "clip": "guard",
+      "pos": [
+        -337.9,
+        24.8,
+        -366.4
+      ]
+    },
+    {
+      "key": "driver",
+      "name": "Garba Garuba",
+      "clip": "phone",
+      "pos": [
+        -317.6,
+        24.3,
+        -346.4
+      ]
+    },
+    {
+      "key": "housekeeper",
+      "name": "Amina Umaru",
+      "clip": "sweep",
+      "pos": [
+        -353.6,
+        24.8,
+        -371.9
+      ]
+    },
+    {
+      "key": "cook",
+      "name": "Titilayo Danjuma",
+      "clip": "work",
+      "pos": [
+        -325.7,
+        24.8,
+        -382.9
+      ]
+    },
+    {
+      "key": "gardener",
+      "name": "Kunle Bankole",
+      "clip": "work",
+      "pos": [
+        -364.1,
+        24.3,
+        -385.9
+      ]
+    },
+    {
+      "key": "friend",
+      "name": "Funmilayo Anyanwu",
+      "clip": "sit",
+      "pos": [
+        -352.1,
+        24.8,
+        -373.9
+      ]
+    },
+    {
+      "key": "guest",
+      "name": "Ayo Madu",
+      "clip": "phone",
+      "pos": [
+        -339.5,
+        24.5,
+        -397.9
+      ]
+    },
+    {
+      "key": "steward",
+      "name": "Osaze Suleiman",
+      "clip": "work",
+      "pos": [
+        -331.5,
+        24.8,
+        -372.3
+      ]
+    },
+    {
+      "key": "gatehouse",
+      "name": "Segun Fashola",
+      "clip": "sit",
+      "pos": [
+        -339.5,
+        24.5,
+        -339.3
+      ]
     }
   ],
   "errors": []

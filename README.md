@@ -1,4 +1,39 @@
-# V-WORLD · Vora City
+# VORA CITY · by JAG
+
+**A landscape mobile open-world game set in Vora City** — the fictional West-African-inspired city built in this
+repository. Create your own protagonist, wake up in your mansion in North Heights, meet your household and walk out
+into a living city. Built in APK milestones; **APK 1 – "App + Home"** is the current build and is produced by GitHub
+Actions on every push (`Actions → Android APK → Artifacts`). See **[docs/GAME.md](docs/GAME.md)** for the game design,
+controls, architecture and road-map.
+
+| | |
+|---|---|
+| ![title](docs/screenshots/game/title.png) *live title — the camera orbits your compound* | ![create](docs/screenshots/game/create.png) *character creation on the roof terrace* |
+| ![wake up](docs/screenshots/game/wake-up.png) *Day 1, 07:12 — wake up in the master bedroom* | ![landing](docs/screenshots/game/landing-stairs.png) *the landing and stairs* |
+| ![living room](docs/screenshots/game/living-room.png) *living room — housekeeper sweeping, a friend on the sofa* | ![dining](docs/screenshots/game/dining.png) *dining room — the steward* |
+| ![kitchen](docs/screenshots/game/kitchen.png) *kitchen* | ![forecourt](docs/screenshots/game/forecourt-fountain.png) *forecourt fountain and the owner's cars* |
+| ![gate](docs/screenshots/game/gate.png) *the gate, the gateman and the gatehouse* | ![carport](docs/screenshots/game/carport.png) *carport — Range Rover, G-Wagon, saloon, pickup, danfo, okada* |
+| ![pool](docs/screenshots/game/pool.png) *pool deck* | ![night pool](docs/screenshots/game/night-pool.png) *21:00 — pool lights, the city's windows come on* |
+| ![roof terrace](docs/screenshots/game/roof-terrace.png) *roof terrace at dusk* | ![street](docs/screenshots/game/street-outside.png) *outside the gate — Garden Terrace, North Heights* |
+
+```
+JAG logo → loading → live title → New game: create your character → wake up at home → explore
+```
+
+* **Runs on any phone** — Lite / Standard / High presets (auto-detected), landscape, touch stick + buttons; also
+  playable in a desktop browser (`npm run dev`, WASD + mouse).
+* **Your home** — JAG House, 1 Ridge Street: two storeys, roof terrace, pool, fountain, gatehouse, carport, staff
+  quarters, generator house; working doors, sliders, fans, TVs, beds (sleep → next day), fridge (eat), wardrobes
+  (change outfit), the main gate and the generator ("Up NEPA").
+* **Your household** — gateman, security, driver, housekeeper, cook, gardener, steward, night guard, a friend and a
+  guest, cast from the Phase 2 population, each at their post doing their job; walk up and talk to them.
+* **HUD** — radar, ₦ cash, clock + day, health, place cards, interaction prompts; pause menu with save and settings.
+* **Android** — Capacitor shell (`android/`, `com.jag.voracity`), immersive landscape, JAG splash and icon; the debug
+  APK (~55 MB) is built by `.github/workflows/android.yml`.
+
+---
+
+# V-WORLD · Vora City (the world under the game)
 
 A continuous, data-driven 3D city for the fictional West-African-inspired country **V**. This repository holds the
 *physical foundation* of the world — terrain, water, a connected road network, blocks and parcels, ~1,260 buildings in
@@ -102,12 +137,15 @@ committed (they rebuild deterministically); all screenshots above are real headl
 ```bash
 npm install
 npm run generate     # rebuild data/city.json (deterministic; ~1 s)
-npm run dev          # viewer on http://localhost:5173  (?q=low|medium|high  &h=<hour>)
+npm run characters   # generate the humans into public/assets/characters (gitignored; needed by the game and the crowd)
+npm run dev          # game on http://localhost:5173/  · city viewer on /city.html (?q=low|medium|high &h=<hour>) · lineup on /characters.html
 npm run test         # vitest: determinism, graph integrity, no buildings on roads, …
 npm run typecheck
-npm run build        # production bundle in dist/
+npm run build        # production bundle in dist/ (game + viewer + lineup)
+npx cap sync android && (cd android && ./gradlew assembleDebug)   # local APK (JDK 21 + Android SDK); CI does this on every push
 npm run map          # docs/map.png plan render (needs python3 + Pillow)
-node scripts/screenshot.mjs   # headless Chromium (SwiftShader) screenshots + runtime smoke test → docs/screenshots
+node scripts/game-shot.mjs    # headless game screenshots (title → create → wake → rooms/compound) → docs/screenshots/game  (SHOTS=…, QUALITY=…, MOBILE=1)
+node scripts/screenshot.mjs   # headless Chromium (SwiftShader) city-viewer screenshots + runtime smoke test → docs/screenshots
 #   env: VIEWS=stadium,night-central  QUALITY=low|medium|high  SHOT_MOBILE=1 (phone emulation)  SHOT_W/SHOT_H
 ```
 
@@ -135,9 +173,9 @@ node scripts/screenshot.mjs   # headless Chromium (SwiftShader) screenshots + ru
 
 ## Scope
 
-In scope: the exterior world (terrain, water, roads, blocks, buildings, landmarks, public space, street detail,
-materials, lighting, time-of-day, LOD/performance) and, since Phase 2, the human assets (bodies, wardrobe, hair,
-props, animation clips, population manifest) plus an ambient sidewalk crowd. Out of scope for this stage and
-deliberately left as clean extension points: interiors, gameplay, economy, multiplayer, NPC life simulation,
-missions and traffic AI. See `docs/REPORT.md` for the change log, verification results and known limitations and
-`docs/CHARACTERS.md` for the character pipeline in detail.
+Phase 1 delivered the exterior world (terrain, water, roads, blocks, buildings, landmarks, public space, street detail,
+materials, lighting, time-of-day, LOD/performance); Phase 2 the human assets (bodies, wardrobe, hair, props,
+animation clips, population manifest) and an ambient sidewalk crowd; Phase 3 turns it into the game, milestone by
+milestone — **APK 1 App + Home** (this build) → APK 2 Alive (mocap, schedules, traffic, animated world, cinematic) →
+APK 3 Ride & earn → APK 4 Wanted (police, arrests) → APK 5 Story, then multiplayer and player houses. Details and the
+honest list of limitations: `docs/GAME.md`; earlier phases: `docs/REPORT.md`, `docs/CHARACTERS.md`.

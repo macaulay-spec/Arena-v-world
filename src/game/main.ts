@@ -258,7 +258,7 @@ async function main() {
       // interiors only get sky/ambient light (the sun is shadowed) → lift the ambient term indoors
       indoorMix += ((indoor ? 1 : 0) - indoorMix) * Math.min(1, dt * 3);
       const nightNow = isNight() ? 1 : 0;
-      sky.ambient.intensity = baseAmbient() + indoorMix * (0.7 + nightNow * 2.1); sky.hemi.intensity = baseHemi() + indoorMix * (0.35 + nightNow * 0.4);
+      sky.ambient.intensity = baseAmbient() + indoorMix * (0.7 + nightNow * 1.7); sky.hemi.intensity = baseHemi() + indoorMix * (0.35 + nightNow * 0.3);
       const warm = Math.min(1, indoorMix * (0.4 + nightNow * 0.55));
       sky.ambient.color.copy(ambientRef.color).lerp(warmAmbient, warm);
       sky.hemi.color.copy(ambientRef.hemiColor).lerp(warmAmbient, warm); sky.hemi.groundColor.copy(ambientRef.hemiGround).lerp(warmGround, warm);

@@ -23,7 +23,7 @@ const SHOTS = [
   { name: 'master-bedroom', at: [21, 3.85, 30.5, Math.PI * 0.75], mode: 'far', minutes: 7 * 60 + 20 },
   { name: 'landing-stairs', at: [33, 3.85, 41, -Math.PI / 2], mode: 'far' },
   { name: 'living-room', at: [24, 0.45, 42, -2.4], mode: 'far', minutes: 9 * 60 },
-  { name: 'kitchen', at: [44, 0.45, 32.5, Math.PI + 0.3], mode: 'far' },
+  { name: 'kitchen', at: [43, 0.45, 30.5, Math.PI - 1.0], mode: 'far' },
   { name: 'dining', at: [40.5, 0.45, 43, -2.2], mode: 'far' },
   { name: 'front-porch', at: [33, 0.45, 46.5, 0], mode: 'far', minutes: 10 * 60 },
   { name: 'forecourt-fountain', at: [33, 0.05, 59, Math.PI], mode: 'far' },
@@ -98,7 +98,9 @@ for (const s of shots) {
   const info = await page.evaluate(() => ({ place: document.getElementById('place')?.textContent, fps: document.getElementById('fps')?.textContent, calls: window.vora.renderer.info.render.calls, tris: window.vora.renderer.info.render.triangles }));
   report.push({ name: s.name, file: await shot(s.name), ...info });
 }
-writeFileSync(join(outDir, 'report.json'), JSON.stringify({ when: new Date().toISOString(), shots: report, errors }, null, 2));
+const household = await page.evaluate(() => (window.vora.household?.npcs ?? []).map(n => ({ key: n.cast.key, name: n.name, clip: n.curName, pos: [n.pos.x, n.pos.y, n.pos.z].map(v => Math.round(v * 10) / 10) }))).catch(() => []);
+console.log('household:', household.map(h => `${h.key}=${h.name}`).join(', '));
+writeFileSync(join(outDir, 'report.json'), JSON.stringify({ when: new Date().toISOString(), shots: report, household, errors }, null, 2));
 await browser.close();
 if (errors.length) { console.error('errors:\n' + errors.join('\n')); process.exit(1); }
 console.log('ok');
