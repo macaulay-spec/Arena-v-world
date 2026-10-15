@@ -47,6 +47,30 @@ export interface Rig {
   pos: Float32Array;
   /** world rotation applied to each bone to reach the T-pose (for debugging / helpers) */
   tposeRot: Quaternion[];
+  /** A-pose joint positions the re-pose started from (metres) */
+  headsA: Float32Array;
+}
+
+/**
+ * Re-pose another A-pose vertex set (e.g. a morph variant of the same body) with the rig's bone
+ * rotations, so it lands in the same T-pose frame as `rig.pos` and can be diffed into morph targets.
+ */
+export function reposeWithRig(rig: Rig, posA: Float32Array): Float32Array {
+  const n = posA.length / 3; const pos = new Float32Array(posA.length);
+  const { joints, weights, headsA, heads, tposeRot: rot } = rig;
+  const v = new Vector3(), acc = new Vector3(), tmp = new Vector3();
+  for (let vi = 0; vi < n; vi++) {
+    v.set(posA[vi * 3], posA[vi * 3 + 1], posA[vi * 3 + 2]); acc.set(0, 0, 0);
+    for (let k = 0; k < 4; k++) {
+      const w = weights[vi * 4 + k]; if (w <= 0) continue;
+      const b = joints[vi * 4 + k];
+      tmp.set(v.x - headsA[b * 3], v.y - headsA[b * 3 + 1], v.z - headsA[b * 3 + 2]).applyQuaternion(rot[b]);
+      tmp.x += heads[b * 3]; tmp.y += heads[b * 3 + 1]; tmp.z += heads[b * 3 + 2];
+      acc.addScaledVector(tmp, w);
+    }
+    pos[vi * 3] = acc.x; pos[vi * 3 + 1] = acc.y; pos[vi * 3 + 2] = acc.z;
+  }
+  return pos;
 }
 
 let skelCache: MhSkeleton | null = null; let weightCache: Map<string, [number, number][]> | null = null;
@@ -189,7 +213,7 @@ export function buildRig(posA: Float32Array, groundDm: number): Rig {
     }
     pos[vi * 3] = acc.x; pos[vi * 3 + 1] = acc.y; pos[vi * 3 + 2] = acc.z;
   }
-  return { heads, joints, weights, pos, tposeRot: rot };
+  return { heads, joints, weights, pos, tposeRot: rot, headsA };
 }
 
 /** Bone length helper (metres) in the bind pose. */

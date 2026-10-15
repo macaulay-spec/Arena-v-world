@@ -99,7 +99,7 @@ export interface MorphResult {
   used: Map<string, number>;
 }
 
-export function morph(p: BodyParams): MorphResult {
+export function morph(p: BodyParams, fixedGroundDm?: number): MorphResult {
   const b = base(); const lib = targets();
   const out = Float64Array.from(b.pos);
   const used = new Map<string, number>();
@@ -114,6 +114,7 @@ export function morph(p: BodyParams): MorphResult {
   const bodyFaces = b.byGroup.get('body')!;
   let minY = Infinity;
   for (const f of bodyFaces) for (const v of f.v) minY = Math.min(minY, out[v * 3 + 1]);
+  if (fixedGroundDm !== undefined) minY = fixedGroundDm; // morph variants share the base body's ground
   const pos = new Float32Array(out.length);
   for (let i = 0; i < b.nVerts; i++) { pos[i * 3] = out[i * 3] * DM; pos[i * 3 + 1] = (out[i * 3 + 1] - minY) * DM; pos[i * 3 + 2] = out[i * 3 + 2] * DM; }
   return { pos, groundDm: minY, used };

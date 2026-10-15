@@ -66,8 +66,52 @@ export class GltfBuilder {
   }
   private rootNode = -1;
 
-  /** Add a skinned mesh (one primitive per Part) as a child of the armature root. */
-  skinnedMesh(name: string, parts: Part[], materials: Record<string, number>, extras?: any): number {
+  /**
+   * Morph target POSITION accessor for one primitive: `delta` has xyz per MakeHuman vertex; wedge
+   * vertices map through `src` (synthetic vertices get no delta). Sparse storage when few move.
+   */
+  private srcCache = new WeakMap<Part, Int32Array>();
+  /** per wedge vertex: the MakeHuman source vertex, or (for synthetic vertices) the nearest sourced vertex of the same part */
+  private sourceMap(p: Part, n: number): Int32Array {
+    let m = this.srcCache.get(p); if (m) return m;
+    m = new Int32Array(n); const sourced: number[] = [];
+    for (let i = 0; i < n; i++) { m[i] = p.src?.[i] ?? -1; if (m[i] >= 0) sourced.push(i); }
+    if (sourced.length && sourced.length < n) {
+      for (let i = 0; i < n; i++) {
+        if (m[i] >= 0) continue;
+        const x = p.pos[i * 3], y = p.pos[i * 3 + 1], z = p.pos[i * 3 + 2]; let best = -1, bd = Infinity;
+        for (const j of sourced) { const d = (p.pos[j * 3] - x) ** 2 + (p.pos[j * 3 + 1] - y) ** 2 + (p.pos[j * 3 + 2] - z) ** 2; if (d < bd) { bd = d; best = j; } }
+        if (best >= 0 && bd < 0.08 * 0.08) m[i] = m[best]; // only borrow from a vertex within 8 cm (hems, cuffs, lids)
+      }
+    }
+    this.srcCache.set(p, m); return m;
+  }
+  private morphAccessor(p: Part, n: number, delta: Float32Array): number {
+    const moved: number[] = []; const d = new Float32Array(n * 3);
+    const min = [0, 0, 0], max = [0, 0, 0];
+    const srcMap = this.sourceMap(p, n);
+    for (let i = 0; i < n; i++) {
+      const vi = srcMap[i]; if (vi < 0) continue;
+      const x = delta[vi * 3], y = delta[vi * 3 + 1], z = delta[vi * 3 + 2];
+      if (Math.abs(x) < 1e-5 && Math.abs(y) < 1e-5 && Math.abs(z) < 1e-5) continue;
+      d[i * 3] = x; d[i * 3 + 1] = y; d[i * 3 + 2] = z; moved.push(i);
+      min[0] = Math.min(min[0], x); min[1] = Math.min(min[1], y); min[2] = Math.min(min[2], z);
+      max[0] = Math.max(max[0], x); max[1] = Math.max(max[1], y); max[2] = Math.max(max[2], z);
+    }
+    if (moved.length === 0 || moved.length * 16 > n * 12 * 0.6) { // dense (or empty) target
+      return this.accessor(this.view(Buffer.from(d.buffer), 34962), 5126, n, 'VEC3', { min, max });
+    }
+    const idx = new Uint32Array(moved.length); const val = new Float32Array(moved.length * 3);
+    moved.forEach((i, k) => { idx[k] = i; val[k * 3] = d[i * 3]; val[k * 3 + 1] = d[i * 3 + 1]; val[k * 3 + 2] = d[i * 3 + 2]; });
+    const a: any = { componentType: 5126, count: n, type: 'VEC3', min, max, sparse: { count: moved.length, indices: { bufferView: this.view(Buffer.from(idx.buffer)), componentType: 5125 }, values: { bufferView: this.view(Buffer.from(val.buffer)) } } };
+    this.json.accessors.push(a); return this.json.accessors.length - 1;
+  }
+
+  /**
+   * Add a skinned mesh (one primitive per Part) as a child of the armature root. `targets` become
+   * glTF morph targets (names in `mesh.extras.targetNames`, picked up by three.js' morphTargetDictionary).
+   */
+  skinnedMesh(name: string, parts: Part[], materials: Record<string, number>, extras?: any, targets: { name: string; delta: Float32Array }[] = []): number {
     const prims: any[] = [];
     for (const p of parts) {
       const n = p.pos.length / 3; if (!n || !p.idx.length) continue;
@@ -97,9 +141,13 @@ export class GltfBuilder {
       const big = n > 65535; const ib = big ? Uint32Array.from(p.idx) : Uint16Array.from(p.idx);
       const indices = this.accessor(this.view(Buffer.from(ib.buffer), 34963), big ? 5125 : 5123, p.idx.length, 'SCALAR');
       const mat = materials[p.material]; if (mat === undefined) throw new Error(`no material ${p.material}`);
-      prims.push({ attributes: attrs, indices, material: mat, mode: 4, extras: { part: p.name } });
+      const prim: any = { attributes: attrs, indices, material: mat, mode: 4, extras: { part: p.name } };
+      if (targets.length) prim.targets = targets.map(t => ({ POSITION: this.morphAccessor(p, n, t.delta) }));
+      prims.push(prim);
     }
-    this.json.meshes.push({ name, primitives: prims });
+    const mesh: any = { name, primitives: prims };
+    if (targets.length) { mesh.weights = targets.map(() => 0); mesh.extras = { targetNames: targets.map(t => t.name) }; }
+    this.json.meshes.push(mesh);
     const node: any = { name, mesh: this.json.meshes.length - 1, skin: this.skinIndex }; if (extras) node.extras = extras;
     this.json.nodes.push(node); const ni = this.json.nodes.length - 1;
     this.json.nodes[this.rootNode].children.push(ni);

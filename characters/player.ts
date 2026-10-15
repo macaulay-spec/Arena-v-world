@@ -8,8 +8,8 @@
  */
 import { join } from 'node:path';
 import { writeFileSync } from 'node:fs';
-import { morph, defaultBody } from './body';
-import { buildRig, BONE_INDEX } from './rig';
+import { morph, defaultBody, type BodyParams } from './body';
+import { buildRig, reposeWithRig, BONE_INDEX, type Rig } from './rig';
 import { buildBody } from './bodyparts';
 import { GltfBuilder } from './gltf';
 import { triCount, type Part } from './mesh';
@@ -18,7 +18,46 @@ import { linear } from './fabrics';
 import { buildHair, type HairStyle } from './hair';
 
 export interface OutfitSet { id: string; name: string; items: OutfitItem[] }
-export interface PlayerKit { sex: 'f' | 'm'; file: string; height: number; skin: string[]; hair: { id: HairStyle; name: string }[]; outfits: { id: string; name: string }[]; tris: number }
+export interface PlayerKit { sex: 'f' | 'm'; file: string; height: number; skin: string[]; hair: { id: HairStyle; name: string }[]; outfits: { id: string; name: string }[]; tris: number; /** morph target names exported on the kit (body targets on every node, face targets on LOD0) */ morphs: string[] }
+
+/** game-facing face sliders → MakeHuman detail target pairs (value −1 … 1 scales each entry) */
+export const FACE_DETAILS: Record<string, Record<string, number>> = {
+  jaw: { 'chin-width': 1, 'chin-bones': 0.6 },
+  chin: { 'chin-prominent': 1, 'chin-height': 0.4 },
+  nose_width: { 'nose-scale-horiz': 1, 'nose-nostrils-width': 0.5 },
+  nose_length: { 'nose-scale-vert': 1, 'nose-base': 0.3 },
+  eye_spacing: { 'eye-trans': 1 },
+  eye_size: { 'eye-scale': 1 },
+  lips: { 'mouth-lowerlip-volume': 1, 'mouth-upperlip-volume': 1 },
+  mouth_width: { 'mouth-scale-horiz': 1 },
+  cheeks: { 'cheek-volume': 1, 'cheek-bones': 0.5 },
+};
+/** body shape targets: parameter changes relative to the kit's base body */
+export const SHAPE_TARGETS: { name: string; set: (p: BodyParams) => void }[] = [
+  { name: 'shape_weight_lo', set: p => { p.weight = 0.18; } },
+  { name: 'shape_weight_hi', set: p => { p.weight = 0.92; } },
+  { name: 'shape_muscle_lo', set: p => { p.muscle = Math.max(0, p.muscle - 0.4); } },
+  { name: 'shape_muscle_hi', set: p => { p.muscle = Math.min(1, p.muscle + 0.38); } },
+];
+
+export interface MorphTarget { name: string; delta: Float32Array }
+/** Morph variants of `base`, re-posed with the base rig, expressed as per-vertex deltas (metres). */
+export function buildMorphTargets(base: BodyParams, rig: Rig, groundDm: number): { body: MorphTarget[]; face: MorphTarget[] } {
+  const variant = (edit: (p: BodyParams) => void): Float32Array => {
+    const p: BodyParams = { ...base, details: { ...base.details } }; edit(p);
+    const posT = reposeWithRig(rig, morph(p, groundDm).pos);
+    const d = new Float32Array(posT.length); for (let i = 0; i < d.length; i++) d[i] = posT[i] - rig.pos[i];
+    return d;
+  };
+  const body = SHAPE_TARGETS.map(t => ({ name: t.name, delta: variant(t.set) }));
+  const face: MorphTarget[] = [];
+  for (const [key, det] of Object.entries(FACE_DETAILS)) {
+    for (const sign of [-1, 1] as const) {
+      face.push({ name: `face_${key}_${sign < 0 ? 'neg' : 'pos'}`, delta: variant(p => { for (const [k, w] of Object.entries(det)) p.details[k] = (p.details[k] ?? 0) + sign * w; }) });
+    }
+  }
+  return { body, face };
+}
 
 export const PLAYER_TONES = ['#2E1A12', '#3C2319', '#4A2C1E', '#5A3A28', '#6B4530', '#8A5A3C', '#A97A58', '#C9A080'];
 const HAIR_F: { id: HairStyle; name: string }[] = [
@@ -53,6 +92,7 @@ export function buildPlayerKits(outDir: string, log: (...a: unknown[]) => void =
     const p = defaultBody(); p.gender = sex === 'm' ? 1 : 0; p.ageYears = sex === 'm' ? 30 : 26; p.african = 0.95; p.asian = 0.05; p.caucasian = 0;
     p.weight = 0.5; p.height = sex === 'm' ? 0.55 : 0.5; p.proportions = 0.72; if (sex === 'm') p.muscle = 0.62;
     const m = morph(p); const rig = buildRig(m.pos, m.groundDm);
+    const targets = buildMorphTargets(p, rig, m.groundDm);
     const ctx = garmentCtx(rig);
     const tone = '#5A3A28';
     const outfits = (sex === 'f' ? OUTFITS_F : OUTFITS_M).map(set => ({ set, combined: combineByMaterial(set.items.map(item => buildGarment(ctx, item))) }));
@@ -74,13 +114,15 @@ export function buildPlayerKits(outDir: string, log: (...a: unknown[]) => void =
     for (const o of outfits) addMats(o.combined.materials);
     for (const h of hairs) addMats(h.res.materials);
     const bodyParts: Part[] = [body.skin, body.eyes, body.mouth].filter(x => x.idx.length);
-    g.skinnedMesh('LOD0', bodyParts, mats, { lod: 0, kind: 'body' });
+    // morph targets: body shape on every skinned node (so clothes and hair follow), face only on the body
+    g.skinnedMesh('LOD0', bodyParts, mats, { lod: 0, kind: 'body' }, [...targets.body, ...targets.face]);
     let tris = bodyParts.reduce((a, x) => a + triCount(x), 0);
-    for (const h of hairs) { if (!h.res.parts.length) continue; g.skinnedMesh(`HAIR_${h.h.id}`, h.res.parts, mats, { kind: 'hair', id: h.h.id, name: h.h.name }); tris += h.res.parts.reduce((a, x) => a + triCount(x), 0); }
-    for (const o of outfits) { g.skinnedMesh(`OUTFIT_${o.set.id}`, o.combined.parts, mats, { kind: 'outfit', id: o.set.id, name: o.set.name }); tris += o.combined.parts.reduce((a, x) => a + triCount(x), 0); }
+    for (const h of hairs) { if (!h.res.parts.length) continue; g.skinnedMesh(`HAIR_${h.h.id}`, h.res.parts, mats, { kind: 'hair', id: h.h.id, name: h.h.name }, targets.body); tris += h.res.parts.reduce((a, x) => a + triCount(x), 0); }
+    for (const o of outfits) { g.skinnedMesh(`OUTFIT_${o.set.id}`, o.combined.parts, mats, { kind: 'outfit', id: o.set.id, name: o.set.name }, targets.body); tris += o.combined.parts.reduce((a, x) => a + triCount(x), 0); }
     const r = g.write(join(outDir, `player_${sex}.gltf`));
     const height = +rig.heads[BONE_INDEX.get('HeadTop_End')! * 3 + 1].toFixed(3);
-    kits.push({ sex, file: `player_${sex}.gltf`, height, skin: PLAYER_TONES, hair: hairs.filter(h => h.res.parts.length || h.h.id === 'none').map(h => h.h), outfits: outfits.map(o => ({ id: o.set.id, name: o.set.name })), tris });
+    const morphs = [...targets.body, ...targets.face].map(t => t.name);
+    kits.push({ sex, file: `player_${sex}.gltf`, height, skin: PLAYER_TONES, hair: hairs.filter(h => h.res.parts.length || h.h.id === 'none').map(h => h.h), outfits: outfits.map(o => ({ id: o.set.id, name: o.set.name })), tris, morphs });
     log(`player_${sex}`, 'tris', tris, 'bin', (r.binBytes / 1024).toFixed(0) + 'kB');
   }
   writeFileSync(join(outDir, 'player.json'), JSON.stringify({ kits }, null, 1));
