@@ -15,6 +15,9 @@ export interface ColliderSink {
 }
 
 interface Buf { pos: number[]; nrm: number[]; uv: number[]; col: number[]; idx: number[] }
+type Face = 'px' | 'nx' | 'py' | 'ny' | 'pz' | 'nz';
+/** overlap between consecutive stair treads / the landing along the run, and sideways (metres) */
+export const STAIR_PAD = 0.08, STAIR_SIDE_PAD = 0.03;
 const _c = new THREE.Color();
 export type RGB = [number, number, number];
 export const rgb = (hex: string | number): RGB => { _c.set(hex as any); return [_c.r, _c.g, _c.b]; };
@@ -46,7 +49,7 @@ export class MeshKit {
   }
 
   /** axis-aligned box rotated by `rotY` about its centre */
-  box(mat: MatId, cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, color: RGB, rotY = 0, o: { faces?: ('px' | 'nx' | 'py' | 'ny' | 'pz' | 'nz')[]; collide?: boolean } = {}): void {
+  box(mat: MatId, cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, color: RGB, rotY = 0, o: { faces?: Face[]; collide?: boolean } = {}): void {
     const hx = sx / 2, hy = sy / 2, hz = sz / 2; const cs = Math.cos(rotY), sn = Math.sin(rotY);
     const P = (x: number, y: number, z: number) => [cx + x * cs + z * sn, cy + y, cz - x * sn + z * cs];
     const faces = o.faces;
@@ -63,6 +66,21 @@ export class MeshKit {
     }
   }
   /** vertical cylinder (y axis) */
+  /** invisible collider with the footprint of a (rotated) box — for furniture whose visible parts are too low or too thin to block on their own */
+  collider(cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, rotY = 0): void {
+    if (!this.collision) return;
+    const hx = sx / 2, hy = sy / 2, hz = sz / 2;
+    if (Math.abs(Math.sin(rotY)) < 1e-3 || Math.abs(Math.cos(rotY)) < 1e-3) { const swap = Math.abs(Math.cos(rotY)) < 1e-3; const ex = swap ? hz : hx, ez = swap ? hx : hz; this.collision.addBox(cx - ex, cz - ez, cx + ex, cz + ez, cy - hy, cy + hy); return; }
+    const c = Math.cos(rotY), sn = Math.sin(rotY);
+    const P = (x: number, z: number): [number, number] => [cx + x * c + z * sn, cz - x * sn + z * c];
+    this.collision.addPolygon([P(-hx, -hz), P(hx, -hz), P(hx, hz), P(-hx, hz)], cy - hy, cy + hy);
+  }
+  /** walkable top of a (rotated) box: the axis-aligned bounds of its footprint at height y */
+  walkTop(cx: number, y: number, cz: number, sx: number, sz: number, rotY = 0): void {
+    if (!this.collision) return;
+    const c = Math.abs(Math.cos(rotY)), sn = Math.abs(Math.sin(rotY)); const ex = (sx * c + sz * sn) / 2, ez = (sx * sn + sz * c) / 2;
+    this.collision.addSurface(cx - ex, cz - ez, cx + ex, cz + ez, y);
+  }
   cylinder(mat: MatId, cx: number, y0: number, cz: number, r: number, h: number, color: RGB, seg = 12, o: { caps?: boolean; collide?: boolean; rTop?: number } = {}): void {
     const B = this.buf(mat); const rt = o.rTop ?? r; const s = this.mats[mat].uvScale;
     const base = B.pos.length / 3;
@@ -167,34 +185,46 @@ export class MeshKit {
       if (o.walk !== false && this.collision) this.collision.addSurface(rx0, rz0, rx1, rz1, y);
     }
   }
-  /** straight stair: bottom edge at (x, z0) running towards +dz (dz = ±1), `width` along x */
-  stair(mat: MatId, x0: number, x1: number, zStart: number, dz: 1 | -1, yBase: number, steps: number, rise: number, run: number, color: RGB, o: { rail?: 'left' | 'right' | 'both'; railColor?: RGB } = {}): { top: [number, number]; topY: number } {
-    const w = x1 - x0, cx = (x0 + x1) / 2;
+  /**
+   * Straight stair: bottom edge at (x0..x1, zStart) running towards dz (±1), `steps` risers.
+   * `rail` adds a handrail (posts + sloped rail) with a collision segment so nobody walks off the
+   * side; `railFrom` leaves the first n treads open so the flight can be entered from that side (a
+   * stair whose foot is boxed in by a wall and its own balustrade cannot be climbed at all).
+   */
+  stair(mat: MatId, x0: number, x1: number, zStart: number, dz: 1 | -1, yBase: number, steps: number, rise: number, run: number, color: RGB, o: { rail?: 'left' | 'right' | 'both'; railColor?: RGB; railFrom?: number } = {}): { top: [number, number]; topY: number } {
+    const w = x1 - x0, cx = (x0 + x1) / 2, lx = Math.min(x0, x1), hx = Math.max(x0, x1);
     for (let i = 0; i < steps; i++) {
       const z0 = zStart + dz * i * run, z1 = zStart + dz * (i + 1) * run; const y1 = yBase + (i + 1) * rise;
       const cz = (z0 + z1) / 2;
-      this.box(mat, cx, (yBase + y1) / 2, cz, w, y1 - yBase, run, color, 0, { faces: ['py', dz > 0 ? 'nz' : 'pz', 'px', 'nx'] });
-      // riser face facing the climber
-      if (this.collision) this.collision.addSurface(Math.min(x0, x1), Math.min(z0, z1), Math.max(x0, x1), Math.max(z0, z1), y1);
+      const faces: Face[] = ['py', dz > 0 ? 'nz' : 'pz', 'px', 'nx']; if (i === steps - 1) faces.push(dz > 0 ? 'pz' : 'nz'); // the flight's back face
+      this.box(mat, cx, (yBase + y1) / 2, cz, w, y1 - yBase, run, color, 0, { faces });
+      if (this.collision) {
+        // walkable tread, padded along the run so consecutive treads and the landing slabs overlap: a
+        // sampled foot position can never fall into a hairline gap between two surfaces (the higher of
+        // two overlapping surfaces wins, so the pad only shifts the step edge by a few centimetres); a
+        // smaller side pad closes the seam with a floor that starts exactly at the flight's edge
+        this.collision.addSurface(lx - STAIR_SIDE_PAD, Math.min(z0, z1) - STAIR_PAD, hx + STAIR_SIDE_PAD, Math.max(z0, z1) + STAIR_PAD, y1);
+        // the tread's solid sides: block anyone whose feet are too far below its top to step onto it,
+        // ignored (steppable) otherwise — so a flight cannot be walked into from the side half-way up
+        this.collision.addSegment(lx, z0, lx, z1, yBase, y1); this.collision.addSegment(hx, z0, hx, z1, yBase, y1);
+        if (i === steps - 1) this.collision.addSegment(lx, z1, hx, z1, yBase, y1);
+      }
     }
     const zEnd = zStart + dz * steps * run;
     // handrail(s): posts + rail
     const rails = o.rail === 'both' ? ['left', 'right'] : o.rail ? [o.rail] : [];
     const rc = o.railColor ?? [0.1, 0.1, 0.1];
+    const from = Math.max(0, Math.min(steps, Math.floor(o.railFrom ?? 0)));
     for (const side of rails) {
       const rx = side === 'left' ? x0 + 0.05 : x1 - 0.05;
-      for (let i = 0; i <= steps; i += 3) { const z = zStart + dz * Math.min(i, steps) * run + dz * 0.1; const y = yBase + Math.min(i, steps) * rise; this.box('metalDark', rx, y + 0.5, z, 0.04, 1.0, 0.04, rc); }
-      const zA = zStart, zB = zEnd, yA = yBase + 1.0, yB = yBase + steps * rise + 1.0;
+      for (let i = from; i <= steps; i += 3) { const z = zStart + dz * Math.min(i, steps) * run + dz * 0.1; const y = yBase + Math.min(i, steps) * rise; this.box('metalDark', rx, y + 0.5, z, 0.04, 1.0, 0.04, rc); }
+      if (from % 3 !== 0) { const z = zStart + dz * steps * run; this.box('metalDark', rx, yBase + steps * rise + 0.5, z, 0.04, 1.0, 0.04, rc); }
+      const zA = zStart + dz * from * run, zB = zEnd, yA = yBase + from * rise + 1.0, yB = yBase + steps * rise + 1.0;
       const len = Math.hypot(zB - zA, yB - yA);
-      // rail as a thin prism along the slope
-      const prof: [number, number][] = [[0, -0.025], [len, -0.025], [len, 0.025], [0, 0.025]];
-      const ang = Math.atan2(yB - yA, (zB - zA) * dz);
-      const B = this.buf('metalDark'); void B;
-      // build rail from small boxes to keep it simple
-      const n = Math.ceil(len / 0.5);
+      // rail from short boxes along the slope
+      const n = Math.max(1, Math.ceil(len / 0.5));
       for (let i = 0; i < n; i++) { const t0 = i / n, t1 = (i + 1) / n; const za = zA + (zB - zA) * t0, zb = zA + (zB - zA) * t1, ya = yA + (yB - yA) * t0, yb = yA + (yB - yA) * t1; this.segmentBox('metalDark', [rx, ya, za], [rx, yb, zb], 0.05, rc); }
-      void prof; void ang;
-      if (this.collision) this.collision.addSegment(rx, zA, rx, zB, yBase, yBase + steps * rise + 1);
+      if (this.collision && Math.abs(zB - zA) > 1e-3) this.collision.addSegment(rx, zA, rx, zB, yBase, yBase + steps * rise + 1);
     }
     return { top: [cx, zEnd], topY: yBase + steps * rise };
   }

@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { libraryFrom, retargetAll, type AnimLibrary } from '../characters/retarget';
-import type { CollisionWorld } from './collision';
+import { STEP_UP, type CollisionWorld } from './collision';
 import type { InputState } from './input';
 import { setSkinnedBounds } from '../characters/bounds';
 export { setSkinnedBounds };
@@ -227,7 +227,7 @@ export class PlayerController {
   vy = 0; grounded = true;
   /** seconds since the current jump started, −1 when not jumping (animation timer only) */
   jumpT = -1;
-  readonly radius = 0.34; readonly bodyHeight = 1.7;
+  readonly radius = 0.3; readonly bodyHeight = 1.7;
   walkSpeed = 1.6; runSpeed = 4.6;
   turnRate = 11; airTurnRate = 4; accel = 14; decel = 18; airAccel = 3;
   speed = 0;
@@ -236,6 +236,16 @@ export class PlayerController {
   constructor(public avatar: AvatarLike, public world: CollisionWorld) {}
 
   teleport(x: number, y: number, z: number, yaw = this.yaw) { this.pos.set(x, y, z); this.yaw = yaw; this.vy = 0; this.speed = 0; this.grounded = true; this.jumpT = -1; this.moveDir.set(Math.sin(yaw), Math.cos(yaw)); this.sync(); }
+  /**
+   * Put the feet on the walkable ground at the current x/z (used after restoring a saved position:
+   * a save made on a different floor height must not leave the player buried in a slab or hovering).
+   * Takes the highest walkable surface within `lift` metres above the stored height, otherwise the
+   * ground below it — the player is pushed out of a floor, never lifted onto a roof.
+   */
+  settle(lift = 0.5): void {
+    this.pos.y = this.world.groundAt(this.pos.x, this.pos.z, this.pos.y, lift);
+    this.vy = 0; this.grounded = true; this.sync();
+  }
   private sync() { this.avatar.root.position.copy(this.pos); this.avatar.root.rotation.y = this.yaw; }
 
   /** world-space unit direction for a camera-relative input (exported for tests) */
@@ -279,7 +289,7 @@ export class PlayerController {
     const out: [number, number] = [0, 0];
     this.world.resolve(nx, nz, this.pos.y, this.radius, this.bodyHeight, out); nx = out[0]; nz = out[1];
     // vertical
-    const g = this.world.groundAt(nx, nz, this.pos.y, this.grounded ? 0.42 : 0.1);
+    const g = this.world.groundAt(nx, nz, this.pos.y, this.grounded ? STEP_UP : 0.1);
     if (this.grounded) {
       if (this.pos.y - g > 0.5) { this.grounded = false; this.vy = 0; } // walked off a ledge → fall
       else this.pos.y = g;

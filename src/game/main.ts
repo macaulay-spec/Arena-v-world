@@ -23,11 +23,19 @@ import { loadSave, writeSave, newSave, deleteSave, loadSettings, writeSettings, 
 
 export interface Preset { label: string; pixelRatio: number; aa: boolean; shadows: number; atlasPx: number; detail: number; far: number; lights: number; crowd: 'lite' | 'low' | 'medium' | 'high' | null; tex: number; anisotropy: number; /** crowd simulation every n frames */ crowdStep: number; /** detail culling every n frames */ cullStep: number; /** household NPC LOD / visibility distance scale */ npcLod: number }
 export const PRESETS: Record<QualityId, Preset> = {
-  lite: { label: 'Lite', pixelRatio: 1, aa: false, shadows: 0, atlasPx: 128, detail: 220, far: 1800, lights: 2, crowd: 'lite', tex: 256, anisotropy: 1, crowdStep: 2, cullStep: 4, npcLod: 0.5 },
+  lite: { label: 'Lite', pixelRatio: 1, aa: false, shadows: 0, atlasPx: 128, detail: 180, far: 1600, lights: 2, crowd: 'lite', tex: 256, anisotropy: 1, crowdStep: 2, cullStep: 4, npcLod: 0.5 },
   standard: { label: 'Standard', pixelRatio: 1.5, aa: true, shadows: 1024, atlasPx: 192, detail: 520, far: 3000, lights: 5, crowd: 'medium', tex: 512, anisotropy: 4, crowdStep: 1, cullStep: 6, npcLod: 1 },
   high: { label: 'High', pixelRatio: 2, aa: true, shadows: 2048, atlasPx: 256, detail: 800, far: 3800, lights: 8, crowd: 'high', tex: 1024, anisotropy: 8, crowdStep: 1, cullStep: 6, npcLod: 1.2 },
 };
-const MANSION_ORIGIN: [number, number, number] = [-374.1, 24.3, -411.9];
+/** JAG House site: the reserved terrace `L-jag-house` in data/city.json (west/north corner, terrace height) */
+const MANSION_SITE = 'L-jag-house';
+const MANSION_FALLBACK: [number, number, number] = [-374.1, 22.1, -411.9];
+function mansionOrigin(city: CityData): [number, number, number] {
+  const lm = city.landmarks.find(l => l.id === MANSION_SITE);
+  if (!lm?.plateau) { console.warn(`[vora] ${MANSION_SITE} terrace missing from city data; using the fallback origin`); return MANSION_FALLBACK; }
+  const xs = lm.plateau.polygon.map(p => p[0]), zs = lm.plateau.polygon.map(p => p[1]);
+  return [Math.min(...xs), lm.plateau.y, Math.min(...zs)];
+}
 const HOUSE_NAME = 'JAG House', HOUSE_ADDR = '1 Ridge Street, North Heights';
 const ROOM_LABEL: Record<string, string> = { living: 'Living room', hall: 'Entrance hall', dining: 'Dining room', kitchen: 'Kitchen', lounge: 'Family lounge', wc: 'Guest WC', store: 'Store', study: 'Study', landing: 'Landing', corridor: 'Upstairs corridor', master: 'Master bedroom', dressing: 'Dressing room', masterbath: 'Master bathroom', bedroom2: 'Guest bedroom', bedroom3: 'Bedroom', ensuite3: 'En-suite', bath: 'Bathroom', bedroom4: 'Kids’ room', penthouse: 'Roof lounge', roof: 'Roof terrace', veranda: 'Veranda', balcony: 'Balcony', stairs: 'Stairs', gatehouse: 'Gatehouse', bq: 'Staff quarters', genhouse: 'Generator house' };
 const SECONDS_PER_GAME_MINUTE = 2;
@@ -61,12 +69,13 @@ async function main() {
   let loadingShown = false;
   const progress = async (label: string, f: number) => { if (!loadingShown) { loadingShown = true; await logoDone; screens.show('loading'); } screens.setLoading(label, f); await nextFrame(); await nextFrame(); };
   const city: CityData = await (await fetch(cityUrl)).json();
+  const MANSION_ORIGIN = mansionOrigin(city);
   const built: CityWorld = await buildCityWorld(city, { atlasPx: Q.atlasPx, detail: Q.detail }, { progress: (l, f) => progress(l, f * 0.55), smallText: isTouch });
   scene.add(built.world);
   const sky = makeSky(scene, Math.max(512, Q.shadows)); sky.sun.castShadow = Q.shadows > 0;
 
   await progress('Building JAG House…', 0.6);
-  const collision = new CollisionWorld((x, z) => built.height(x, z));
+  const collision = new CollisionWorld((x, z) => built.walkHeight(x, z));
   for (const b of city.buildings) for (const m of b.masses) collision.addPolygon(m.footprint as [number, number][], m.baseY - 2, m.baseY + m.floors * m.floorHeight + 2);
   const mansion: Mansion = buildMansion({ origin: MANSION_ORIGIN, collision, shadows: Q.shadows > 0, textureSize: Q.tex });
   scene.add(mansion.group);
@@ -209,7 +218,7 @@ async function main() {
     if (!save) return;
     state = 'cutscene'; player.busy = true;
     const wake = mansion.spots.wake;
-    if (!fresh && save.pos) { player.teleport(save.pos[0], save.pos[1], save.pos[2], save.pos[3]); avatar.play('idle'); }
+    if (!fresh && save.pos) { player.teleport(save.pos[0], save.pos[1], save.pos[2], save.pos[3]); player.settle(); avatar.play('idle'); }
     else if (wake) { const bed = mansion.spots.bed ?? wake; player.teleport(bed.pos[0], bed.pos[1], bed.pos[2], bed.yaw); avatar.play('lie', 0); }
     setClock(save.minutes); day = save.day;
     chase.snapBehind(player.yaw); chase.update(0, player.pos, player.yaw, 0, 0, 0, false, true);
@@ -346,7 +355,7 @@ async function main() {
   addEventListener('beforeunload', () => persist());
 
   (window as unknown as { vora: unknown }).vora = {
-    scene, camera, renderer, player, chase, mansion, household, sky, setClock, collision, input, avatar, crowd, quality: qualityId, preset: Q,
+    scene, camera, renderer, player, chase, mansion, household, sky, setClock, collision, input, avatar, crowd, quality: qualityId, preset: Q, THREE,
     get save() { return save; }, get state() { return state; }, get frame() { return frame; },
     /** cumulative CPU-side frame cost (simulation + render submit) since boot or the last reset */
     get bench() { return { ...bench }; }, resetBench() { bench.frames = 0; bench.ms = 0; },

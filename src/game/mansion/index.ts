@@ -64,7 +64,7 @@ export function buildMansion(o: { origin: [number, number, number]; collision: C
     door(spec) {
       const d = new Door(spec, mats, sink); doors.push(d); group.add(d.group);
       const h = d.handle;
-      interactables.push({ id: `door:${doors.length}`, prompt: () => d.prompt, pos: toWorld(h[0], h[1], h[2]), radius: 1.7, action: () => d.toggle() });
+      interactables.push({ id: `door:${doors.length - 1}`, prompt: () => d.prompt, pos: toWorld(h[0], h[1], h[2]), radius: 1.7, action: () => d.toggle() });
       return d;
     },
     slider(spec, mesh) { const s = new Slider(spec, mesh, sink); sliders.push(s); group.add(s.group); return s; },

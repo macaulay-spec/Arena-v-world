@@ -8,6 +8,13 @@ export const HOUSE = { X0: 16, X1: 50, Z0: 20, Z1: 44, GF: 0.45, F1: 3.85, RF: 7
 const { X0, X1, Z0, Z1, GF, F1, RF, H, SLAB, TE, TI } = HOUSE;
 const EXT = rgb('#ebe3d2'), INT = rgb('#f7f4ee'), TRIM: RGB = rgb('#2b2f36'), STONE = rgb('#8a847c'), DARK = rgb('#3a3a3a');
 const win = (u0: number, u1: number, y0 = 0.9, y1 = 2.4): Opening => ({ u0, u1, y0, y1, kind: 'window' });
+/**
+ * Main stair (local metres): both flights 16 risers of 0.2125 m (GF→F1 and F1→RF are 3.4 m), 0.26 m
+ * treads, running north (−z) from the hall. The F1 hole over flight 1 ends where its top tread meets
+ * the half-landing; flight 2 leaves that landing and ends against the master-bedroom wall at z 33.9.
+ */
+export const STAIR = { x0: 27.15, x1: 30.0, steps: 16, rise: 3.4 / 16, run: 0.26, f1Start: 43.6, f1Top: 43.6 - 16 * 0.26, f2Start: 43.6 - 16 * 0.26 - 1.4, hole: 42.6 } as const;
+
 const dr = (u0: number, u1: number, h = 2.2): Opening => ({ u0, u1, y0: 0, y1: h, kind: 'door' });
 const arch = (u0: number, u1: number, h = 2.6): Opening => ({ u0, u1, y0: 0, y1: h, kind: 'open' });
 
@@ -50,18 +57,20 @@ export function buildHouse(c: MansionContext): void {
   // F1 floors (holes: stairwell)
   const f1floors: [string, 'marble' | 'wood' | 'tile', number, number, number, number, [number, number, number, number][]?][] = [
     ['master', 'wood', 16, 27, 30, 33.9], ['dressing', 'wood', 16, 20, 22, 27], ['ensuite', 'tile', 22, 20, 30, 27], ['bed2', 'wood', 16, 33.9, 27, 44],
-    ['stairhall', 'marble', 27, 33.9, 30, 44, [[27, 38.7, 30, 42.6]]], ['landing', 'marble', 30, 36, 39, 44], ['corridor', 'marble', 30, 20, 36, 36],
+    ['stairhall', 'marble', 27, 33.9, 30, 44, [[27, STAIR.f1Top, 30, STAIR.hole]]], ['landing', 'marble', 30, 36, 39, 44], ['corridor', 'marble', 30, 20, 36, 36],
     ['bath', 'tile', 36, 29, 42, 36], ['ensuite3', 'tile', 42, 29, 50, 36], ['bed3', 'wood', 39, 36, 50, 44], ['bed4', 'wood', 36, 20, 50, 29],
   ];
   for (const [, mat, x0, z0, x1, z1, holes] of f1floors) K.slab(mat, x0, z0, x1, z1, F1, SLAB, floorCol[mat], { holes });
-  // the stair hall at F1 under flight 2 is the flight itself; the landing edge next to the hole gets rails
-  rail(30, 38.7, 30, 42.6, F1); rail(27, 42.6, 30, 42.6, F1);
-  rail(30, 33.9, 30, 38.7, F1); // alongside flight 2
+  // glass balustrades at F1: along the stairwell hole and alongside flight 2, leaving the half-landing
+  // between the two flights (z STAIR.f2Start..STAIR.f1Top) open to the landing — that gap is the only way
+  // on and off the stairs at first-floor level
+  rail(30, STAIR.f1Top, 30, STAIR.hole, F1); rail(27, STAIR.hole, 30, STAIR.hole, F1);
+  rail(30, 33.9, 30, STAIR.f2Start, F1); // alongside flight 2
   // balcony
   K.slab('tile', X0, Z1, X1, Z1 + 2.6, F1, SLAB, rgb('#d9d4cb'));
   rail(X0, Z1 + 2.6, X1, Z1 + 2.6, F1); rail(X0, Z1, X0, Z1 + 2.6, F1); rail(X1, Z1, X1, Z1 + 2.6, F1);
   // roof terrace
-  K.slab('tile', X0, Z0, X1, Z1, RF, SLAB, rgb('#cfcac0'), { holes: [[27, 33.9, 30, 38.7]] });
+  K.slab('tile', X0, Z0, X1, Z1, RF, SLAB, rgb('#cfcac0'), { holes: [[27, 33.9, 30, STAIR.f2Start]] });
   // parapet
   for (const [ax, az, bx, bz] of [[X0, Z0, X1, Z0], [X1, Z0, X1, Z1], [X1, Z1, X0, Z1], [X0, Z1, X0, Z0]] as [number, number, number, number][]) wall('plaster', ax, az, bx, bz, RF, 1.1, TE, EXT);
   K.box('stone', (X0 + X1) / 2, RF + 1.14, Z0 - 0.0, X1 - X0 + 0.5, 0.08, 0.5, STONE); K.box('stone', (X0 + X1) / 2, RF + 1.14, Z1, X1 - X0 + 0.5, 0.08, 0.5, STONE);
@@ -106,13 +115,19 @@ export function buildHouse(c: MansionContext): void {
   hinged(24, GF, 32, 0, 1.0, { label: 'office door', swing: -1, open: true });
   hinged(44, GF, 34, 0, 1.0, { label: 'kitchen door', swing: -1, open: true });
   // ceilings are the slab undersides; GF slab underside = F1 slab (built above)
-  // stairs
-  K.stair('marble', 27.15, 29.9, 43.5, -1, GF, 17, 0.2, 0.28, rgb('#ece7dd'), { rail: 'right' });
-  K.stair('marble', 27.15, 29.9, 38.7, -1, F1, 17, 0.2, 0.28, rgb('#ece7dd'), { rail: 'right' });
+  // stairs: two straight flights up the west side of the hall with a half-landing at F1 between them.
+  // Flight 1 is open to the hall for its first treads (the foot sits 0.25 m from the front wall, so it
+  // can only be entered from the side); its balustrade starts at the fourth tread. Flight 2 keeps its
+  // handrail on the wall side — the landing's glass balustrade guards the other side.
+  K.stair('marble', STAIR.x0, STAIR.x1, STAIR.f1Start, -1, GF, STAIR.steps, STAIR.rise, STAIR.run, rgb('#ece7dd'), { rail: 'right', railFrom: 4 });
+  K.stair('marble', STAIR.x0, STAIR.x1, STAIR.f2Start, -1, F1, STAIR.steps, STAIR.rise, STAIR.run, rgb('#ece7dd'), { rail: 'left' });
   // stair penthouse on the roof
-  wall('plaster', 26.85, 32.5, 30.15, 32.5, RF, 2.7, TE, EXT); wall('plaster', 26.85, 32.5, 26.85, 39.5, RF, 2.7, TE, EXT); wall('plaster', 26.85, 39.5, 30.15, 39.5, RF, 2.7, TE, EXT);
-  wall('plaster', 30.15, 32.5, 30.15, 39.5, RF, 2.7, TE, EXT, [dr(3.5, 4.5)]);
-  hinged(30.15, RF, 36, -Math.PI / 2, 1.0, { label: 'terrace door', swing: 1, color: '#8a6040', open: true });
+  // the terrace door is in the north wall, in front of the top of flight 2: the only roof floor inside
+  // the penthouse is the strip between that wall and the stairwell hole (an east door would open
+  // straight over the hole)
+  wall('plaster', 26.85, 32.5, 30.15, 32.5, RF, 2.7, TE, EXT, [dr(0.95, 2.05)]); wall('plaster', 26.85, 32.5, 26.85, 39.5, RF, 2.7, TE, EXT); wall('plaster', 26.85, 39.5, 30.15, 39.5, RF, 2.7, TE, EXT);
+  wall('plaster', 30.15, 32.5, 30.15, 39.5, RF, 2.7, TE, EXT);
+  hinged(27.8, RF, 32.5, 0, 1.1, { label: 'terrace door', swing: -1, color: '#8a6040', open: true });
   K.slab('roof', 26.7, 32.35, 30.3, 39.65, RF + 2.7 + 0.2, 0.2, rgb('#9a958c'), { walk: false });
 
   // rooms (for the HUD + light logic)

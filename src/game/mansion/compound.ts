@@ -13,14 +13,16 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   const W0 = bx0 + 0.3, W1 = bx1 - 0.3, D0 = bz0 + 0.3, D1 = bz1 - 0.3; // wall centre lines
   const GATE_X0 = 23.5, GATE_X1 = 30.5, PED_X0 = 21.6, PED_X1 = 22.7;
 
-  // ground: lawn over the whole terrace, paved areas on top
-  K.slab('grass', bx0, bz0, bx1, bz1, 0.02, 0.02, LAWN, { under: 'soil', walk: false, holes: [[34, 5, 48, 13]] });
+  // ground: lawn over the whole terrace, paved areas on top. All of it is walkable collision surface, so
+  // the feet follow the visible paving exactly (the terrace terrain underneath is flat at local 0; the
+  // slabs sit 2–5 cm above it and win the ground query).
+  K.slab('grass', bx0, bz0, bx1, bz1, 0.02, 0.02, LAWN, { under: 'soil', holes: [[34, 5, 48, 13]] });
   // drive + forecourt + walkways
-  K.slab('paving', 22.5, 56, 32.5, D1 + 0.3, 0.05, 0.05, PAVE, { walk: false });
-  K.slab('paving', 10, 47.2, 56, 56.5, 0.05, 0.05, PAVE, { walk: false });
-  K.slab('paving', 53, 56.5, W1, 74, 0.05, 0.05, rgb('#9e9990'), { walk: false });
-  K.slab('paving', 2, 58, 14, 74, 0.05, 0.05, rgb('#9e9990'), { walk: false });
-  K.slab('paving', 50.5, 20, 56, 47.2, 0.05, 0.05, PAVE, { walk: false }); K.slab('paving', 10, 20, 15.7, 47.2, 0.05, 0.05, PAVE, { walk: false });
+  K.slab('paving', 22.5, 56, 32.5, D1 + 0.3, 0.05, 0.05, PAVE);
+  K.slab('paving', 10, 47.2, 56, 56.5, 0.05, 0.05, PAVE);
+  K.slab('paving', 53, 56.5, W1, 74, 0.05, 0.05, rgb('#9e9990'));
+  K.slab('paving', 2, 58, 14, 74, 0.05, 0.05, rgb('#9e9990'));
+  K.slab('paving', 50.5, 20, 56, 47.2, 0.05, 0.05, PAVE); K.slab('paving', 10, 20, 15.7, 47.2, 0.05, 0.05, PAVE);
   // rear terrace & pool deck (raised 0.15)
   K.slab('tile', 12, 1.5, 54, 20, 0.15, 0.15, rgb('#d8d2c6'), { under: 'stone', underColor: STONE, holes: [[34, 5, 48, 13]] });
   c.sink.addSegment(12, 1.5, 12, 20, 0, 0.15); c.sink.addSegment(54, 1.5, 54, 20, 0, 0.15); c.sink.addSegment(12, 1.5, 54, 1.5, 0, 0.15); // deck edge (low kerb, steppable? no: 0.15 < 0.42 so walkable)
@@ -34,8 +36,10 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   }
   // pit: inside the pool the ground is the basin floor (you can wade in and climb out by the steps)
   c.pit(PX0, PZ0, PX1, PZ1, PY);
-  for (let i = 0; i < 4; i++) K.box('poolTile', PX1 - 0.6 - i * 0.4 + 0.2, PY + (4 - i) * 0.3 / 2, (PZ0 + PZ1) / 2, 0.4, (4 - i) * 0.3, PZ1 - PZ0 - 0.2, [0.9, 0.97, 1]);
-  for (let i = 0; i < 4; i++) c.sink.addSurface(PX1 - 0.6 - i * 0.4, PZ0 + 0.1, PX1 - 0.2 - i * 0.4, PZ1 - 0.1, PY + (4 - i) * 0.3);
+  // four steps at the east end; the top one reaches the pool wall so there is no strip of deep water
+  // between it and the deck (a foot sampled there used to drop into the pit for a frame)
+  for (let i = 0; i < 4; i++) { const sx0 = PX1 - 0.6 - i * 0.4, sx1 = i === 0 ? PX1 : PX1 - 0.2 - i * 0.4; K.box('poolTile', (sx0 + sx1) / 2, PY + (4 - i) * 0.3 / 2, (PZ0 + PZ1) / 2, sx1 - sx0, (4 - i) * 0.3, PZ1 - PZ0 - 0.2, [0.9, 0.97, 1], 0, { collide: true }); } // solid: you climb them one at a time, never walk through them
+  for (let i = 0; i < 4; i++) { const sx0 = PX1 - 0.6 - i * 0.4, sx1 = i === 0 ? PX1 + 0.05 : PX1 - 0.2 - i * 0.4; c.sink.addSurface(sx0 - 0.03, PZ0 + 0.1, sx1, PZ1 - 0.1, PY + (4 - i) * 0.3); }
   K.box('stone', (PX0 + PX1) / 2, 0.16, PZ0 - 0.2, PX1 - PX0 + 0.8, 0.06, 0.4, rgb('#ddd8ce')); K.box('stone', (PX0 + PX1) / 2, 0.16, PZ1 + 0.2, PX1 - PX0 + 0.8, 0.06, 0.4, rgb('#ddd8ce'));
   K.box('stone', PX0 - 0.2, 0.16, (PZ0 + PZ1) / 2, 0.4, 0.06, PZ1 - PZ0 + 0.8, rgb('#ddd8ce')); K.box('stone', PX1 + 0.2, 0.16, (PZ0 + PZ1) / 2, 0.4, 0.06, PZ1 - PZ0 + 0.8, rgb('#ddd8ce'));
   K.box('water', (PX0 + PX1) / 2, 0.15 - 0.22, (PZ0 + PZ1) / 2, PX1 - PX0 - 0.02, 0.02, PZ1 - PZ0 - 0.02, [0.55, 0.85, 1], 0, { faces: ['py'] });
@@ -49,18 +53,31 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   c.light({ pos: [41, 0.3, 9], color: 0x6fc7ff, intensity: 1.2, distance: 14, room: 'pool', outdoor: true });
 
   // ───────── perimeter wall with pilasters, coping and electric fence ─────────
-  const wallOps = (len: number, gate = false) => gate ? [{ u0: GATE_X0 - W0, u1: GATE_X1 - W0, y0: 0, y1: 3.0, kind: 'open' as const }, { u0: PED_X0 - W0, u1: PED_X1 - W0, y0: 0, y1: 2.3, kind: 'open' as const }] : [] as never[];
-  K.wall('plaster', W0, D0, W1, D0, -0.5, 3.5, 0.3, WALL);                       // north
-  K.wall('plaster', W1, D0, W1, D1, -0.5, 3.5, 0.3, WALL);                       // east
-  K.wall('plaster', W0, D1, W0, D0, -0.5, 3.5, 0.3, WALL);                       // west
-  K.wall('plaster', W0, D1, W1, D1, -0.5, 3.5, 0.3, WALL, wallOps(W1 - W0, true)); // south (street side) with the gate opening
+  // The terrace is cut into the hillside at the grade of the street in front of the gate; the streets
+  // on the other three sides run above it. Each wall is therefore a retaining wall: its top is kept
+  // at least PARAPET above the highest outside ground along that side (and never below WALL_TOP), so
+  // no side can be stepped over from the street and the earth face behind the wall is never visible.
+  const WALL_TOP = 3.0, WALL_BASE = -0.5, PARAPET = 1.4;
+  /** wall top for the side a→b whose outward normal is (nx, nz): highest ground just outside + parapet */
+  const outsideTop = (ax: number, az: number, bx: number, bz: number, nx: number, nz: number) => {
+    let top = WALL_TOP;
+    for (let t = 0; t <= 1.0001; t += 1 / 24) for (const d of [0.6, 2, 4, 7]) top = Math.max(top, c.sink.groundAt(ax + (bx - ax) * t + nx * d, az + (bz - az) * t + nz * d) + PARAPET);
+    return Math.ceil(top * 10) / 10;
+  };
+  const TOP_N = outsideTop(W0, D0, W1, D0, 0, -1), TOP_E = outsideTop(W1, D0, W1, D1, 1, 0), TOP_W = outsideTop(W0, D0, W0, D1, -1, 0), TOP_S = WALL_TOP;
+  const wallOps = (gate = false) => gate ? [{ u0: GATE_X0 - W0, u1: GATE_X1 - W0, y0: 0, y1: 3.0, kind: 'open' as const }, { u0: PED_X0 - W0, u1: PED_X1 - W0, y0: 0, y1: 2.3, kind: 'open' as const }] : [] as never[];
+  K.wall('plaster', W0, D0, W1, D0, WALL_BASE, TOP_N - WALL_BASE, 0.3, WALL);                 // north
+  K.wall('plaster', W1, D0, W1, D1, WALL_BASE, TOP_E - WALL_BASE, 0.3, WALL);                 // east
+  K.wall('plaster', W0, D1, W0, D0, WALL_BASE, TOP_W - WALL_BASE, 0.3, WALL);                 // west
+  K.wall('plaster', W0, D1, W1, D1, WALL_BASE, TOP_S - WALL_BASE, 0.3, WALL, wallOps(true));  // south (street side) with the gate opening
   const pil = (x: number, z: number, h = 3.3) => { K.box('stone', x, h / 2 - 0.4, z, 0.55, h + 0.4, 0.55, STONE, 0, { collide: true }); K.box('stone', x, h + 0.05, z, 0.7, 0.1, 0.7, STONE); };
-  for (let x = W0; x <= W1 + 0.01; x += (W1 - W0) / 10) { pil(x, D0); if (x < GATE_X0 - 1 || x > GATE_X1 + 1) pil(x, D1); }
-  for (let z = D0; z <= D1 + 0.01; z += (D1 - D0) / 11) { pil(W0, z); pil(W1, z); }
+  for (let x = W0; x <= W1 + 0.01; x += (W1 - W0) / 10) { pil(x, D0, TOP_N + 0.3); if (x < GATE_X0 - 1 || x > GATE_X1 + 1) pil(x, D1); }
+  for (let z = D0; z <= D1 + 0.01; z += (D1 - D0) / 11) { pil(W0, z, z < D0 + 0.1 ? Math.max(TOP_N, TOP_W) + 0.3 : TOP_W + 0.3); pil(W1, z, z < D0 + 0.1 ? Math.max(TOP_N, TOP_E) + 0.3 : TOP_E + 0.3); }
   pil(GATE_X0 - 0.35, D1, 3.6); pil(GATE_X1 + 0.35, D1, 3.6); pil(PED_X0 - 0.35, D1, 3.4);
-  K.box('stone', (W0 + W1) / 2, 3.02, D0, W1 - W0, 0.08, 0.5, STONE); K.box('stone', W0, 3.02, (D0 + D1) / 2, 0.5, 0.08, D1 - D0, STONE); K.box('stone', W1, 3.02, (D0 + D1) / 2, 0.5, 0.08, D1 - D0, STONE);
-  K.box('stone', (W0 + GATE_X0) / 2, 3.02, D1, GATE_X0 - W0 - 0.6, 0.08, 0.5, STONE); K.box('stone', (GATE_X1 + W1) / 2, 3.02, D1, W1 - GATE_X1 - 0.6, 0.08, 0.5, STONE);
-  for (let k = 1; k <= 3; k++) { const y = 3.05 + k * 0.18; K.segmentBox('metalDark', [W0, y, D0 + 0.05], [W1, y, D0 + 0.05], 0.015, DARK); K.segmentBox('metalDark', [W1 - 0.05, y, D0], [W1 - 0.05, y, D1], 0.015, DARK); K.segmentBox('metalDark', [W0 + 0.05, y, D0], [W0 + 0.05, y, D1], 0.015, DARK); }
+  // coping + three strands of electric fence on each side, following that side's wall top
+  K.box('stone', (W0 + W1) / 2, TOP_N + 0.02, D0, W1 - W0, 0.08, 0.5, STONE); K.box('stone', W0, TOP_W + 0.02, (D0 + D1) / 2, 0.5, 0.08, D1 - D0, STONE); K.box('stone', W1, TOP_E + 0.02, (D0 + D1) / 2, 0.5, 0.08, D1 - D0, STONE);
+  K.box('stone', (W0 + GATE_X0) / 2, TOP_S + 0.02, D1, GATE_X0 - W0 - 0.6, 0.08, 0.5, STONE); K.box('stone', (GATE_X1 + W1) / 2, TOP_S + 0.02, D1, W1 - GATE_X1 - 0.6, 0.08, 0.5, STONE);
+  for (let k = 1; k <= 3; k++) { const dy = 0.05 + k * 0.18; K.segmentBox('metalDark', [W0, TOP_N + dy, D0 + 0.05], [W1, TOP_N + dy, D0 + 0.05], 0.015, DARK); K.segmentBox('metalDark', [W1 - 0.05, TOP_E + dy, D0], [W1 - 0.05, TOP_E + dy, D1], 0.015, DARK); K.segmentBox('metalDark', [W0 + 0.05, TOP_W + dy, D0], [W0 + 0.05, TOP_W + dy, D1], 0.015, DARK); }
   // gate name plate
   K.box('black', GATE_X1 + 0.35, 1.7, D1 - 0.3, 0.5, 0.3, 0.02, rgb('#c9a24a'));
   // sliding gate (steel panels) + pedestrian gate
