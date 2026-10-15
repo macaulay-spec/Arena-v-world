@@ -20,7 +20,7 @@ interface Batch { template: Template; matrices: THREE.Matrix4[]; colors: THREE.C
 
 export interface PropBuild { color: ChunkSet<ColorBuilder>; foliage: ChunkSet<ColorBuilder>; glass: ChunkSet<ColorBuilder>; text: ChunkSet<TextBuilder>; textAtlas: TextAtlas; }
 
-export interface PropResult { instanced: { mat: MatKind; geo: THREE.BufferGeometry; matrices: THREE.Matrix4[]; colors: THREE.Color[]; shadow: boolean; cx: number; cz: number }[] }
+export interface PropResult { instanced: { key: string; mat: MatKind; geo: THREE.BufferGeometry; matrices: THREE.Matrix4[]; colors: THREE.Color[]; shadow: boolean; cx: number; cz: number }[] }
 
 const INSTANCE_CELL = 320;
 
@@ -114,8 +114,8 @@ export function buildProps(city: CityData, out: PropBuild, heightAt: (x: number,
     }
   }
   for (const [bk, b] of batches) {
-    const [, cell] = bk.split('|'); const [cx, cz] = cell.split(',').map(Number);
-    for (const part of b.template.parts) res.instanced.push({ mat: part.mat, geo: part.geo, matrices: b.matrices, colors: b.colors, shadow: part.shadow, cx: (cx + 0.5) * INSTANCE_CELL, cz: (cz + 0.5) * INSTANCE_CELL });
+    const [tkey, cell] = bk.split('|'); const [cx, cz] = cell.split(',').map(Number);
+    for (const part of b.template.parts) res.instanced.push({ key: tkey + ':' + cell, mat: part.mat, geo: part.geo, matrices: b.matrices, colors: b.colors, shadow: part.shadow, cx: (cx + 0.5) * INSTANCE_CELL, cz: (cz + 0.5) * INSTANCE_CELL });
   }
   return res;
 }

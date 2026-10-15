@@ -5,7 +5,7 @@ import { frameOf, wideFrame, placeMass, world, parkingRows, r2, type Frame, type
 import { ZONES } from './config';
 
 type P = Omit<Prop, 'y'>;
-export interface LandmarkResult { frame: Frame; specs: Spec[]; props: P[]; role?: LandmarkRole; name: string; description: string; plateau?: { polygon: Vec2[]; y: number } }
+export interface LandmarkResult { frame: Frame; specs: Spec[]; props: P[]; role?: LandmarkRole; name: string; description: string; plateau?: { polygon: Vec2[]; y: number; /** ground point the terrace is levelled to (e.g. the street outside the gate); default = mean ground over the site */ anchor?: Vec2 } }
 
 const flat = (parapet = 1, tile = 'roof-concrete'): BuildingMass['roof'] => ({ type: 'flat', tile, parapet });
 const F = (kind: MassFeature['kind'], extra: Partial<MassFeature> = {}): MassFeature => ({ kind, ...extra });
@@ -36,8 +36,12 @@ export function buildLandmark(zoneId: string, parcel: Parcel, rng: RNG): Landmar
 
   switch (zoneId) {
     case 'jag-house': {
-      // the estate is built by the game runtime (procedural mansion); the city only reserves the terraced site
-      return { frame: f, specs, props, role: 'residence', name: zone.name, description: zone.description!, plateau: { polygon: parcel.polygon.map(p => [r2(p[0]), r2(p[1])] as Vec2), y: 0 } };
+      // the estate is built by the game runtime (procedural mansion); the city only reserves the terraced site.
+      // The terrace is levelled to the street outside the gate (gate = 27 m from the site's west edge on
+      // its south, street-facing side — see src/game/mansion/compound.ts) so the drive meets the road at grade.
+      const poly = parcel.polygon.map(p => [r2(p[0]), r2(p[1])] as Vec2);
+      const minX = Math.min(...poly.map(p => p[0])), maxZ = Math.max(...poly.map(p => p[1]));
+      return { frame: f, specs, props, role: 'residence', name: zone.name, description: zone.description!, plateau: { polygon: poly, y: 0, anchor: [r2(minX + 27), r2(maxZ + 2)] } };
     }
     case 'city-hall': {
       const fd = Math.min(22, Math.max(10, D - 36 - 6));

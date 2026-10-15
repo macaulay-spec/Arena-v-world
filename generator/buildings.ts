@@ -161,11 +161,17 @@ export function buildBuildings(blocks: Block[], parcels: Parcel[], edgeById: Map
       const d = Math.max(90, Math.sqrt(p.area) * 1.3);
       const lm: Landmark = { id: `L-${zoneId}`, role: res.role, name: res.name, districtId: p.districtId, x: r2(c[0]), z: r2(c[1]), buildingIds: ids, description: res.description, view: { pos: [r2(c[0] + d * 0.7), r2(d * 0.55 + 20), r2(c[1] + d * 0.7)], target: [r2(c[0]), 10, r2(c[1])] } };
       if (res.plateau) {
-        // terrace height = mean graded ground over the site (sampled on a grid), rounded to 0.1 m
-        const bb = p.polygon.reduce((a, q) => ({ minX: Math.min(a.minX, q[0]), maxX: Math.max(a.maxX, q[0]), minZ: Math.min(a.minZ, q[1]), maxZ: Math.max(a.maxZ, q[1]) }), { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity });
-        let sum = 0, n = 0;
-        for (let x = bb.minX; x <= bb.maxX; x += 4) for (let z = bb.minZ; z <= bb.maxZ; z += 4) { sum += ground.height(x, z); n++; }
-        lm.plateau = { polygon: res.plateau.polygon, y: Math.round((sum / Math.max(1, n)) * 10) / 10 };
+        // terrace height: the graded ground at the site's anchor (street level at the gate) when given,
+        // otherwise the mean graded ground over the site (sampled on a grid); rounded to 0.1 m
+        let y: number;
+        if (res.plateau.anchor) y = ground.height(res.plateau.anchor[0], res.plateau.anchor[1]);
+        else {
+          const bb = p.polygon.reduce((a, q) => ({ minX: Math.min(a.minX, q[0]), maxX: Math.max(a.maxX, q[0]), minZ: Math.min(a.minZ, q[1]), maxZ: Math.max(a.maxZ, q[1]) }), { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity });
+          let sum = 0, n = 0;
+          for (let x = bb.minX; x <= bb.maxX; x += 4) for (let z = bb.minZ; z <= bb.maxZ; z += 4) { sum += ground.height(x, z); n++; }
+          y = sum / Math.max(1, n);
+        }
+        lm.plateau = { polygon: res.plateau.polygon, y: Math.round(y * 10) / 10 };
         lm.view = { pos: [r2(c[0] + 40), r2(lm.plateau.y + 26), r2(c[1] + 70)], target: [r2(c[0]), r2(lm.plateau.y + 4), r2(c[1])] };
       }
       landmarks.push(lm);

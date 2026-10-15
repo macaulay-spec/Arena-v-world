@@ -34,6 +34,8 @@ export interface CityWorld {
   instanceCount: number;
   materials: { atlas: THREE.Material; prop: THREE.Material; foliage: THREE.Material; glass: THREE.Material; terrain: THREE.Material; water: THREE.Material };
   height: (x: number, z: number) => number;
+  /** height of the walkable surface (road build-up / bridge decks on top of the graded ground) */
+  walkHeight: (x: number, z: number) => number;
 }
 
 export async function buildCityWorld(city: CityData, Q: WorldQuality, opts: BuildWorldOptions = {}): Promise<CityWorld> {
@@ -113,7 +115,7 @@ export async function buildCityWorld(city: CityData, Q: WorldQuality, opts: Buil
     for (let i = 0; i < b.matrices.length; i++) { im.setMatrixAt(i, b.matrices[i]); im.setColorAt(i, b.colors[i]); }
     im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
     im.castShadow = b.shadow && b.mat !== 'glass'; im.receiveShadow = b.mat !== 'glass';
-    im.computeBoundingSphere(); im.frustumCulled = true;
+    im.computeBoundingSphere(); im.frustumCulled = true; im.name = 'inst:' + b.key + ':' + b.mat;
     if (b.mat === 'glass') im.renderOrder = 3;
     world.add(im);
     detailMeshes.push({ obj: im, cx: b.cx, cz: b.cz, r: 320 * 0.75 });
@@ -132,6 +134,7 @@ export async function buildCityWorld(city: CityData, Q: WorldQuality, opts: Buil
     world, base, detailMeshes, buildingMeshes, roadMeshes, instanceCount,
     materials: { atlas: atlasMat, prop: propMat, foliage: foliageMat, glass: glassMat, terrain: terrainMat, water: waterMat },
     height: (x, z) => base.ground.height(x, z),
+    walkHeight: (x, z) => base.ground.walkHeight(x, z),
   };
 }
 

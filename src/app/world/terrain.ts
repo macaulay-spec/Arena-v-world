@@ -26,11 +26,21 @@ const COVER: Record<string, [string, string]> = {
   water: ['#6a7a70', '#728078'], open: ['#8f945f', '#a0a06a'], landmark: ['#7f9a4e', '#8fa65a'], farmland: ['#9a9a5a', '#a89f5e'],
 };
 
-export function buildTerrain(city: CityData, base: WorldBase, mat: THREE.Material): THREE.Mesh {
-  const { terrain, ground, blockAt } = base;
+/** terrain tile edge (metres): tiles are separate meshes so the renderer frustum-culls the ground */
+export const TERRAIN_TILE = 200;
+const INNER_STEP = 5, OUTER_STEP = 10, TERRACE_STEP = 2;
+
+/**
+ * Ground mesh: the inner city on a 5 m grid, the outer frame at 10 m, split into TERRAIN_TILE tiles.
+ * Terraces (landmark plateaus) get a conforming patch: a finer grid whose vertex columns/rows are
+ * doubled a few centimetres either side of the terrace edges, so the retaining step between the
+ * flat terrace and the surrounding ground is a clean vertical face instead of a 5 m ramp that would
+ * poke through the compound wall and bury the garden.
+ */
+export function buildTerrain(city: CityData, base: WorldBase, mat: THREE.Material): THREE.Group {
+  const { ground, blockAt } = base;
   const cb = city.meta.terrain.cityBounds, wb = city.meta.terrain.bounds;
   const noise = new Noise2D(7);
-  const positions: number[] = [], colors: number[] = [], uvs: number[] = [], indices: number[] = [];
   const grass = new THREE.Color(), tmp = new THREE.Color();
   const sand = new THREE.Color('#c9b98a'), bed = new THREE.Color('#5a6a66'), savanna = new THREE.Color('#9c9a58'), savanna2 = new THREE.Color('#7f8f46'), earth = new THREE.Color('#9a8a66');
   const colorAt = (x: number, z: number, h: number): THREE.Color => {
@@ -53,9 +63,20 @@ export function buildTerrain(city: CityData, base: WorldBase, mat: THREE.Materia
     if (h > 14) tmp.lerp(earth, Math.min(1, (h - 14) / 10));
     return tmp;
   };
-  const addGrid = (x0: number, z0: number, x1: number, z1: number, step: number) => {
+  const group = new THREE.Group(); group.name = 'terrain';
+
+  // terrace patches, snapped outward to the inner grid lines so they replace whole 5 m cells
+  const snapLo = (v: number, o: number) => o + Math.floor((v - o) / INNER_STEP) * INNER_STEP, snapHi = (v: number, o: number) => o + Math.ceil((v - o) / INNER_STEP) * INNER_STEP;
+  const patches = ground.terraces.map(t => {
+    const b = bbox(t.polygon), pad = ground.plateauBand + 1;
+    return { polygon: t.polygon, minX: snapLo(b.minX - pad, cb.minX), maxX: snapHi(b.maxX + pad, cb.minX), minZ: snapLo(b.minZ - pad, cb.minZ), maxZ: snapHi(b.maxZ + pad, cb.minZ) };
+  });
+  const inPatch = (x: number, z: number) => patches.some(p => x > p.minX && x < p.maxX && z > p.minZ && z < p.maxZ);
+
+  /** one tile: a regular grid (cells overlapping a terrace patch are left out — the patch fills them) */
+  const addTile = (x0: number, z0: number, x1: number, z1: number, step: number, skip: boolean, name: string) => {
     const nx = Math.max(1, Math.round((x1 - x0) / step)), nz = Math.max(1, Math.round((z1 - z0) / step));
-    const start = positions.length / 3;
+    const positions: number[] = [], colors: number[] = [], uvs: number[] = [], indices: number[] = [];
     for (let j = 0; j <= nz; j++) for (let i = 0; i <= nx; i++) {
       const x = x0 + ((x1 - x0) * i) / nx, z = z0 + ((z1 - z0) * j) / nz;
       const h = ground.height(x, z);
@@ -65,26 +86,74 @@ export function buildTerrain(city: CityData, base: WorldBase, mat: THREE.Materia
       uvs.push(x / 24, z / 24);
     }
     for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
-      const a = start + j * (nx + 1) + i, b = a + 1, c = a + nx + 1, d = c + 1;
+      if (skip && inPatch(x0 + ((x1 - x0) * (i + 0.5)) / nx, z0 + ((z1 - z0) * (j + 0.5)) / nz)) continue;
+      const a = j * (nx + 1) + i, b = a + 1, c = a + nx + 1, d = c + 1;
       indices.push(a, c, b, b, c, d);
     }
+    if (!indices.length) return;
+    emit(positions, colors, uvs, indices, name);
   };
-  // inner city at fine resolution, outer frame coarser (shared edge vertices are not welded; the coarse ring is slightly lowered to hide seams)
-  addGrid(cb.minX, cb.minZ, cb.maxX, cb.maxZ, 5);
+  const emit = (positions: number[], colors: number[], uvs: number[], indices: number[], name: string) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    g.setIndex(positions.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(indices, 1) : new THREE.Uint16BufferAttribute(indices, 1));
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+    const mesh = new THREE.Mesh(g, mat);
+    mesh.receiveShadow = true; mesh.name = name;
+    group.add(mesh);
+  };
+
+  // inner city: TERRAIN_TILE tiles on the 5 m grid
+  for (let tz = cb.minZ; tz < cb.maxZ; tz += TERRAIN_TILE) for (let tx = cb.minX; tx < cb.maxX; tx += TERRAIN_TILE) {
+    const x1 = Math.min(cb.maxX, tx + TERRAIN_TILE), z1 = Math.min(cb.maxZ, tz + TERRAIN_TILE);
+    addTile(tx, tz, x1, z1, INNER_STEP, true, `terrain:${tx},${tz}`);
+  }
+  // outer frame coarser (shared edge vertices are not welded; a 10 m grid against the 5 m one is close enough at that distance)
   const outer: [number, number, number, number][] = [
     [wb.minX, wb.minZ, wb.maxX, cb.minZ], [wb.minX, cb.maxZ, wb.maxX, wb.maxZ], [wb.minX, cb.minZ, cb.minX, cb.maxZ], [cb.maxX, cb.minZ, wb.maxX, cb.maxZ],
   ];
-  for (const [x0, z0, x1, z1] of outer) addGrid(x0, z0, x1, z1, 10);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  g.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
-  g.computeVertexNormals();
-  const mesh = new THREE.Mesh(g, mat);
-  mesh.receiveShadow = true; mesh.name = 'terrain';
-  void terrain;
-  return mesh;
+  for (const [x0, z0, x1, z1] of outer) {
+    const tile = TERRAIN_TILE * 2;
+    for (let tz = z0; tz < z1; tz += tile) for (let tx = x0; tx < x1; tx += tile) addTile(tx, tz, Math.min(x1, tx + tile), Math.min(z1, tz + tile), OUTER_STEP, false, `terrain:outer:${tx},${tz}`);
+  }
+
+  // terrace patches: finer grid + doubled columns/rows 2 cm either side of every terrace edge coordinate.
+  // Boundary vertices take the coarse grid's linear interpolation so the patch meets the tiles without cracks.
+  const EPS = 0.02;
+  for (const p of patches) {
+    const axes = (lo: number, hi: number, edges: number[]) => {
+      const v = new Set<number>();
+      for (let a = lo; a <= hi + 1e-6; a += TERRACE_STEP) v.add(Math.min(hi, a));
+      v.add(hi);
+      for (const e of edges) if (e - EPS > lo && e + EPS < hi) { v.add(e - EPS); v.add(e + EPS); }
+      return [...v].sort((a, b) => a - b);
+    };
+    const xs = axes(p.minX, p.maxX, [...new Set(p.polygon.map(q => q[0]))]), zs = axes(p.minZ, p.maxZ, [...new Set(p.polygon.map(q => q[1]))]);
+    const coarse = (x: number, z: number) => { // height on the coarse grid lines (linear between 5 m vertices)
+      const gx = (x - cb.minX) / INNER_STEP, gz = (z - cb.minZ) / INNER_STEP;
+      const onX = Math.abs(gx - Math.round(gx)) < 1e-6, onZ = Math.abs(gz - Math.round(gz)) < 1e-6;
+      if (onX && onZ) return ground.height(x, z);
+      if (onX) { const z0 = cb.minZ + Math.floor(gz) * INNER_STEP, z1 = z0 + INNER_STEP, t = (z - z0) / INNER_STEP; return ground.height(x, z0) * (1 - t) + ground.height(x, z1) * t; }
+      const x0 = cb.minX + Math.floor(gx) * INNER_STEP, x1 = x0 + INNER_STEP, t = (x - x0) / INNER_STEP; return ground.height(x0, z) * (1 - t) + ground.height(x1, z) * t;
+    };
+    const positions: number[] = [], colors: number[] = [], uvs: number[] = [], indices: number[] = [];
+    for (let j = 0; j < zs.length; j++) for (let i = 0; i < xs.length; i++) {
+      const x = xs[i], z = zs[j];
+      const edge = i === 0 || j === 0 || i === xs.length - 1 || j === zs.length - 1;
+      const h = edge ? coarse(x, z) : ground.height(x, z);
+      positions.push(x, h, z);
+      const c = colorAt(x, z, h); colors.push(c.r, c.g, c.b); uvs.push(x / 24, z / 24);
+    }
+    for (let j = 0; j + 1 < zs.length; j++) for (let i = 0; i + 1 < xs.length; i++) {
+      const a = j * xs.length + i, b = a + 1, c = a + xs.length, d = c + 1;
+      indices.push(a, c, b, b, c, d);
+    }
+    emit(positions, colors, uvs, indices, `terrain:terrace:${p.minX},${p.minZ}`);
+  }
+  return group;
 }
 
 export function buildWater(city: CityData, mat: THREE.Material): THREE.Mesh {
