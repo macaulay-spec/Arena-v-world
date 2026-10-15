@@ -67,6 +67,35 @@ jobs:
           cp android/app/build/outputs/apk/debug/app-debug.apk "out/vora-city-${GITHUB_SHA::7}-debug.apk"
           ls -la out
 
+      # Facts about the APK, in the job summary and as annotations (readable through the API without downloading).
+      - name: APK summary
+        run: |
+          APK=$(ls out/*.apk | head -1)
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          SIZE=$(stat -c %s "$APK")
+          BADGE=$("$AAPT" dump badging "$APK")
+          PKG=$(echo "$BADGE" | grep -oP "^package: name='\K[^']+")
+          VER=$(echo "$BADGE" | grep -oP "versionName='\K[^']+")
+          SDK=$(echo "$BADGE" | grep -oP "^sdkVersion:'\K[^']+")
+          TSDK=$(echo "$BADGE" | grep -oP "^targetSdkVersion:'\K[^']+")
+          LABEL=$(echo "$BADGE" | grep -oP "^application-label:'\K[^']+")
+          ORIENT=$("$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -oP "screenOrientation.*=\(type 0x10\)0x\K[0-9a-f]+" | head -1)
+          CHARS=$(unzip -l "$APK" | grep -c "assets/public/assets/characters/.*\.gltf$" || true)
+          HAS_CITY=$(unzip -l "$APK" | grep -c "assets/public/assets/city.*\.json" || true)
+          HAS_GAME=$(unzip -l "$APK" | grep -c "assets/public/index.html" || true)
+          {
+            echo "## VORA CITY debug APK"
+            echo ""
+            echo "| | |"; echo "|---|---|"
+            echo "| file | \`$(basename "$APK")\` |"
+            echo "| size | $((SIZE/1024/1024)) MB |"
+            echo "| package | $PKG $VER (minSdk $SDK, targetSdk $TSDK) |"
+            echo "| label | $LABEL |"
+            echo "| screenOrientation | 0x$ORIENT (6 = sensorLandscape) |"
+            echo "| game page / city data / character files | $HAS_GAME / $HAS_CITY / $CHARS |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=APK::$(basename "$APK") $((SIZE/1024/1024)) MB, $PKG $VER, minSdk $SDK targetSdk $TSDK, label '$LABEL', orientation 0x$ORIENT, index.html=$HAS_GAME city.json=$HAS_CITY characters=$CHARS"
+
       - uses: actions/upload-artifact@v4
         with:
           name: vora-city-debug-apk

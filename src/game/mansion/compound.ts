@@ -44,7 +44,7 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   for (const x of [33, 49]) { F.plant(K, { x, y: 0.15, z: 3.2 }, 1.4); F.plant(K, { x, y: 0.15, z: 15 }, 1.4); }
   // outdoor dining under a pergola on the deck
   F.pergola(K, { x: 22, y: 0.15, z: 10 }, 7, 6); F.diningSet(K, { x: 22, y: 0.15, z: 10 }, 6);
-  c.spot('poolside', 38.5, 0.15, 14.2, 0); c.spot('deck', 25, 0.15, 10, -Math.PI / 2);
+  c.spot('poolside', 34.6, 0.15, 14.0, 0); c.spot('deck', 25, 0.15, 10, -Math.PI / 2);
   for (const x of [30, 52]) c.light({ pos: F.lampPost(K, { x, y: 0.15, z: 3 }, 2.6), color: 0xffe2b0, intensity: 0.8, distance: 12, room: 'garden', outdoor: true });
   c.light({ pos: [41, 0.3, 9], color: 0x6fc7ff, intensity: 1.2, distance: 14, room: 'pool', outdoor: true });
 

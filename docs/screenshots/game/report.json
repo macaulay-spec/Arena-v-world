@@ -1,69 +1,45 @@
 {
-  "when": "2026-10-15T11:02:09.788Z",
+  "when": "2026-10-15T11:16:57.507Z",
   "shots": [
     {
-      "name": "dining",
-      "file": "docs/screenshots/game/dining.png",
-      "place": "Dining room",
-      "fps": "2 fps · 547 calls",
-      "calls": 547,
-      "tris": 1278048
+      "name": "living-room",
+      "file": "docs/screenshots/game/living-room.png",
+      "place": "Living room",
+      "fps": "0 fps · 464 calls",
+      "calls": 464,
+      "tris": 1224197
     },
     {
-      "name": "forecourt-fountain",
-      "file": "docs/screenshots/game/forecourt-fountain.png",
-      "place": "JAG House",
-      "fps": "1 fps · 608 calls",
-      "calls": 608,
-      "tris": 1157846
-    },
-    {
-      "name": "gate",
-      "file": "docs/screenshots/game/gate.png",
-      "place": "JAG House",
-      "fps": "1 fps · 644 calls",
-      "calls": 644,
-      "tris": 2026145
+      "name": "kitchen",
+      "file": "docs/screenshots/game/kitchen.png",
+      "place": "Kitchen",
+      "fps": "0 fps · 496 calls",
+      "calls": 496,
+      "tris": 1080115
     },
     {
       "name": "pool",
       "file": "docs/screenshots/game/pool.png",
       "place": "JAG House",
-      "fps": "0 fps · 419 calls",
-      "calls": 419,
-      "tris": 1090124
-    },
-    {
-      "name": "roof-terrace",
-      "file": "docs/screenshots/game/roof-terrace.png",
-      "place": "Roof terrace",
-      "fps": "1 fps · 595 calls",
-      "calls": 595,
-      "tris": 1971844
+      "fps": "0 fps · 422 calls",
+      "calls": 422,
+      "tris": 1075460
     },
     {
       "name": "night-living",
       "file": "docs/screenshots/game/night-living.png",
       "place": "Living room",
-      "fps": "0 fps · 517 calls",
-      "calls": 517,
-      "tris": 1260365
+      "fps": "2 fps · 497 calls",
+      "calls": 497,
+      "tris": 1240096
     },
     {
       "name": "night-pool",
       "file": "docs/screenshots/game/night-pool.png",
       "place": "JAG House",
-      "fps": "0 fps · 424 calls",
-      "calls": 424,
-      "tris": 1110587
-    },
-    {
-      "name": "street-outside",
-      "file": "docs/screenshots/game/street-outside.png",
-      "place": "JAG House",
-      "fps": "1 fps · 546 calls",
-      "calls": 546,
-      "tris": 1875227
+      "fps": "1 fps · 427 calls",
+      "calls": 427,
+      "tris": 1070104
     }
   ],
   "errors": []

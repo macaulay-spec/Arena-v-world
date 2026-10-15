@@ -222,8 +222,11 @@ async function main() {
 
   // ─── main loop ───
   let last = performance.now(), frame = 0, fpsFrames = 0, fpsT = last, autosaveT = 0, clockAcc = 0, lastRoom: string | null = null, indoorMix = 0;
-  let ambientRef = { hour: -1, ambient: 0, hemi: 0, color: new THREE.Color() }; const warmAmbient = new THREE.Color('#ffd7a8');
-  const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity, color: sky.ambient.color.clone() }; } };
+  // base (outdoor) light values for the current sky hour; indoors we lift + warm them each frame.
+  // three.js uses physical light units: an ambient irradiance of ~π is needed for an albedo-bright room.
+  let ambientRef = { hour: -1, ambient: 0, hemi: 0, color: new THREE.Color(), hemiColor: new THREE.Color(), hemiGround: new THREE.Color() };
+  const warmAmbient = new THREE.Color('#ffd7a8'), warmGround = new THREE.Color('#6b4f36');
+  const refresh = () => { if (ambientRef.hour !== sky.hour) { ambientRef = { hour: sky.hour, ambient: sky.ambient.intensity, hemi: sky.hemi.intensity, color: sky.ambient.color.clone(), hemiColor: sky.hemi.color.clone(), hemiGround: sky.hemi.groundColor.clone() }; } };
   const baseAmbient = () => { refresh(); return ambientRef.ambient; }, baseHemi = () => { refresh(); return ambientRef.hemi; };
   const tick = () => {
     requestAnimationFrame(tick);
@@ -255,8 +258,10 @@ async function main() {
       // interiors only get sky/ambient light (the sun is shadowed) → lift the ambient term indoors
       indoorMix += ((indoor ? 1 : 0) - indoorMix) * Math.min(1, dt * 3);
       const nightNow = isNight() ? 1 : 0;
-      sky.ambient.intensity = baseAmbient() + indoorMix * (0.55 + nightNow * 0.25); sky.hemi.intensity = baseHemi() + indoorMix * 0.35;
-      sky.ambient.color.copy(ambientRef.color).lerp(warmAmbient, Math.min(1, indoorMix * (0.4 + nightNow * 0.5)));
+      sky.ambient.intensity = baseAmbient() + indoorMix * (0.7 + nightNow * 2.1); sky.hemi.intensity = baseHemi() + indoorMix * (0.35 + nightNow * 0.4);
+      const warm = Math.min(1, indoorMix * (0.4 + nightNow * 0.55));
+      sky.ambient.color.copy(ambientRef.color).lerp(warmAmbient, warm);
+      sky.hemi.color.copy(ambientRef.hemiColor).lerp(warmAmbient, warm); sky.hemi.groundColor.copy(ambientRef.hemiGround).lerp(warmGround, warm);
       if (state !== 'paused') chase.update(dt, player.pos, player.yaw, inp.lookDX, inp.lookDY, inp.zoom, player.moving, indoor);
       if (room !== lastRoom && state === 'game') {
         lastRoom = room;
