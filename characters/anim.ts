@@ -65,6 +65,25 @@ function footAngles(thighFwd: number, knee: number, q: number, scale = 1): { foo
   const onGround = qq < 0.33 ? 0 : qq < 0.42 ? (qq - 0.33) / 0.09 : qq < 0.55 ? 1 : qq < 0.65 ? 1 - (qq - 0.55) / 0.1 : 0;
   return { foot, toe: Math.max(0, world - 2) * onGround };
 }
+/**
+ * Jaw "flap" for talking clips. This is NOT lip-sync: there is no audio and no phoneme data — it is a
+ * speech-like open/close rhythm on the jaw bone (lower lip, chin, lower teeth and tongue follow it),
+ * so a character with a speech bubble visibly moves their mouth.  `amp` scales the opening (deg ≈ 9·amp).
+ */
+function talkMouth(p: Pose, t: number, s: number, amp = 1): void {
+  const o = Math.max(0, 0.35 + 0.4 * Math.sin(t * 12.5 + s) + 0.25 * Math.sin(t * 19.7 + s * 2.1) + 0.15 * Math.sin(t * 5.3 + 1));
+  p.rot.set('Jaw', rot('x', Math.min(1, o) * 9 * amp));
+}
+/**
+ * Eye saccades: both eyes jump to a new gaze target every `period` seconds (yaw ±5°, pitch ±2°).
+ * The rig has eyeball bones but no eyelids or blink shapes, so this is the only eye life available.
+ */
+function eyes(p: Pose, t: number, s: number, period = 1.3): void {
+  const k = Math.floor(t / period);
+  const h = (n: number) => { const x = Math.sin(n * 127.1 + s * 311.7 + 0.37) * 43758.5453; return x - Math.floor(x); };
+  const q = rot('y', (h(k) - 0.5) * 10, 'x', (h(k + 0.5) - 0.5) * 4);
+  p.rot.set('LeftEye', q); p.rot.set('RightEye', q);
+}
 function breathing(p: Pose, t: number, period = 3.4, amp = 1): void {
   const b = Math.sin((t / period) * Math.PI * 2);
   p.rot.set('Spine1', qMul(p.rot.get('Spine1') ?? qId(), rot('x', -1.2 * amp * b)));
@@ -85,7 +104,7 @@ export const CLIPS: ClipDef[] = [
       p.rot.set('Hips', rot('z', w * 1.6, 'y', w2 * 1.0)); p.hips = [w * 0.006, -0.002 + 0.002 * w2, 0];
       p.rot.set('Spine', rot('z', -w * 1.2)); p.rot.set('Spine1', rot('x', 1.5)); p.rot.set('Spine2', rot('x', 1.0));
       p.rot.set('Neck', rot('x', 2)); p.rot.set('Head', rot('y', Math.sin(t * 0.7 + s) * 6, 'x', Math.sin(t * 0.5 + s * 2) * 2.5, 'z', w * 1.5));
-      breathing(p, t);
+      eyes(p, t, s); breathing(p, t);
       return p;
     },
   },
@@ -99,7 +118,7 @@ export const CLIPS: ClipDef[] = [
       p.rot.set(L('Arm'), rot('z', -78, 'x', -10 - g * 6)); p.rot.set(L('ForeArm'), rot('y', -(45 + g * 25)));
       p.rot.set('Head', rot('y', Math.sin(t * 1.3 + s) * 8, 'x', -3 + Math.sin(t * 5.1 + s) * 3.5, 'z', Math.sin(t * 0.9) * 3));
       p.rot.set('Spine2', rot('x', 1.5, 'y', Math.sin(t * 1.3 + s) * 3));
-      fingers(p, 10);
+      fingers(p, 10); talkMouth(p, t, s);
       return p;
     },
   },
@@ -154,7 +173,7 @@ export const CLIPS: ClipDef[] = [
       p.rot.set('Spine', rot('x', 4)); p.rot.set('Spine1', rot('x', 3)); p.rot.set('Spine2', rot('x', 2 + w));
       p.rot.set(L('Arm'), rot('z', -68, 'x', -36)); p.rot.set(R('Arm'), rot('z', 68, 'x', -36)); p.rot.set(L('ForeArm'), rot('y', -40)); p.rot.set(R('ForeArm'), rot('y', 40)); fingers(p, 25);
       p.rot.set('Head', rot('y', Math.sin(t * 0.6 + s) * 10, 'x', 3));
-      breathing(p, t);
+      eyes(p, t, s, 1.6); breathing(p, t);
       return p;
     },
   },
@@ -226,7 +245,7 @@ export const CLIPS: ClipDef[] = [
       p.rot.set(L('ForeArm'), rot('y', -48, 'x', -30)); p.rot.set(R('ForeArm'), rot('y', 48, 'x', 30));
       p.rot.set(L('Hand'), rot('x', 20)); p.rot.set(R('Hand'), rot('x', 20)); fingers(p, 30, 10);
       p.rot.set('Spine', rot('x', -3)); p.rot.set('Spine2', rot('x', -2)); p.rot.set('Neck', rot('y', look * 14)); p.rot.set('Head', rot('y', look * 22, 'x', 2));
-      breathing(p, t, 3.8, 0.7);
+      eyes(p, t, s, 1.1); breathing(p, t, 3.8, 0.7);
       return p;
     },
   },
