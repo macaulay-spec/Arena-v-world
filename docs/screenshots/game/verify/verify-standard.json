@@ -1,0 +1,187 @@
+{
+  "quality": "standard",
+  "renderer": "SwiftShader (headless, software GL)",
+  "when": "2026-10-15T13:24:32.385Z",
+  "checks": {
+    "creator shows Body and Face tabs backed by kit morphs": {
+      "ok": true,
+      "detail": {
+        "body": true,
+        "face": true,
+        "faceSliders": 9
+      }
+    },
+    "build slider drives shape_weight_hi on body AND outfit meshes": {
+      "ok": true,
+      "detail": {
+        "LOD0": {
+          "weight_hi": 1.35,
+          "nose_neg": 1,
+          "lips_pos": 0.5
+        },
+        "Armature": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        },
+        "OUTFIT_casual": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        }
+      }
+    },
+    "face sliders drive face morphs on the body mesh only": {
+      "ok": true,
+      "detail": {
+        "lod0": {
+          "weight_hi": 1.35,
+          "nose_neg": 1,
+          "lips_pos": 0.5
+        },
+        "outfit": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        }
+      }
+    },
+    "rapid sex/hair/outfit switching leaves one model of the last selection": {
+      "ok": true,
+      "detail": {
+        "children": 1,
+        "applied": {
+          "sex": "f",
+          "tone": 2,
+          "hair": "coils_fade",
+          "outfit": "smart",
+          "name": "Chioma",
+          "height": 0.5,
+          "build": 1,
+          "muscle": 0.5,
+          "face": {
+            "nose_width": -1,
+            "lips": 0.5
+          }
+        },
+        "visOutfits": [
+          "OUTFIT_smart"
+        ],
+        "visHair": [
+          "HAIR_coils_fade"
+        ],
+        "skinned": 31,
+        "outfitLabel": "Office"
+      }
+    },
+    "touching the visible stick moves the player": {
+      "ok": true,
+      "detail": {
+        "moving": {
+          "speed": 1.505714285714286,
+          "mag": 0.8928571428571429,
+          "stick": true
+        },
+        "dist": 1.69
+      }
+    },
+    "releasing the stick stops the player": {
+      "ok": true,
+      "detail": {
+        "x": -347.03314285714293,
+        "z": -382.7,
+        "speed": 0,
+        "stick": false
+      }
+    },
+    "pointercancel during a drag cannot leave the player moving": {
+      "ok": true,
+      "detail": {
+        "beforeCancel": 0.8928571428571429,
+        "afterCancel": {
+          "mag": 0,
+          "speed": 0,
+          "stick": false
+        }
+      }
+    },
+    "jump impulse is applied in the first update after the press": {
+      "ok": true,
+      "detail": {
+        "vy": 3.7095000000000002,
+        "dy": 0.18547500000000028,
+        "grounded": false,
+        "framesLater": 1
+      }
+    },
+    "jump lands again": {
+      "ok": true
+    },
+    "paused: loop runs but no GPU frames and no simulation": {
+      "ok": true,
+      "detail": {
+        "r0": {
+          "frame": 369,
+          "rendered": 368,
+          "bench": 367
+        },
+        "r1": {
+          "frame": 379,
+          "rendered": 368,
+          "bench": 367
+        }
+      }
+    },
+    "resume renders again with no stale input": {
+      "ok": true,
+      "detail": {
+        "rendered": 371,
+        "speed": 0,
+        "mag": 0
+      }
+    }
+  },
+  "bench": {
+    "living-room": {
+      "frames": 14,
+      "seconds": 45,
+      "fps": 0.31,
+      "msPerFrame": 3216,
+      "cpuMsPerFrame": 22.9,
+      "calls": 418,
+      "tris": 1173014,
+      "programs": 59,
+      "geometries": 1052,
+      "textures": 2085
+    },
+    "street-outside": {
+      "frames": 13,
+      "seconds": 45,
+      "fps": 0.29,
+      "msPerFrame": 3462,
+      "cpuMsPerFrame": 23.3,
+      "calls": 529,
+      "tris": 1893367,
+      "programs": 65,
+      "geometries": 1074,
+      "textures": 2107
+    }
+  },
+  "shots": [
+    "docs/screenshots/game/verify/creator-m-default.png",
+    "docs/screenshots/game/verify/creator-m-heavy-muscular.png",
+    "docs/screenshots/game/verify/creator-m-slim-soft.png",
+    "docs/screenshots/game/verify/creator-m-face-default.png",
+    "docs/screenshots/game/verify/creator-m-face-plus.png",
+    "docs/screenshots/game/verify/creator-m-face-minus.png",
+    "docs/screenshots/game/verify/creator-f-default.png",
+    "docs/screenshots/game/verify/creator-f-heavy-muscular.png",
+    "docs/screenshots/game/verify/creator-f-slim-soft.png",
+    "docs/screenshots/game/verify/creator-f-face-default.png",
+    "docs/screenshots/game/verify/creator-f-face-plus.png",
+    "docs/screenshots/game/verify/creator-f-face-minus.png",
+    "docs/screenshots/game/verify/game-mid-jump.png",
+    "docs/screenshots/game/verify/game-mid-walk.png"
+  ],
+  "errors": []
+}

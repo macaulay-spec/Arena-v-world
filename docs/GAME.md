@@ -20,7 +20,8 @@ in the Vora City data. The whole city from Phase 1 is loaded around it, with the
 ```
 JAG logo  →  loading (city + characters + house)  →  live title (slow orbit of the compound, "tap to start")
    →  Continue / New game / Settings
-   →  New game: character creation on the roof terrace (name, sex, skin tone, hair, outfit, height, random)
+   →  New game: character creation on the roof terrace — Look (name, sex, skin tone, hair, outfit, height),
+      Body (build, muscle) and Face (jaw, chin, nose width/length, eye spacing/size, lips, mouth width, cheeks)
    →  fade → wake up in the master bedroom at 07:12, Day 1, ₦25,000
 ```
 
@@ -53,8 +54,10 @@ between spots and mocap come in APK 2.
 * **Radar** (top-left, rotates with the camera, shows the house footprint, roads, NPCs), **cash** (₦, en-NG
   formatting), **clock + day**, **health bar**, **place card** when you enter a room/area, **prompt** for the
   nearest interactable, **toasts** and NPC **speech** bubbles, optional **FPS** counter.
-* **Touch:** left virtual stick (walk; push further to run), right side of the screen = look, buttons
-  **Interact · Jump · Run · Camera · Pause**.
+* **Touch:** left virtual stick (touch the stick itself, or anywhere in the left 45 % of the screen for a floating
+  stick), right side of the screen = look, two fingers on the right = pinch zoom, buttons
+  **Interact · Jump · Run · Camera · Pause**. Every pointer is tracked by id: the stick belongs to the finger that
+  started it, and `pointerup` / `pointercancel` / `lostpointercapture` / window blur / tab hide all release it.
 * **Keyboard:** `WASD` / arrows move, mouse-drag look, `Shift` run, `Space` jump, `E`/`Enter` interact, `V` camera
   distance, `Esc`/`P` pause.
 * **Pause:** Resume · Save · Settings (quality Auto/Lite/Standard/High, look sensitivity, invert-Y, FPS, sound) ·
@@ -74,6 +77,53 @@ deletes the previous save after confirmation.
   every few frames from the lamps nearest the player.
 * Presets (`PRESETS` in `src/game/main.ts`): pixel ratio, shadow map, draw distance, crowd size, light count.
   `auto` picks a preset from device memory / cores / GPU string (`autoQuality()` in `src/game/save.ts`).
+
+### Bug-fix pass after APK 1 (controls, creator, performance, validation)
+
+What changed, where, and how it is verified (`npm test` = 71 unit tests; `node scripts/game-verify.mjs` drives the
+real page with emulated touch events under headless Chromium/SwiftShader and writes
+`docs/screenshots/game/verify/verify-standard.json` + screenshots):
+
+| Area | Fix | Verified by |
+|---|---|---|
+| Joystick (`src/game/input.ts`) | the visible stick overlay starts the joystick itself (it sits above the canvas, so canvas `pointerdown` never saw it); one pointer id owns the stick, a second finger on the right orbits / two fingers pinch-zoom; `pointerup`, `pointercancel`, `lostpointercapture`, window `blur` and tab hide all release it; moves from unknown pointers are ignored | `tests/input.test.ts` (happy-dom), `game-verify` touch drag / release / `pointercancel` |
+| Input reset | `Input.clear()` drops keys, pointers, stick, look + zoom deltas, pending edge actions and the run toggle (settings untouched); called on pause **and** resume, cutscenes, focus loss | `tests/input.test.ts`, `game-verify` resume check |
+| Jump (`src/game/player.ts`) | impulse applied in the update that accepts the press (was gated behind a 0.26 s clip timer); no re-impulse while airborne; `vy ≤ 0` guard before landing | `tests/player.test.ts`, `game-verify` ("first update after the press") |
+| Movement direction | translation follows the camera-relative input direction immediately; the body turns towards it at 11 rad/s (4 in the air); deceleration keeps the release heading; diagonals normalised | `tests/player.test.ts` |
+| Appearance races | `Avatar.setAppearance` is a serialised, versioned queue: stale loads are dropped before they attach, failures keep the current model, replaced models are detached and their private skin material disposed | `tests/avatar.test.ts` (synthetic kits with slow/fast loads), `game-verify` rapid m/f switching |
+| Body + face morphs | the pipeline exports 22 glTF morph targets per kit (`shape_weight_lo/hi`, `shape_muscle_lo/hi` on body, hair caps and every outfit; `face_<jaw,chin,nose_width,nose_length,eye_spacing,eye_size,lips,mouth_width,cheeks>_<neg,pos>` on the body) built from the MakeHuman macro/detail targets re-posed with the same rig (`characters/player.ts`, `characters/gltf.ts`, `characters/rig.ts`); the creator's Body / Face tabs drive them; height is a bone-length change (legs, spine, arms ± 6 %) with the model lifted so the feet stay on the floor, not a whole-model scale; sliders are only shown for targets the kit carries | `tests/morphs.test.ts`, `game-verify` morph influence checks, `docs/screenshots/game/verify/creator-*.png` |
+| Rig / deformation | bent-pose tests on shoulder, elbow, wrist, hip, knee, ankle and a finger: chain vertices rotate rigidly, unweighted vertices stay, mid-segment girth ≥ 85 % (no candy-wrapper), weights normalised; garments stay within 2 cm of the skin beneath at the knee and shoulder | `tests/morphs.test.ts` |
+| Culling | crowd, household NPCs and the player keep `frustumCulled = true` with an explicit pose-independent bounding sphere (`src/characters/bounds.ts`) instead of disabling culling; the crowd tests a sphere, not a point | `tests/avatar.test.ts` |
+| Camera | `ChaseCamera.update` and the creator camera allocate nothing per frame | code review |
+| Pause | no simulation, no crowd/NPC/lighting work and no GPU frame while paused (one re-render on resize); resume clears input and restarts the clock | `game-verify` ("paused: loop runs but no GPU frames") |
+| Quality selection (`src/game/save.ts`) | `chooseQuality()` is conservative when memory / GPU are unknown (Lite), uses a GPU-string tier (Adreno / Mali / Apple / desktop), needs WebGL2 for anything above Lite; Lite now also halves crowd simulation rate, uses a smaller crowd (18 agents, 70 m), shorter NPC LOD distances, 220 m prop detail, 1.8 km far plane | `tests/save.test.ts` |
+| Settings / saves | `sanitizeSettings` / `sanitizeSave`: unknown presets → `auto`, numbers clamped, booleans coerced, malformed JSON or wrong version → defaults / `null`, `localStorage` failures caught | `tests/save.test.ts` |
+
+**Benchmark (headless Chromium + SwiftShader software GL, 960 × 540, 45 s per spot, same spots and clock).**
+These compare code paths only; they are not Android frame rates.
+
+| Preset · spot | before (b16189f) calls / tris / ms per frame | after calls / tris / ms per frame |
+|---|---|---|
+| Lite · living room | 460 / 1.21 M / 1406 | 338 / 0.96 M / 1324 |
+| Lite · street outside the gate | 479 / 1.61 M / 1407 | 250 / 1.05 M / 1154 |
+| Standard · living room | 447 / 1.21 M / 4503 | 418 / 1.17 M / 3216 |
+| Standard · street outside the gate | 567 / 1.91 M / 4501 | 529 / 1.89 M / 3462 |
+
+(Software rasterisation is bound by pixels and triangles, which is why Lite's smaller crowd and shorter detail
+range show up mostly as fewer draw calls / triangles; on a GPU the draw-call and update savings matter more.)
+
+**Known limitations that need more assets or modelling work**
+
+* Body-shape range is what the MakeHuman macro targets give (≈ 3 cm at the belly for full weight); the creator
+  extrapolates the heavy end to 1.35 × the target.
+* Face sliders move the MakeHuman head geometry; there is still no facial animation (blendshapes/visemes are an
+  APK 2 item with the Rocketbox reference).
+* Hair is a scalp cap plus procedural strands: the cap follows the body-shape morphs, the strands do not (no
+  visible gap at the shipped slider ranges).
+* The jump still uses the procedural clip; mocap replaces it in APK 2.
+* Automatic quality cannot measure real GPU speed — it is a device-fact heuristic. Runtime adaptation (dropping
+  pixel ratio when frames are slow) is not implemented because frame-time telemetry from real phones is not
+  available yet.
 
 ---
 

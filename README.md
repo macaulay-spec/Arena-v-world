@@ -17,7 +17,7 @@ controls, architecture and road-map.
 | ![roof terrace](docs/screenshots/game/roof-terrace.png) *roof terrace at dusk* | ![street](docs/screenshots/game/street-outside.png) *outside the gate — Garden Terrace, North Heights* |
 
 ```
-JAG logo → loading → live title → New game: create your character → wake up at home → explore
+JAG logo → loading → live title → New game: create your character (look, body build/muscle, face shape) → wake up at home → explore
 ```
 
 * **Runs on any phone** — Lite / Standard / High presets (auto-detected), landscape, touch stick + buttons; also
