@@ -14,7 +14,7 @@ export function buildCompound(c: MansionContext, b: [number, number, number, num
   const GATE_X0 = 23.5, GATE_X1 = 30.5, PED_X0 = 21.6, PED_X1 = 22.7;
 
   // ground: lawn over the whole terrace, paved areas on top
-  K.slab('grass', bx0, bz0, bx1, bz1, 0.02, 0.02, LAWN, { under: 'soil', walk: false });
+  K.slab('grass', bx0, bz0, bx1, bz1, 0.02, 0.02, LAWN, { under: 'soil', walk: false, holes: [[34, 5, 48, 13]] });
   // drive + forecourt + walkways
   K.slab('paving', 22.5, 56, 32.5, D1 + 0.3, 0.05, 0.05, PAVE, { walk: false });
   K.slab('paving', 10, 47.2, 56, 56.5, 0.05, 0.05, PAVE, { walk: false });
@@ -115,7 +115,7 @@ function addPit(c: MansionContext, x0: number, z0: number, x1: number, z1: numbe
 
 function gatePanel(c: MansionContext, w: number, h: number): THREE.Object3D {
   const k = new MeshKit(c.mats); const dark = rgb('#1f2226'), gold = rgb('#c9a24a');
-  k.box('metalDark', w / 2, h / 2, 0, w, h * 0.42, 0.08, dark);                        // solid lower half
+  k.box('metalDark', w / 2, h * 0.21, 0, w, h * 0.42, 0.08, dark);                     // solid lower part
   k.box('metalDark', w / 2, 0.06, 0, w, 0.12, 0.12, dark); k.box('metalDark', w / 2, h - 0.04, 0, w, 0.08, 0.1, dark);
   for (let x = 0.08; x <= w; x += 0.16) k.box('metalDark', x, h * 0.42 + (h * 0.58) / 2, 0, 0.03, h * 0.58, 0.03, dark);  // bars
   for (let x = 0.12; x <= w; x += 0.16) k.box('metal', x, h - 0.02, 0, 0.05, 0.1, 0.05, gold);                              // spear tips

@@ -22,7 +22,7 @@ function panelGeometry(w: number, h: number, t: number, style: 'door' | 'glass' 
   // leaf centred at x = w/2 (hinge at x = 0), y from 0..h
   if (style === 'glass') {
     const f = 0.08; box(f / 2, h / 2, 0, f, h, t); box(w - f / 2, h / 2, 0, f, h, t); box(w / 2, f / 2, 0, w, f, t); box(w / 2, h - f / 2, 0, w, f, t);
-    const pane = new THREE.BoxGeometry(w - 2 * f, h - 2 * f, t * 0.3); pane.translate(w / 2, h / 2, 0); parts.push(pane);
+    box(w / 2, h / 2, 0, w - 2 * f, 0.04, t); // mid rail (the transparent pane is a separate mesh added by Door)
   } else {
     box(w / 2, h / 2, 0, w, h, t);
     if (style === 'door') { // raised panels
@@ -40,8 +40,7 @@ function panelGeometry(w: number, h: number, t: number, style: 'door' | 'glass' 
   parts.forEach((p, i) => {
     const pa = p.getAttribute('position'), na = p.getAttribute('normal'), ua = p.getAttribute('uv'); const n = pa.count;
     pos.set(pa.array as Float32Array, off * 3); nrm.set(na.array as Float32Array, off * 3); uv.set(ua.array as Float32Array, off * 2);
-    const paneLike = style === 'glass' && i === parts.length - 1; const shade = paneLike ? 0.75 : 1;
-    for (let k = 0; k < n; k++) { col[(off + k) * 3] = shade; col[(off + k) * 3 + 1] = shade; col[(off + k) * 3 + 2] = shade; }
+    void i; for (let k = 0; k < n; k++) { col[(off + k) * 3] = 1; col[(off + k) * 3 + 1] = 1; col[(off + k) * 3 + 2] = 1; }
     const ia = p.getIndex()!; for (let k = 0; k < ia.count; k++) idx.push(ia.getX(k) + off);
     off += n;
   });

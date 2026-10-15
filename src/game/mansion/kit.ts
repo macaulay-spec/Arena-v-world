@@ -72,7 +72,7 @@ export class MeshKit {
       B.nrm.push(c, 0, sn, c, 0, sn); B.uv.push((i / seg) * Math.PI * 2 * r * s, 0, (i / seg) * Math.PI * 2 * r * s, h * s);
       B.col.push(color[0], color[1], color[2], color[0], color[1], color[2]);
     }
-    for (let i = 0; i < seg; i++) { const a = base + i * 2; B.idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    for (let i = 0; i < seg; i++) { const a = base + i * 2; B.idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } // CCW from outside
     if (o.caps !== false) {
       for (const [y, rr, up] of [[y0 + h, rt, 1], [y0, r, -1]] as [number, number, number][]) {
         const c0 = B.pos.length / 3; B.pos.push(cx, y, cz); B.nrm.push(0, up, 0); B.uv.push(cx * s, cz * s); B.col.push(color[0], color[1], color[2]);
@@ -119,15 +119,15 @@ export class MeshKit {
       if (u1 - u0 < 1e-3 || py1 - py0 < 1e-3) return;
       const um = (u0 + u1) / 2; const cx = ax + dx * um, cz = az + dz * um;
       this.box(mat, cx, (py0 + py1) / 2, cz, t, py1 - py0, u1 - u0, color, rot);
-      if (collide && o.collide !== false && this.collision) {
-        this.collision.addSegment(ax + dx * u0, az + dz * u0, ax + dx * u1, az + dz * u1, py0, py1);
-      }
+      if (collide && o.collide !== false && this.collision) this.collision.addSegment(ax + dx * u0, az + dz * u0, ax + dx * u1, az + dz * u1, py0, py1);
     };
+    // window openings block the whole height (nobody climbs through; keeps the chase camera inside too)
     let u = 0;
     for (const op of ops) {
       piece(u, Math.max(u, op.u0), y0, y0 + h, true);
-      piece(Math.max(u, op.u0), Math.min(len, op.u1), y0, op.y0, op.y0 - y0 > 0.3);           // sill
-      piece(Math.max(u, op.u0), Math.min(len, op.u1), op.y1, y0 + h, false);                   // lintel
+      piece(Math.max(u, op.u0), Math.min(len, op.u1), y0, op.y0, op.y0 - y0 > 0.3 && op.kind !== 'window'); // sill
+      if (op.kind === 'window' && o.collide !== false && this.collision) { const w0 = Math.max(u, op.u0), w1 = Math.min(len, op.u1); if (w1 - w0 > 1e-3) this.collision.addSegment(ax + dx * w0, az + dz * w0, ax + dx * w1, az + dz * w1, y0, y0 + h); }
+      piece(Math.max(u, op.u0), Math.min(len, op.u1), op.y1, y0 + h, false);                                 // lintel
       u = Math.max(u, op.u1);
     }
     piece(u, len, y0, y0 + h, true);

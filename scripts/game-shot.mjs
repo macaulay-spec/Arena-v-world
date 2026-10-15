@@ -23,7 +23,7 @@ const SHOTS = [
   { name: 'master-bedroom', at: [21, 3.85, 30.5, Math.PI * 0.75], mode: 'far', minutes: 7 * 60 + 20 },
   { name: 'landing-stairs', at: [33, 3.85, 41, -Math.PI / 2], mode: 'far' },
   { name: 'living-room', at: [24, 0.45, 42, -2.4], mode: 'far', minutes: 9 * 60 },
-  { name: 'kitchen', at: [41, 0.45, 31.5, 0.6], mode: 'near' },
+  { name: 'kitchen', at: [44, 0.45, 32.5, Math.PI + 0.3], mode: 'far' },
   { name: 'dining', at: [40.5, 0.45, 43, -2.2], mode: 'far' },
   { name: 'front-porch', at: [33, 0.45, 46.5, 0], mode: 'far', minutes: 10 * 60 },
   { name: 'forecourt-fountain', at: [33, 0.05, 59, Math.PI], mode: 'far' },

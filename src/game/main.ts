@@ -28,7 +28,7 @@ const PRESETS: Record<QualityId, { label: string; pixelRatio: number; aa: boolea
 };
 const MANSION_ORIGIN: [number, number, number] = [-374.1, 24.3, -411.9];
 const HOUSE_NAME = 'JAG House', HOUSE_ADDR = '1 Ridge Street, North Heights';
-const ROOM_LABEL: Record<string, string> = { living: 'Living room', hall: 'Entrance hall', dining: 'Dining room', kitchen: 'Kitchen', lounge: 'Family lounge', wc: 'Guest WC', store: 'Store', study: 'Study', landing: 'Landing', corridor: 'Upstairs corridor', master: 'Master bedroom', dressing: 'Dressing room', masterbath: 'Master bathroom', bedroom2: 'Guest bedroom', bedroom3: 'Bedroom', ensuite3: 'En-suite', bath: 'Bathroom', bedroom4: 'Kids’ room', penthouse: 'Roof lounge', roof: 'Roof terrace' };
+const ROOM_LABEL: Record<string, string> = { living: 'Living room', hall: 'Entrance hall', dining: 'Dining room', kitchen: 'Kitchen', lounge: 'Family lounge', wc: 'Guest WC', store: 'Store', study: 'Study', landing: 'Landing', corridor: 'Upstairs corridor', master: 'Master bedroom', dressing: 'Dressing room', masterbath: 'Master bathroom', bedroom2: 'Guest bedroom', bedroom3: 'Bedroom', ensuite3: 'En-suite', bath: 'Bathroom', bedroom4: 'Kids’ room', penthouse: 'Roof lounge', roof: 'Roof terrace', veranda: 'Veranda', balcony: 'Balcony', stairs: 'Stairs', gatehouse: 'Gatehouse', bq: 'Staff quarters', genhouse: 'Generator house' };
 const SECONDS_PER_GAME_MINUTE = 2;
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;

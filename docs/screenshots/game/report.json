@@ -1,45 +1,69 @@
 {
-  "when": "2026-10-15T10:34:45.263Z",
+  "when": "2026-10-15T10:47:52.599Z",
   "shots": [
-    {
-      "name": "create",
-      "file": "docs/screenshots/game/create.png"
-    },
-    {
-      "name": "wake-up",
-      "file": "docs/screenshots/game/wake-up.png"
-    },
-    {
-      "name": "master-bedroom",
-      "file": "docs/screenshots/game/master-bedroom.png",
-      "place": "Master bedroom",
-      "fps": "0 fps · 519 calls",
-      "calls": 519,
-      "tris": 1170351
-    },
     {
       "name": "landing-stairs",
       "file": "docs/screenshots/game/landing-stairs.png",
       "place": "Landing",
-      "fps": "0 fps · 567 calls",
-      "calls": 567,
-      "tris": 1441900
-    },
-    {
-      "name": "living-room",
-      "file": "docs/screenshots/game/living-room.png",
-      "place": "Living room",
-      "fps": "0 fps · 470 calls",
-      "calls": 470,
-      "tris": 1235975
+      "fps": "2 fps · 560 calls",
+      "calls": 560,
+      "tris": 1438153
     },
     {
       "name": "kitchen",
       "file": "docs/screenshots/game/kitchen.png",
       "place": "Kitchen",
-      "fps": "1 fps · 738 calls",
-      "calls": 748,
-      "tris": 2136819
+      "fps": "1 fps · 520 calls",
+      "calls": 520,
+      "tris": 1089968
+    },
+    {
+      "name": "dining",
+      "file": "docs/screenshots/game/dining.png",
+      "place": "Dining room",
+      "fps": "0 fps · 580 calls",
+      "calls": 580,
+      "tris": 1266967
+    },
+    {
+      "name": "front-porch",
+      "file": "docs/screenshots/game/front-porch.png",
+      "place": "Veranda",
+      "fps": "0 fps · 700 calls",
+      "calls": 700,
+      "tris": 2133730
+    },
+    {
+      "name": "forecourt-fountain",
+      "file": "docs/screenshots/game/forecourt-fountain.png",
+      "place": "JAG House",
+      "fps": "0 fps · 510 calls",
+      "calls": 510,
+      "tris": 1104672
+    },
+    {
+      "name": "carport",
+      "file": "docs/screenshots/game/carport.png",
+      "place": "JAG House",
+      "fps": "0 fps · 622 calls",
+      "calls": 622,
+      "tris": 1624863
+    },
+    {
+      "name": "gate",
+      "file": "docs/screenshots/game/gate.png",
+      "place": "JAG House",
+      "fps": "1 fps · 670 calls",
+      "calls": 670,
+      "tris": 2074765
+    },
+    {
+      "name": "pool",
+      "file": "docs/screenshots/game/pool.png",
+      "place": "JAG House",
+      "fps": "0 fps · 400 calls",
+      "calls": 400,
+      "tris": 1062957
     }
   ],
   "errors": []

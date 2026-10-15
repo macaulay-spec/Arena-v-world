@@ -165,6 +165,11 @@ export function buildHouse(c: MansionContext): void {
   c.interact({ id: 'eat', prompt: () => 'Eat something', pos: [48.6, GF, 21.2], radius: 1.6, action: () => {}, enabled: () => fridge.open });
   c.light({ pos: F.ceilingLamp(K, { x: 44.5, y: GF + H - SLAB, z: 24 }), color: 0xffffff, intensity: 1.1, distance: 10, room: 'Kitchen' });
   F.ceilingLamp(K, { x: 44.5, y: GF + H - SLAB, z: 30 }); c.fan(44.5, GF + H - SLAB, 27);
+  // breakfast nook + pantry on the west side of the kitchen
+  F.diningSet(K, { x: 41.3, y: GF, z: 30.5, rot: Math.PI / 2 }, 4);
+  F.wardrobe(K, { x: 39.35, y: GF, z: 26.5, rot: Math.PI / 2 }, 1.8, 2.2, 0.6); F.painting(K, { x: 39.03, y: GF + 1.6, z: 31.5, rot: Math.PI / 2 }, 1.1, 0.8, rgb('#5a8a3a'));
+  F.cooker(K, { x: 46.5, y: GF, z: Z0 + 0.32, rot: 0 }); F.appliance(K, { x: 40.9, y: GF, z: Z0 + 0.32, rot: 0 }, 0.6, 0.86, 0.6, rgb('#dfe3e6'));
+  F.plant(K, { x: 39.8, y: GF, z: 33.2 }, 0.9);
   c.spot('kitchen', 48.4, GF, 29, Math.PI / 2); c.spot('kitchen2', 44.5, GF, 29.2, Math.PI);
 
   // study
