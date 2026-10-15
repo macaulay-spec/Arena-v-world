@@ -3,7 +3,7 @@
  * scripted positioning: creator morphs + rapid appearance switching, joystick drag/release/cancel,
  * jump timing, pause/resume render gating, and a frame-time benchmark at fixed spots.
  *
- *   node scripts/game-verify.mjs [baseUrl] [outJson]   (env: QUALITY=lite|standard|high  BENCH_ONLY=1  BENCH_SECONDS=30)
+ *   node scripts/game-verify.mjs [baseUrl] [outJson]   (env: QUALITY=lite|standard|high  BENCH_ONLY=1  BENCH_SECONDS=30  BENCH_WARM=16)
  *
  * Measurements are taken under SwiftShader (software GL) — they compare code paths, they are not
  * Android frame rates.
@@ -18,6 +18,7 @@ const outJson = process.argv[3] ?? 'docs/screenshots/game/verify.json';
 const QUALITY = process.env.QUALITY ?? 'standard';
 const BENCH_ONLY = !!process.env.BENCH_ONLY;
 const BENCH_SECONDS = +(process.env.BENCH_SECONDS ?? 30);
+const BENCH_WARM = +(process.env.BENCH_WARM ?? 16); // frames rendered at the spot before timing starts (shader compiles, crowd fill-in)
 const W = 960, H = 540;
 mkdirSync(dirname(outJson), { recursive: true });
 
@@ -244,8 +245,8 @@ for (const s of SPOTS) {
     if (v.chase.mode !== 'far') { v.chase.cycleMode(); if (v.chase.mode !== 'far') v.chase.cycleMode(); }
     v.chase.snapBehind(yaw); v.setClock(s.minutes);
   }, s);
-  await frames(6);
-  const b0 = await page.evaluate(() => ({ t: performance.now(), frame: window.vora.frame, cpu: window.vora.bench ? { ...window.vora.bench } : null }));
+  await frames(BENCH_WARM);
+  const b0 = await page.evaluate(() => ({ t: performance.now(), frame: window.vora.frame, cpu: window.vora.bench ? { ...window.vora.bench } : null, programs: window.vora.renderer.info.programs?.length }));
   await sleep(BENCH_SECONDS * 1000);
   const b1 = await page.evaluate(() => ({ t: performance.now(), frame: window.vora.frame, cpu: window.vora.bench ? { ...window.vora.bench } : null, calls: window.vora.renderer.info.render.calls, tris: window.vora.renderer.info.render.triangles, programs: window.vora.renderer.info.programs?.length, geometries: window.vora.renderer.info.memory.geometries, textures: window.vora.renderer.info.memory.textures }));
   const nf = b1.frame - b0.frame, secs = (b1.t - b0.t) / 1000;

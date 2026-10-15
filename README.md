@@ -145,6 +145,9 @@ npm run build        # production bundle in dist/ (game + viewer + lineup)
 npx cap sync android && (cd android && ./gradlew assembleDebug)   # local APK (JDK 21 + Android SDK); CI does this on every push
 npm run map          # docs/map.png plan render (needs python3 + Pillow)
 node scripts/game-shot.mjs    # headless game screenshots (title → create → wake → rooms/compound) → docs/screenshots/game  (SHOTS=…, QUALITY=…, MOBILE=1)
+node scripts/game-verify.mjs  # headless behaviour checks (touch, jump, pause, creator morphs, HUD layout at 4 viewports) + frame benchmark (QUALITY=…, BENCH_ONLY=1)
+node scripts/game-walk.mjs    # drives the player along real routes (bed → street, side gate, pool steps, roof) and reports sinks / falls / stuck spots
+node scripts/game-audit.mjs   # draw-call + triangle composition, door/gate animation cost, ground probes;  game-inspect.mjs "X,Y,Z;…" explains one spot
 node scripts/screenshot.mjs   # headless Chromium (SwiftShader) city-viewer screenshots + runtime smoke test → docs/screenshots
 #   env: VIEWS=stadium,night-central  QUALITY=low|medium|high  SHOT_MOBILE=1 (phone emulation)  SHOT_W/SHOT_H
 ```

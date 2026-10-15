@@ -116,14 +116,80 @@ range show up mostly as fewer draw calls / triangles; on a GPU the draw-call and
 
 * Body-shape range is what the MakeHuman macro targets give (≈ 3 cm at the belly for full weight); the creator
   extrapolates the heavy end to 1.35 × the target.
-* Face sliders move the MakeHuman head geometry; there is still no facial animation (blendshapes/visemes are an
-  APK 2 item with the Rocketbox reference).
+* Face sliders move the MakeHuman head geometry. There is **no lip-sync and no facial blendshape animation**:
+  talking characters get a procedural jaw open/close ("talk flap") on the `Jaw` bone and all idle poses get eye
+  saccades; the rig has no eyelids, so nobody blinks. Visemes/FACS need the Rocketbox blendshape reference
+  (APK 2).
 * Hair is a scalp cap plus procedural strands: the cap follows the body-shape morphs, the strands do not (no
   visible gap at the shipped slider ranges).
 * The jump still uses the procedural clip; mocap replaces it in APK 2.
 * Automatic quality cannot measure real GPU speed — it is a device-fact heuristic. Runtime adaptation (dropping
   pixel ratio when frames are slow) is not implemented because frame-time telemetry from real phones is not
   available yet.
+
+### Audit pass 2 — radar, floors and terrain, stairs, Lite stutter, faces
+
+Scope: the four reported defects (radar position, mansion exit / floor sinking / terrain-collision mismatch, Lite
+stutter on door and gate use, character realism) plus a regression sweep of movement through the house and
+compound. Every item below was reproduced with a tool first and re-checked with the same tool after the fix.
+
+**Tools added for this pass** (all headless Chromium + SwiftShader against the Vite dev server):
+
+| Script | What it does |
+|---|---|
+| `scripts/game-walk.mjs` | drives the player along real routes (bed → front door → gate → street, street → bed, side pedestrian gate loop, house → garden → pool steps and back, stairs → roof terrace), opens doors through the real prompt, and reports every sink / hover / fall / teleport / stuck / mesh-clip event with coordinates (`QUALITY=lite node scripts/game-walk.mjs http://localhost:5173/ out.json`) |
+| `scripts/game-audit.mjs` | draw calls / triangles per layer, door and gate animation cost per frame, ground-vs-geometry probes along the exit routes, collision grid sizes |
+| `scripts/game-inspect.mjs` | for a list of points: blockers, surfaces, terrain and meshes at that spot (`node scripts/game-inspect.mjs "X,Y,Z;…"`) |
+| `scripts/game-verify.mjs` | now also checks the HUD layout at 640×360, 780×360, 844×390 and 1280×720 (radar in the top-left quadrant, nothing overlapping, nothing off-screen) |
+| `tests/collision.test.ts` | unit tests for the collision grid: scoped removal, in-place segment moves, pits, step-up, stair surfaces, landing overlap, side entry onto a flight |
+
+**Defects, root causes, fixes**
+
+| # | Symptom | Root cause | Fix | Verified by |
+|---|---|---|---|---|
+| A | Radar sat bottom-left on phones, covered by the joystick | `#radar-wrap` was anchored `bottom/left` in the touch layout; the stats block and toast were positioned around it | `src/game/game.css`: radar top-left, stats (cash/clock/health) top-right, pause top-centre, toast below the pause button, place card bottom-centre; the joystick keeps the bottom-left corner | `game-verify` HUD layout check at four viewports; `docs/screenshots/game/mobile-living-room.png`, `mobile-stair-foot.png`, `mobile-gate.png` (844×390 @2×, Lite) |
+| B1 | Feet sank into / floated above the compound; the drive climbed 2.9 m and the pool side dropped 2.7 m while the house floor stayed flat | the city terrain field (hills) was *added* to the landmark plateau and the mansion slabs were drawn flat at the old origin; the collision ground used the terrain field, the slabs had no walk surfaces | `src/shared/ground.ts`: plateaus take precedence over the hill field; `generator/landmarks.ts` anchors the JAG terrace height; `src/app/world/terrain.ts` renders exact terrace patches; `src/game/main.ts` derives the mansion origin from the landmark; every compound slab is a collision surface | terrace height-map probe (5 159 points, 0 off the plateau after the fix, was −2.70 / +2.87 m); `game-audit` ground probes along the exit route; walk routes report no sink > 4 cm |
+| B2 | Walking out of the gate: feet 17 cm under the sidewalk, 3 cm under the asphalt | the road mesh is drawn 0.2 m above the terrain, the collision ground used the terrain only | `Ground.walkHeight()` = visual surface (asphalt +0.02, sidewalk +0.15, median, drain) used by `CollisionWorld` | `game-walk` street segment: clearance −0.03 … +0.05 m |
+| B3 | Stairs: stuck at the foot, popped 0.25 m, fell through the F1 opening, walked through the glass rails | treads were full-height columns with 8 cm pads that overlapped the landing; the rail ran from tread 0 and boxed in the foot with a plant pot; the stair hole in the F1 slab did not match the flight; two risers (0.425 m) exceeded the 0.42 m step-up | `src/game/mansion/kit.ts` stair: per-tread surfaces, side and back blockers, `railFrom`; `house.ts`: flights redesigned with a `STAIR` constant shared by holes, rails and landings; `STEP_UP` = 0.45 m shared by collision and player | `tests/collision.test.ts` (stair ground, landing overlap, side entry); `game-walk` bed → street and street → bed 18/18 waypoints, roof route 13/13 |
+| B4 | Penthouse door dropped the player onto the second flight | the terrace door opened over the roof stair hole | door moved to the north wall of the penthouse | `game-walk` roof route |
+| B5 | Talking to a door sometimes opened a different one | interactable ids `door:<n>` were 1-based, the door array 0-based | `src/game/mansion/index.ts` | `game-walk` opens every route door by prompt text |
+| B6 | Sofas, beds, benches, loungers, coffee tables could be walked through after the step-up change | their visible boxes top out below the step-up height, so the capsule stepped "onto" them while no surface existed | `furniture.ts`: invisible full-height colliders (`frame.block`), flower beds get walk-on tops | `game-walk` clip report (remaining clips are leaves and a 10 cm planter kerb) |
+| C | Stutter when a door or the gate moved on Lite | every animation frame called `collision.remove(ref)` which scanned **all 13 243 grid cells**, then re-inserted the segment | `src/game/collision.ts`: blockers remember their cells; `moveSegment()` updates one segment in place; `Door`/`Slider` are one segment each (`dynamic.ts`) | `game-audit`: door 0.41 → 0.015 ms per animation frame, gate 0.29 → 0.005 ms (Lite, SwiftShader) |
+| C2 | Lite still drew the whole 201k-triangle terrain and far props | single terrain mesh, 220 m detail radius | tiled terrain (distance-culled tiles), Lite detail 180 m / far 1.6 km, health bar DOM write only on change | `game-audit` composition table below |
+| D | "Lip-sync" expectations; stiff faces | the pipeline never had visemes or blink shapes; the talk clip did not use the `Jaw` bone that the mouth is already skinned to | `characters/anim.ts`: procedural jaw talk flap on `idle_talk`, eye saccades on `idle` / `sit` / `guard` (baked into `animations.gltf` by `npm run characters`); limits documented above — **not lip-sync** | character viewer close-ups (`characters.html?id=…&view=face&clip=idle_talk`) |
+
+**Lite composition at the wake-up spot (headless, `game-audit`, same clock)**
+
+| Layer | before (47ad2d9) calls / tris | after calls / tris |
+|---|---|---|
+| total | 297 / 917 k | 278 / 749 k |
+| terrain | 1 / 201 k | 29 tiles / 81 k |
+| roads | 19 / 68 k | 17 / 48 k |
+| instanced props | 116 / 339 k | 97 / 323 k |
+| mansion | 70 / 110 k | 58 / 109 k |
+| door / gate animation | 0.41 / 0.29 ms per frame | 0.015 / 0.005 ms per frame |
+
+**Frame benchmark (headless SwiftShader 960 × 540, 30 s per spot, 16 warm-up frames so shader compiles are
+excluded; `node scripts/game-verify.mjs` with `BENCH_ONLY=1`).** ms per frame on software GL is pixel/triangle
+bound and varies ±10 % between runs on the shared sandbox CPU; the honest reading is: triangles down 7–23 %,
+draw calls roughly level (terrain is now 29 culled tiles instead of one mesh), JS time per frame level or lower,
+and the door/gate hitch gone. Real-phone numbers are still not available.
+
+| Preset · spot | previous pass (d688133) calls / tris / ms (JS ms) | this pass calls / tris / ms (JS ms) |
+|---|---|---|
+| Lite · living room | 337 / 0.95 M / 1324 (14.7) | 323 / 0.73 M / 1305 (14.3) |
+| Lite · street outside the gate | 250 / 1.05 M / 1217 (9.4) | 296 / 0.96 M / 1112 (8.2) |
+| Standard · living room | 418 / 1.17 M / 3216 | 413 / 0.98 M / 3335 (24.4) |
+| Standard · street outside the gate | 529 / 1.89 M / 3462 | 552 / 1.76 M / 3752 (22.2) |
+
+**Walk-route results (`game-walk`, Lite, final code):** bed → street 18/18 waypoints, street → bed 18/18, side
+gate loop 13/13, house → garden → pool steps → forecourt 20/20, stairs → roof terrace 13/13; no sink deeper than
+4 cm, no fall, no teleport. Remaining non-blocking mesh clips: plant leaves at shoulder height next to the stair
+foot and a 10 cm kerb on the east-lawn planter.
+
+**What this pass does not claim:** no measurement on a real phone (SwiftShader numbers compare code paths
+only); eyelids/blink and real visemes need assets that do not exist in the repository; a human steering around a
+jamb or a hedge corner is approximated by waypoint routes, so a *new* furniture layout still needs a walk run.
 
 ---
 
