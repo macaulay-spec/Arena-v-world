@@ -140,6 +140,7 @@ async function showLineup(ids: string[]) {
   info(); ui.info.textContent = `${entries.length} characters`;
   const h = 1.8, w = (Math.min(cols, entries.length) - 1) * 0.9, d = (rows - 1) * 1.4;
   const target = new THREE.Vector3(w / 2, h * 0.5, -d / 2); const dist = Math.max(h * 2.2, w * 0.95 + 2.5, d * 1.3 + 2.5);
+  if (entries.length > 3) target.x -= dist * 0.13; // keep the row clear of the side panel
   camera.position.set(target.x, target.y + dist * 0.28, target.z + dist); controls.target.copy(target); controls.update();
   key.target.position.copy(target);
   sc.left = sc.bottom = -Math.max(4, w); sc.right = sc.top = Math.max(4, w); key.shadow.camera.updateProjectionMatrix();

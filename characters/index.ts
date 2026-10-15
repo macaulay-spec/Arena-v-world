@@ -75,7 +75,7 @@ const manifest: any[] = []; const data: any[] = [];
 for (const t of specs) {
   if (only && !only.includes(t.id)) continue;
   const r = assembleCharacter(t, OUT, { lods: !process.env.NO_LODS });
-  const entry = { id: r.id, file: r.file, name: t.name, height: r.height, tris: r.tris, lodTris: r.lodTris, bytes: r.bytes, sex: t.sex, age: t.age, tags: t.tags, role: t.role, district: t.district, districts: t.districts, idle: t.idle, moving: t.moving };
+  const entry = { id: r.id, file: r.file, name: t.name, height: r.height, tris: r.tris, lodTris: r.lodTris, bytes: r.bytes, sex: t.sex, age: t.age, tags: t.tags, role: t.role, district: t.district, districts: t.districts, idle: t.idle, moving: t.moving, props: t.props ?? [] };
   manifest.push(entry);
   data.push({ ...entry, roleId: t.roleId, districtNames: (t.districts ?? []).map(d => DISTRICT_NAMES[d]), skinTone: t.tone, hair: t.hair, headwear: t.headwear, outfit: t.outfit.map(o => ({ garment: o.id, fabric: o.look.fabric, colour: o.look.colour })), props: t.props ?? [] });
   log(t.id, 'tris', r.lodTris.join('/'), 'verts', r.verts, 'draws', r.draws, 'bin', (r.bytes / 1024).toFixed(0) + 'kB');

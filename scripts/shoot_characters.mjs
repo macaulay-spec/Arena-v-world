@@ -20,19 +20,27 @@ mkdirSync(outDir, { recursive: true });
 const manifest = JSON.parse(readFileSync('public/assets/characters/manifest.json', 'utf8'));
 const ids = manifest.characters.map(c => c.id);
 const byTag = tag => manifest.characters.filter(c => (c.tags ?? []).includes(tag)).map(c => c.id);
+const people = manifest.characters.filter(c => c.role && !(c.tags ?? []).some(t => t === 'reference' || t === 'body'));
+const withProps = people.filter(c => (c.props ?? []).length).map(c => c.id);
+// a mixed set of dressed characters for the walk cycle: one per role prefix, first come first served
+const mixed = []; const seen = new Set();
+for (const c of people) { const key = c.id.replace(/_\d+$/, ''); if (seen.has(key)) continue; seen.add(key); mixed.push(c.id); }
+const row = (list, n = 10) => `lineup=${list.slice(0, n).join(',')}&cols=${Math.min(n, list.length) || 1}`;
 
 const shots = [
   { name: 'lineup-all', query: `lineup=all&cols=12&clip=idle&rot=0&light=40` },
   { name: 'lineup-bodies', query: `lineup=${byTag('body').join(',') || ids.slice(0, 8).join(',')}&cols=8&clip=idle&rot=0` },
-  { name: 'lineup-street', query: `lineup=${byTag('street').join(',')}&cols=8&clip=idle&rot=0`, skipIf: () => !byTag('street').length },
-  { name: 'lineup-market', query: `lineup=${byTag('market').join(',')}&cols=8&clip=idle&rot=0`, skipIf: () => !byTag('market').length },
-  { name: 'lineup-uniforms', query: `lineup=${byTag('uniform').join(',')}&cols=8&clip=idle&rot=0`, skipIf: () => !byTag('uniform').length },
-  { name: 'lineup-children-elders', query: `lineup=${[...byTag('child'), ...byTag('elder')].join(',')}&cols=8&clip=idle&rot=0`, skipIf: () => !byTag('child').length },
-  { name: 'walk-cycle', query: `lineup=${ids.slice(0, 8).join(',')}&cols=8&clip=walk&rot=0` },
+  { name: 'lineup-street', query: `${row(byTag('street'))}&clip=idle&rot=0`, skipIf: () => !byTag('street').length },
+  { name: 'lineup-market', query: `${row(byTag('market'))}&clip=idle&rot=0`, skipIf: () => !byTag('market').length },
+  { name: 'lineup-props', query: `${row(withProps)}&clip=idle&rot=0`, skipIf: () => !withProps.length },
+  { name: 'lineup-mixed', query: `${row(mixed.slice(10, 20))}&clip=idle&rot=0`, skipIf: () => mixed.length < 12 },
+  { name: 'lineup-uniforms', query: `${row(byTag('uniform'))}&clip=idle&rot=0`, skipIf: () => !byTag('uniform').length },
+  { name: 'lineup-children-elders', query: `${row([...byTag('child'), ...byTag('elder')])}&clip=idle&rot=0`, skipIf: () => !byTag('child').length },
+  { name: 'walk-cycle', query: `${row(mixed, 8)}&clip=walk&rot=0` },
   { name: 'face-female', query: `id=${byTag('body')[0] ?? ids[0]}&view=face&clip=idle&rot=0&light=20` },
   { name: 'face-male', query: `id=${byTag('body')[1] ?? ids[1] ?? ids[0]}&view=face&clip=idle&rot=0&light=20` },
   { name: 'hands', query: `id=${ids[0]}&view=hands&clip=idle&rot=0` },
-  { name: 'lod-compare', query: `lineup=${ids[0]},${ids[0]},${ids[0]}&cols=3&clip=idle&rot=0&lod=0`, after: async page => { await page.evaluate(() => { const L = window.vwchars.loaded; L.forEach((l, i) => l.lods.forEach((o, k) => (o.visible = k === i))); }); } },
+  { name: 'lod-compare', query: `lineup=${mixed[0]},${mixed[0]},${mixed[0]}&cols=3&clip=idle&rot=0&lod=0`, after: async page => { await page.evaluate(() => { const L = window.vwchars.loaded; L.forEach((l, i) => l.lods.forEach((o, k) => (o.visible = k === i))); }); } },
   { name: 'back', query: `lineup=${ids.slice(0, 6).join(',')}&cols=6&clip=idle&rot=0&view=back`, after: async page => { await page.evaluate(() => { const c = window.vwchars; for (const l of c.loaded) l.root.rotation.y = Math.PI; }); } },
 ];
 // ad-hoc shots: SOLO=id1,id2 → full-body turntable frame per character (front ¾), SOLO_VIEW=full|face|hands|back

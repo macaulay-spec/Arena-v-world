@@ -32,6 +32,7 @@
     "body"
    ],
    "role": "reference",
+   "props": [],
    "districtNames": [],
    "skinTone": "#5A3A28",
    "hair": "coils_fade",
@@ -46,8 +47,7 @@
      "fabric": "cotton",
      "colour": "#F2F2F2"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "body_male",
@@ -67,6 +67,7 @@
     "body"
    ],
    "role": "reference",
+   "props": [],
    "districtNames": [],
    "skinTone": "#3C2319",
    "hair": "low_cut",
@@ -76,8 +77,7 @@
      "fabric": "cotton",
      "colour": "#2B2B2B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_office_worker_1",
@@ -110,6 +110,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "office_worker",
    "districtNames": [
     "Central District",
@@ -133,9 +136,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -169,6 +169,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "laptop_bag"
+   ],
    "roleId": "office_worker",
    "districtNames": [
     "Central District",
@@ -192,9 +195,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "laptop_bag"
    ]
   },
   {
@@ -228,6 +228,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "office_worker",
    "districtNames": [
     "Central District",
@@ -251,9 +254,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -285,6 +285,9 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [
+    "briefcase"
+   ],
    "roleId": "banker",
    "districtNames": [
     "Central District"
@@ -312,9 +315,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "briefcase"
    ]
   },
   {
@@ -346,6 +346,9 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [
+    "backpack"
+   ],
    "roleId": "tech_worker",
    "districtNames": [
     "Central District",
@@ -369,9 +372,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "backpack"
    ]
   },
   {
@@ -404,6 +404,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "security_guard",
    "districtNames": [
     "Central District",
@@ -429,8 +430,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_security_guard_2",
@@ -462,6 +462,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "security_guard",
    "districtNames": [
     "Central District",
@@ -487,8 +488,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_traffic_officer_1",
@@ -519,6 +519,7 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "traffic_officer",
    "districtNames": [
     "Central District",
@@ -547,8 +548,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_police_1",
@@ -579,6 +579,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "police",
    "districtNames": [
     "Central District",
@@ -603,8 +604,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_market_woman_1",
@@ -635,6 +635,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_tray_tomatoes"
+   ],
    "roleId": "market_woman",
    "districtNames": [
     "Market Quarter",
@@ -653,9 +656,6 @@
      "fabric": "leather",
      "colour": "#8D6E63"
     }
-   ],
-   "props": [
-    "head_tray_tomatoes"
    ]
   },
   {
@@ -687,6 +687,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_basin_sachets"
+   ],
    "roleId": "market_woman",
    "districtNames": [
     "Market Quarter",
@@ -705,9 +708,6 @@
      "fabric": "leather",
      "colour": "#8D6E63"
     }
-   ],
-   "props": [
-    "head_basin_sachets"
    ]
   },
   {
@@ -739,6 +739,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_basket_yams"
+   ],
    "roleId": "market_woman",
    "districtNames": [
     "Market Quarter",
@@ -757,9 +760,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "head_basket_yams"
    ]
   },
   {
@@ -791,6 +791,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
    "roleId": "market_woman",
    "districtNames": [
     "Market Quarter",
@@ -809,9 +812,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "head_tray_oranges"
    ]
   },
   {
@@ -844,6 +844,9 @@
     "idle"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
    "roleId": "hawker",
    "districtNames": [
     "Market Quarter",
@@ -868,9 +871,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "head_tray_oranges"
    ]
   },
   {
@@ -903,6 +903,9 @@
     "idle"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
    "roleId": "hawker",
    "districtNames": [
     "Market Quarter",
@@ -925,9 +928,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "head_tray_oranges"
    ]
   },
   {
@@ -960,6 +960,9 @@
     "idle"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_tray_bread"
+   ],
    "roleId": "hawker",
    "districtNames": [
     "Market Quarter",
@@ -984,9 +987,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "head_tray_bread"
    ]
   },
   {
@@ -1018,6 +1018,7 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "trader",
    "districtNames": [
     "Market Quarter"
@@ -1040,8 +1041,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_trader_2",
@@ -1072,6 +1072,7 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "trader",
    "districtNames": [
     "Market Quarter"
@@ -1095,8 +1096,7 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_porter_1",
@@ -1126,6 +1126,9 @@
     "idle"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
    "roleId": "porter",
    "districtNames": [
     "Market Quarter",
@@ -1149,9 +1152,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "head_sack"
    ]
   },
   {
@@ -1182,6 +1182,9 @@
     "idle"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
    "roleId": "porter",
    "districtNames": [
     "Market Quarter",
@@ -1205,9 +1208,6 @@
      "fabric": "leather",
      "colour": "#C62828"
     }
-   ],
-   "props": [
-    "head_sack"
    ]
   },
   {
@@ -1240,6 +1240,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "bowl"
+   ],
    "roleId": "food_seller",
    "districtNames": [
     "Market Quarter",
@@ -1263,9 +1266,6 @@
      "fabric": "leather",
      "colour": "#C62828"
     }
-   ],
-   "props": [
-    "bowl"
    ]
   },
   {
@@ -1298,6 +1298,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "bowl"
+   ],
    "roleId": "food_seller",
    "districtNames": [
     "Market Quarter",
@@ -1321,9 +1324,6 @@
      "fabric": "leather",
      "colour": "#2E7D32"
     }
-   ],
-   "props": [
-    "bowl"
    ]
   },
   {
@@ -1357,6 +1357,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "okada_rider",
    "districtNames": [
     "Market Quarter",
@@ -1381,8 +1382,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_okada_rider_2",
@@ -1415,6 +1415,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "okada_rider",
    "districtNames": [
     "Market Quarter",
@@ -1439,8 +1440,7 @@
      "fabric": "leather",
      "colour": "#C62828"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_bus_conductor_1",
@@ -1472,6 +1472,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "bus_conductor",
    "districtNames": [
     "Market Quarter",
@@ -1495,8 +1496,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_shopper_1",
@@ -1529,6 +1529,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
    "roleId": "shopper",
    "districtNames": [
     "Market Quarter",
@@ -1552,9 +1555,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "ghana_bag"
    ]
   },
   {
@@ -1588,6 +1588,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
    "roleId": "shopper",
    "districtNames": [
     "Market Quarter",
@@ -1612,9 +1615,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "ghana_bag"
    ]
   },
   {
@@ -1648,6 +1648,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
    "roleId": "shopper",
    "districtNames": [
     "Market Quarter",
@@ -1671,9 +1674,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "ghana_bag"
    ]
   },
   {
@@ -1707,6 +1707,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "elite_woman",
    "districtNames": [
     "North Heights",
@@ -1725,9 +1728,6 @@
      "fabric": "leather",
      "colour": "#8D6E63"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -1761,6 +1761,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "elite_woman",
    "districtNames": [
     "North Heights",
@@ -1780,9 +1783,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -1816,6 +1816,7 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "elite_man",
    "districtNames": [
     "North Heights",
@@ -1840,8 +1841,7 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_elite_man_2",
@@ -1874,6 +1874,7 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "elite_man",
    "districtNames": [
     "North Heights",
@@ -1897,8 +1898,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_jogger_1",
@@ -1928,6 +1928,7 @@
     "idle"
    ],
    "moving": "run",
+   "props": [],
    "roleId": "jogger",
    "districtNames": [
     "North Heights",
@@ -1951,8 +1952,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_schoolchild_1",
@@ -1984,6 +1984,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
    "roleId": "schoolchild",
    "districtNames": [
     "Green Estates",
@@ -2008,9 +2011,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "school_bag"
    ]
   },
   {
@@ -2043,6 +2043,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
    "roleId": "schoolchild",
    "districtNames": [
     "Green Estates",
@@ -2067,9 +2070,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "school_bag"
    ]
   },
   {
@@ -2102,6 +2102,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
    "roleId": "schoolchild",
    "districtNames": [
     "Green Estates",
@@ -2126,9 +2129,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "school_bag"
    ]
   },
   {
@@ -2161,6 +2161,7 @@
     "wave"
    ],
    "moving": "run",
+   "props": [],
    "roleId": "kid",
    "districtNames": [
     "Old Town",
@@ -2180,8 +2181,7 @@
      "fabric": "denim",
      "colour": "#3A5A8C"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_kid_2",
@@ -2213,6 +2213,7 @@
     "wave"
    ],
    "moving": "run",
+   "props": [],
    "roleId": "kid",
    "districtNames": [
     "Old Town",
@@ -2232,8 +2233,7 @@
      "fabric": "denim",
      "colour": "#5C7BA8"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_elder_man_1",
@@ -2265,6 +2265,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "walking_stick"
+   ],
    "roleId": "elder_man",
    "districtNames": [
     "Old Town",
@@ -2288,9 +2291,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "walking_stick"
    ]
   },
   {
@@ -2323,6 +2323,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "walking_stick"
+   ],
    "roleId": "elder_man",
    "districtNames": [
     "Old Town",
@@ -2346,9 +2349,6 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": [
-    "walking_stick"
    ]
   },
   {
@@ -2381,6 +2381,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "elder_woman",
    "districtNames": [
     "Old Town",
@@ -2399,8 +2400,7 @@
      "fabric": "leather",
      "colour": "#8D6E63"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_elder_woman_2",
@@ -2432,6 +2432,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "elder_woman",
    "districtNames": [
     "Old Town",
@@ -2450,8 +2451,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_imam_1",
@@ -2481,6 +2481,7 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "imam",
    "districtNames": [
     "Old Town"
@@ -2504,8 +2505,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_artisan_1",
@@ -2537,6 +2537,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "tool_bag"
+   ],
    "roleId": "artisan",
    "districtNames": [
     "Old Town",
@@ -2560,9 +2563,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "tool_bag"
    ]
   },
   {
@@ -2595,6 +2595,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "tool_bag"
+   ],
    "roleId": "artisan",
    "districtNames": [
     "Old Town",
@@ -2618,9 +2621,6 @@
      "fabric": "leather",
      "colour": "#C62828"
     }
-   ],
-   "props": [
-    "tool_bag"
    ]
   },
   {
@@ -2653,6 +2653,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "baby_wrap"
+   ],
    "roleId": "mother",
    "districtNames": [
     "Old Town",
@@ -2676,9 +2679,6 @@
      "fabric": "leather",
      "colour": "#2E7D32"
     }
-   ],
-   "props": [
-    "baby_wrap"
    ]
   },
   {
@@ -2711,6 +2711,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "baby_wrap"
+   ],
    "roleId": "mother",
    "districtNames": [
     "Old Town",
@@ -2734,9 +2737,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "baby_wrap"
    ]
   },
   {
@@ -2769,6 +2769,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "backpack"
+   ],
    "roleId": "student",
    "districtNames": [
     "Central District",
@@ -2793,9 +2796,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "backpack"
    ]
   },
   {
@@ -2828,6 +2828,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "backpack"
+   ],
    "roleId": "student",
    "districtNames": [
     "Central District",
@@ -2852,9 +2855,6 @@
      "fabric": "leather",
      "colour": "#5D4037"
     }
-   ],
-   "props": [
-    "backpack"
    ]
   },
   {
@@ -2886,6 +2886,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "factory_worker",
    "districtNames": [
     "Industrial"
@@ -2913,8 +2914,7 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_factory_worker_2",
@@ -2945,6 +2945,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "factory_worker",
    "districtNames": [
     "Industrial"
@@ -2972,8 +2973,7 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_factory_worker_3",
@@ -3004,6 +3004,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "factory_worker",
    "districtNames": [
     "Industrial"
@@ -3031,8 +3032,7 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_construction_worker_1",
@@ -3065,6 +3065,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
    "roleId": "construction_worker",
    "districtNames": [
     "Industrial",
@@ -3094,9 +3097,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "head_sack"
    ]
   },
   {
@@ -3130,6 +3130,9 @@
     "idle_talk"
    ],
    "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
    "roleId": "construction_worker",
    "districtNames": [
     "Industrial",
@@ -3159,9 +3162,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "head_sack"
    ]
   },
   {
@@ -3193,6 +3193,7 @@
     "phone"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "truck_driver",
    "districtNames": [
     "Industrial"
@@ -3216,8 +3217,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_mechanic_1",
@@ -3248,6 +3248,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "jerrycan"
+   ],
    "roleId": "mechanic",
    "districtNames": [
     "Industrial",
@@ -3271,9 +3274,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "jerrycan"
    ]
   },
   {
@@ -3305,6 +3305,9 @@
     "sit"
    ],
    "moving": "walk",
+   "props": [
+    "jerrycan"
+   ],
    "roleId": "mechanic",
    "districtNames": [
     "Industrial",
@@ -3328,9 +3331,6 @@
      "fabric": "leather",
      "colour": "#1B1B1B"
     }
-   ],
-   "props": [
-    "jerrycan"
    ]
   },
   {
@@ -3362,6 +3362,9 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [
+    "bucket"
+   ],
    "roleId": "fisherman",
    "districtNames": [
     "Industrial"
@@ -3380,9 +3383,6 @@
      "fabric": "cotton",
      "colour": "#C8B08A"
     }
-   ],
-   "props": [
-    "bucket"
    ]
   },
   {
@@ -3416,6 +3416,9 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "resident",
    "districtNames": [
     "Green Estates",
@@ -3436,9 +3439,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -3472,6 +3472,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "resident",
    "districtNames": [
     "Green Estates",
@@ -3496,8 +3497,7 @@
      "fabric": "leather",
      "colour": "#1565C0"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_resident_3",
@@ -3530,6 +3530,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "resident",
    "districtNames": [
     "Green Estates",
@@ -3548,8 +3549,7 @@
      "fabric": "leather",
      "colour": "#8D6E63"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_nurse_1",
@@ -3580,6 +3580,7 @@
     "idle_talk"
    ],
    "moving": "walk",
+   "props": [],
    "roleId": "nurse",
    "districtNames": [
     "Green Estates",
@@ -3603,8 +3604,7 @@
      "fabric": "leather",
      "colour": "#F5F5F5"
     }
-   ],
-   "props": []
+   ]
   },
   {
    "id": "chr_teacher_1",
@@ -3635,6 +3635,9 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [
+    "handbag"
+   ],
    "roleId": "teacher",
    "districtNames": [
     "Green Estates",
@@ -3657,9 +3660,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "handbag"
    ]
   },
   {
@@ -3690,6 +3690,9 @@
     "idle"
    ],
    "moving": "walk",
+   "props": [
+    "bucket"
+   ],
    "roleId": "gardener",
    "districtNames": [
     "Green Estates",
@@ -3714,9 +3717,6 @@
      "fabric": "leather",
      "colour": "#3E2723"
     }
-   ],
-   "props": [
-    "bucket"
    ]
   }
  ]
