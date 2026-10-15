@@ -1,6 +1,6 @@
 /** Animated pieces of the mansion: hinged doors, sliding gate, fans, screens; with collision updates. */
 import * as THREE from 'three';
-import type { CollisionWorld, Blocker } from '../collision';
+import type { CollisionWorld, Blocker, Segment } from '../collision';
 import type { MatDef, MatId } from './materials';
 
 /** collision sink in local (mansion) coordinates */
@@ -12,6 +12,10 @@ export class ShiftedCollision {
   addPolygon(poly: [number, number][], y0: number, y1: number) { this.world.addPolygon(poly.map(p => [p[0] + this.ox, p[1] + this.oz] as [number, number]), y0 + this.oy, y1 + this.oy); }
   addSurface(minX: number, minZ: number, maxX: number, maxZ: number, y: number) { return this.world.addSurface(minX + this.ox, minZ + this.oz, maxX + this.ox, maxZ + this.oz, y + this.oy); }
   remove(b: Blocker) { this.world.remove(b); }
+  /** city ground height at a local x/z, in local metres (negative = below the terrace) */
+  groundAt(x: number, z: number) { return this.world.terrain(x + this.ox, z + this.oz) - this.oy; }
+  /** update a dynamic segment in place (local coordinates) */
+  moveSegment(s: Segment, ax: number, az: number, bx: number, bz: number) { return this.world.moveSegment(s, ax + this.ox, az + this.oz, bx + this.ox, bz + this.oz); }
 }
 
 const geoCache = new Map<string, THREE.BufferGeometry>();
@@ -53,7 +57,8 @@ export interface DoorSpec { x: number; y: number; z: number; /** direction the l
 export class Door {
   group = new THREE.Group();
   open = false; private angle = 0; private target = 0;
-  private blocker: Blocker | null = null;
+  /** the leaf's collision segment, moved in place while the door swings (never re-indexed per frame) */
+  private blocker: Segment | null = null;
   readonly label: string;
   constructor(public spec: DoorSpec, mats: Record<MatId, MatDef>, private sink: ShiftedCollision | null) {
     const t = spec.thick ?? 0.05;
@@ -79,10 +84,12 @@ export class Door {
   }
   private updateBlocker() {
     if (!this.sink || this.spec.collide === false) return;
-    if (this.blocker) { this.sink.remove(this.blocker); this.blocker = null; }
     const e = this.leafEnd(this.angle);
-    this.blocker = this.sink.addSegment(this.spec.x, this.spec.z, e[0], e[1], this.spec.y, this.spec.y + this.spec.height);
+    if (this.blocker) this.sink.moveSegment(this.blocker, this.spec.x, this.spec.z, e[0], e[1]);
+    else this.blocker = this.sink.addSegment(this.spec.x, this.spec.z, e[0], e[1], this.spec.y, this.spec.y + this.spec.height);
   }
+  /** current collision segment in local coordinates (tests / diagnostics) */
+  get collider(): { ax: number; az: number; bx: number; bz: number } | null { const b = this.blocker; if (!b || !this.sink) return null; return { ax: b.ax - this.sink.ox, az: b.az - this.sink.oz, bx: b.bx - this.sink.ox, bz: b.bz - this.sink.oz }; }
   toggle(force?: boolean) { this.open = force ?? !this.open; this.target = this.open ? (this.spec.openAngle ?? Math.PI / 2 * 0.95) * (this.spec.swing ?? 1) : 0; }
   get prompt() { return `${this.open ? 'Close' : 'Open'} ${this.label}`; }
   /** handle position (local) */
@@ -100,18 +107,20 @@ export class Door {
 export class Slider {
   group = new THREE.Group();
   open = false; private t = 0; private target = 0;
-  private blocker: Blocker | null = null;
+  private blocker: Segment | null = null;
   constructor(public spec: { x: number; y: number; z: number; along: number; width: number; height: number; thick: number; travel: number; label: string; collide?: boolean }, mesh: THREE.Object3D, private sink: ShiftedCollision | null) {
     this.group.add(mesh); this.group.position.set(spec.x, spec.y, spec.z); this.group.rotation.y = spec.along; this.updateBlocker();
   }
   private updateBlocker() {
     if (!this.sink || this.spec.collide === false) return;
-    if (this.blocker) { this.sink.remove(this.blocker); this.blocker = null; }
     const a = this.spec.along; const off = this.t * this.spec.travel;
     const x0 = this.spec.x + Math.cos(a) * off, z0 = this.spec.z - Math.sin(a) * off;
     const x1 = x0 + Math.cos(a) * this.spec.width, z1 = z0 - Math.sin(a) * this.spec.width;
-    this.blocker = this.sink.addSegment(x0, z0, x1, z1, this.spec.y, this.spec.y + this.spec.height);
+    if (this.blocker) this.sink.moveSegment(this.blocker, x0, z0, x1, z1);
+    else this.blocker = this.sink.addSegment(x0, z0, x1, z1, this.spec.y, this.spec.y + this.spec.height);
   }
+  /** current collision segment in local coordinates (tests / diagnostics) */
+  get collider(): { ax: number; az: number; bx: number; bz: number } | null { const b = this.blocker; if (!b || !this.sink) return null; return { ax: b.ax - this.sink.ox, az: b.az - this.sink.oz, bx: b.bx - this.sink.ox, bz: b.bz - this.sink.oz }; }
   toggle(force?: boolean) { this.open = force ?? !this.open; this.target = this.open ? 1 : 0; }
   get prompt() { return `${this.open ? 'Close' : 'Open'} ${this.spec.label}`; }
   update(dt: number) {
