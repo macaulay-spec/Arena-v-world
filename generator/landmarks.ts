@@ -5,7 +5,7 @@ import { frameOf, wideFrame, placeMass, world, parkingRows, r2, type Frame, type
 import { ZONES } from './config';
 
 type P = Omit<Prop, 'y'>;
-export interface LandmarkResult { frame: Frame; specs: Spec[]; props: P[]; role?: LandmarkRole; name: string; description: string; }
+export interface LandmarkResult { frame: Frame; specs: Spec[]; props: P[]; role?: LandmarkRole; name: string; description: string; plateau?: { polygon: Vec2[]; y: number } }
 
 const flat = (parapet = 1, tile = 'roof-concrete'): BuildingMass['roof'] => ({ type: 'flat', tile, parapet });
 const F = (kind: MassFeature['kind'], extra: Partial<MassFeature> = {}): MassFeature => ({ kind, ...extra });
@@ -35,6 +35,10 @@ export function buildLandmark(zoneId: string, parcel: Parcel, rng: RNG): Landmar
   };
 
   switch (zoneId) {
+    case 'jag-house': {
+      // the estate is built by the game runtime (procedural mansion); the city only reserves the terraced site
+      return { frame: f, specs, props, role: 'residence', name: zone.name, description: zone.description!, plateau: { polygon: parcel.polygon.map(p => [r2(p[0]), r2(p[1])] as Vec2), y: 0 } };
+    }
     case 'city-hall': {
       const fd = Math.min(22, Math.max(10, D - 36 - 6));
       const main = placeMass(f, uc, fd + 17, Math.min(W - 30, 70), 34, { floors: 4, fh: 4.3, roof: flat(1.4, 'roof-gravel'), facade: { tile: 'stone', bayWidth: 3.6, groundTile: 'colonnade', groundHeight: 6, color: '#d8cfc0', trim: '#2b2b2b' }, features: [F('portico', { side: 0, p: [26, 6, 15, 8] }), F('flagpoles', { side: 0, p: [3] }), F('clock', { side: 0 }), F('sign', { side: 0, text: 'VORA CITY HALL', color: '#2b2b2b', p: [1] })] });

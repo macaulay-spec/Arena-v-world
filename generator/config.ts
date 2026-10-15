@@ -185,6 +185,7 @@ export const ZONES: ZoneDef[] = [
   { id: 'mosque', name: 'Vora Central Mosque', use: 'landmark', rect: [-420, -120, -300, -20], role: 'religious', description: 'Domed congregational mosque with twin minarets and a walled courtyard.' },
   { id: 'ot-market', name: 'Old Town Market', use: 'market', rect: [-700, -20, -600, 60], role: 'market', description: 'The neighbourhood market of Old Town: sheds, stalls and craft workshops.' },
   { id: 'harbour', name: 'Old Harbour & Fish Market', use: 'market', rect: [-760, 320, -660, 420], role: 'market', description: 'Fish market, boat landing and the harbour square at the end of Old Harbour Road.' },
+  { id: 'jag-house', name: 'JAG House', use: 'landmark', rect: [-380, -420, -300, -330], role: 'residence', description: 'The walled hillside estate of the JAG family on Ridge Street: the mansion, its gardens, pool and staff quarters. The player\'s home.' },
   { id: 'heights-park', name: 'Hilltop Gardens', use: 'park', rect: [-500, -420, -380, -330], role: 'park', description: 'Hilltop park of North Heights with views over the city.' },
   { id: 'ge-park', name: 'Acacia Park', use: 'park', rect: [-100, -420, 80, -330], role: 'park', description: 'Neighbourhood park and playground of Green Estates.' },
   { id: 'stadium', name: 'Vora National Stadium', use: 'landmark', rect: [150, -620, 310, -420], role: 'stadium', description: 'The 40,000-seat national stadium and sports complex.' },

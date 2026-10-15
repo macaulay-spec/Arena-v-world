@@ -6,17 +6,22 @@
 import type { RoadEdge, RoadClass } from './types';
 import { corridorHalfWidth } from './types';
 import { Terrain } from './terrain';
-import { SpatialHash, v2 } from './geom';
+import { SpatialHash, v2, bbox, pointInPolygon, distToPolygonEdge } from './geom';
 import type { Vec2 } from './types';
 
 export interface GradedEdge { id: string; cls: RoadClass; points: Vec2[]; heights: number[]; half: number; bridge: boolean; }
+export interface Plateau { polygon: Vec2[]; y: number }
 
 export class Ground {
   private hash = new SpatialHash<{ e: GradedEdge; i: number }>(40);
   edges: GradedEdge[] = [];
   readonly bandWidth = 9;
+  /** flattened terraces (landmark sites) blended into the terrain over `plateauBand` metres */
+  readonly plateauBand = 7;
+  private plateaus: (Plateau & { box: { minX: number; maxX: number; minZ: number; maxZ: number } })[] = [];
 
-  constructor(public terrain: Terrain, edges: (RoadEdge & { heights?: number[] })[]) {
+  constructor(public terrain: Terrain, edges: (RoadEdge & { heights?: number[] })[], plateaus: Plateau[] = []) {
+    for (const p of plateaus) this.plateaus.push({ ...p, box: bbox(p.polygon) });
     for (const e of edges) {
       const g: GradedEdge = { id: e.id, cls: e.cls, points: e.points, heights: e.heights ?? e.points.map(p => terrain.height(p[0], p[1])), half: corridorHalfWidth(e.cls), bridge: !!e.bridge };
       this.edges.push(g);
@@ -48,9 +53,24 @@ export class Ground {
     return best;
   }
 
+  /** raw terrain with plateaus applied (no road grading) */
+  terrainHeight(x: number, z: number): number {
+    let t = this.terrain.height(x, z);
+    for (const p of this.plateaus) {
+      const B = this.plateauBand, b = p.box;
+      if (x < b.minX - B || x > b.maxX + B || z < b.minZ - B || z > b.maxZ + B) continue;
+      if (pointInPolygon([x, z], p.polygon)) { t = p.y; continue; }
+      const d = distToPolygonEdge([x, z], p.polygon);
+      if (d >= B) continue;
+      const k = d / B, s = k * k * (3 - 2 * k);
+      t = p.y * (1 - s) + t * s;
+    }
+    return t;
+  }
+
   /** graded ground height (terrain blended to road grade) */
   height(x: number, z: number): number {
-    const t = this.terrain.height(x, z);
+    const t = this.terrainHeight(x, z);
     const r = this.nearestRoad(x, z);
     if (!r) return t;
     if (r.edge.bridge) {

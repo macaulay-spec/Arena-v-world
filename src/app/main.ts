@@ -3,17 +3,8 @@ import * as THREE from 'three';
 import cityUrl from '../../data/city.json?url';
 import type { CityData, Landmark } from '../shared/types';
 import { pointInPolygon } from '../shared/geom';
-import { buildAtlas, buildDetailTexture } from './atlas';
-import { GLOBAL, makeAtlasMaterial, makePropMaterial, makeFoliageMaterial, makeGlassMaterial, makeTerrainMaterial, makeWaterMaterial } from './materials';
-import { AtlasBuilder, ColorBuilder } from './geom';
-import { TextAtlas, TextBuilder, makeTextMaterial } from './signs';
-import { ChunkSet } from './world/chunks';
-import { makeWorldBase, buildTerrain, buildWater, buildSurfaces } from './world/terrain';
-import { buildRoads } from './world/roads';
-import { buildBuildings } from './world/buildings';
-import { buildWalls } from './world/walls';
-import { buildProps } from './world/props';
-import { buildLampGlow } from './world/glow';
+import { GLOBAL } from './materials';
+import { buildCityWorld, cullDetail } from './world/build';
 import { makeSky } from './sky';
 import { CityControls } from './controls';
 import { Hud } from './hud';
@@ -51,94 +42,10 @@ async function main() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.5, Q.far);
 
-  // materials
-  await setProgress('Painting material atlas…', 0.06);
-  const atlas = buildAtlas(Q.atlasPx);
-  const detailTex = buildDetailTexture(256);
-  const atlasMat = makeAtlasMaterial(atlas, { detail: detailTex });
-  const propMat = makePropMaterial(), foliageMat = makeFoliageMaterial(), glassMat = makeGlassMaterial();
-  const terrainMat = makeTerrainMaterial(detailTex);
-  const waterMat = makeWaterMaterial();
-  const textAtlas = new TextAtlas(2048, 4096, isMobile ? 0.5 : 1);
-  const textMat = makeTextMaterial(textAtlas);
-  const markMat = makePropMaterial(); markMat.polygonOffset = true; markMat.polygonOffsetFactor = -1; markMat.polygonOffsetUnits = -1; markMat.customProgramCacheKey = () => 'vworld-prop';
-
-  // world base
-  await setProgress('Grading terrain…', 0.1);
-  const base = makeWorldBase(city);
-  const world = new THREE.Group(); world.name = 'world'; scene.add(world);
-  const terrain = buildTerrain(city, base, terrainMat); world.add(terrain);
-  world.add(buildWater(city, waterMat));
-
-  const detailMeshes: { obj: THREE.Object3D; cx: number; cz: number; r: number }[] = [];
-  const addChunks = <B extends { empty: boolean; build(): THREE.BufferGeometry }>(set: ChunkSet<B>, mat: THREE.Material, opts: { cast?: boolean; receive?: boolean; detail?: boolean; name: string; renderOrder?: number }) => {
-    const meshes: THREE.Mesh[] = [];
-    for (const c of set.entries()) {
-      if (c.b.empty) continue;
-      const mesh = new THREE.Mesh(c.b.build(), mat);
-      mesh.castShadow = !!opts.cast; mesh.receiveShadow = opts.receive !== false; mesh.name = opts.name + ':' + c.key;
-      if (opts.renderOrder !== undefined) mesh.renderOrder = opts.renderOrder;
-      world.add(mesh); meshes.push(mesh);
-      if (opts.detail) detailMeshes.push({ obj: mesh, cx: c.cx, cz: c.cz, r: set.cell * 0.75 });
-    }
-    return meshes;
-  };
-
-  // roads
-  await setProgress('Laying roads…', 0.18);
-  const roadAtlas = new ChunkSet(300, () => new AtlasBuilder(atlas)), roadMarks = new ChunkSet(300, () => new ColorBuilder());
-  buildRoads(city, base, { atlas: roadAtlas, marks: roadMarks });
-  const surfaceAtlas = new ChunkSet(300, () => new AtlasBuilder(atlas));
-  buildSurfaces(city, base, atlas, surfaceAtlas.get(0, 0) as AtlasBuilder);
-  await setProgress('Laying roads…', 0.3);
-  const roadMeshes = addChunks(roadAtlas, atlasMat, { name: 'roads', receive: true });
-  addChunks(roadMarks, markMat, { name: 'markings', receive: false, detail: true });
-  addChunks(surfaceAtlas, atlasMat, { name: 'surfaces', receive: true });
-
-  // buildings
-  await setProgress('Raising buildings…', 0.36);
-  const bAtlas = new ChunkSet(200, () => new AtlasBuilder(atlas)), bColor = new ChunkSet(200, () => new ColorBuilder()), bText = new ChunkSet(400, () => new TextBuilder());
-  buildBuildings(city, base, { atlas: bAtlas, color: bColor, text: bText, textAtlas });
-  await setProgress('Raising buildings…', 0.55);
-  const buildingMeshes = addChunks(bAtlas, atlasMat, { name: 'buildings', cast: true, receive: true });
-  addChunks(bColor, propMat, { name: 'features', cast: true, receive: true, detail: true });
-
-  // walls & fences
-  await setProgress('Building compound walls…', 0.6);
-  const wAtlas = new ChunkSet(200, () => new AtlasBuilder(atlas)), wColor = new ChunkSet(200, () => new ColorBuilder()), wGlass = new ChunkSet(320, () => new ColorBuilder()), wFol = new ChunkSet(320, () => new ColorBuilder());
-  buildWalls(city, base, { atlas: wAtlas, color: wColor, glass: wGlass, foliage: wFol });
-  addChunks(wAtlas, atlasMat, { name: 'walls', cast: true, receive: true, detail: true });
-  addChunks(wColor, propMat, { name: 'wall-details', cast: false, receive: true, detail: true });
-  addChunks(wFol, foliageMat, { name: 'hedges', cast: false, receive: true, detail: true });
-
-  // props
-  await setProgress('Planting trees and street furniture…', 0.68);
-  const pColor = new ChunkSet(320, () => new ColorBuilder()), pFol = new ChunkSet(320, () => new ColorBuilder()), pGlass = new ChunkSet(320, () => new ColorBuilder()), pText = new ChunkSet(400, () => new TextBuilder());
-  const propRes = buildProps(city, { color: pColor, foliage: pFol, glass: pGlass, text: pText, textAtlas }, (x, z) => base.ground.height(x, z));
-  await setProgress('Planting trees and street furniture…', 0.8);
-  addChunks(pColor, propMat, { name: 'props-static', cast: true, receive: true, detail: true });
-  addChunks(pFol, foliageMat, { name: 'props-foliage', cast: false, receive: false, detail: true });
-  const matFor = (m: 'prop' | 'foliage' | 'glass') => m === 'prop' ? propMat : m === 'foliage' ? foliageMat : glassMat;
-  let instanceCount = 0;
-  for (const b of propRes.instanced) {
-    const im = new THREE.InstancedMesh(b.geo, matFor(b.mat), b.matrices.length);
-    for (let i = 0; i < b.matrices.length; i++) { im.setMatrixAt(i, b.matrices[i]); im.setColorAt(i, b.colors[i]); }
-    im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true;
-    im.castShadow = b.shadow && b.mat !== 'glass'; im.receiveShadow = b.mat !== 'glass';
-    im.computeBoundingSphere(); im.frustumCulled = true;
-    if (b.mat === 'glass') im.renderOrder = 3;
-    world.add(im);
-    detailMeshes.push({ obj: im, cx: b.cx, cz: b.cz, r: 320 * 0.75 });
-    instanceCount += b.matrices.length;
-  }
-  // glass chunks (shelters, fence mesh) last for blending
-  addChunks(wGlass, glassMat, { name: 'wall-glass', cast: false, receive: false, detail: true, renderOrder: 3 });
-  addChunks(pGlass, glassMat, { name: 'prop-glass', cast: false, receive: false, detail: true, renderOrder: 3 });
-  const glow = buildLampGlow(city); if (glow) world.add(glow);
-  // text
-  textAtlas.commit();
-  addChunks(bText, textMat, { name: 'signs', cast: false, receive: false, detail: true, renderOrder: 4 });
-  addChunks(pText, textMat, { name: 'sign-text', cast: false, receive: false, detail: true, renderOrder: 4 });
+  // world (shared with the game runtime)
+  const built = await buildCityWorld(city, { atlasPx: Q.atlasPx, detail: Q.detail }, { progress: setProgress, smallText: isMobile });
+  const { world, base, detailMeshes, buildingMeshes, roadMeshes, instanceCount } = built;
+  scene.add(world);
 
   // sky & lights
   await setProgress('Lighting…', 0.9);
@@ -217,7 +124,7 @@ async function main() {
     if (crowd) crowd.update(dt, camera, focus, controls.mode === 'orbit' ? controls.distance : 0);
     if (frame % 6 === 0) {
       const cam = camera.position; const detailR = Q.detail + (controls.mode === 'orbit' ? controls.distance * 0.25 : 0);
-      for (const d of detailMeshes) { const dist = Math.hypot(d.cx - cam.x, d.cz - cam.z) - d.r; d.obj.visible = dist < detailR; }
+      cullDetail(detailMeshes, cam, detailR);
     }
     renderer.render(scene, camera);
     frames++; if (now - fpsT >= 500) { fps = frames / ((now - fpsT) / 1000); frames = 0; fpsT = now; const d = districtAt(focus.x, focus.z); hud.update(d?.name ?? 'Outskirts', focus.x, focus.z, fps, `${renderer.info.render.calls} draw calls · ${(renderer.info.render.triangles / 1e6).toFixed(2)} M tris${crowd && crowd.enabled ? ` · ${crowd.stats.visible} people${crowd.progress < 1 ? ` (loading ${Math.round(crowd.progress * 100)}%)` : ''}` : ''}`); }

@@ -13,7 +13,7 @@ export interface WorldBase { terrain: Terrain; ground: Ground; blockAt: (x: numb
 
 export function makeWorldBase(city: CityData): WorldBase {
   const terrain = new Terrain(city.meta.terrain);
-  const ground = new Ground(terrain, city.roads.edges);
+  const ground = new Ground(terrain, city.roads.edges, city.landmarks.flatMap(l => l.plateau ? [l.plateau] : []));
   const hash = new SpatialHash<Block>(60);
   for (const b of city.blocks) { const bb = bbox(b.polygon); hash.insert(b, bb.minX, bb.minZ, bb.maxX, bb.maxZ); }
   const blockAt = (x: number, z: number): Block | null => { for (const b of hash.query(x, z, x, z)) if (pointInPolygon([x, z], b.polygon)) return b; return null; };

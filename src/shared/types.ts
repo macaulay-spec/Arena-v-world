@@ -185,7 +185,7 @@ export type LandmarkRole =
   | 'city-square' | 'civic-landmark' | 'market-complex' | 'bridge' | 'central-park' | 'stadium'
   | 'cultural-centre' | 'historic-building' | 'landmark-office' | 'shopping-complex'
   | 'transport-terminal' | 'gateway' | 'religious' | 'hospital' | 'government' | 'port'
-  | 'utility' | 'park' | 'market' | 'hotel';
+  | 'utility' | 'park' | 'market' | 'hotel' | 'residence';
 
 export interface Landmark {
   id: string;
@@ -198,6 +198,8 @@ export interface Landmark {
   description: string;
   /** suggested camera for the inspector / tours */
   view: { pos: [number, number, number]; target: [number, number, number] };
+  /** graded terrace the site sits on (terrain is flattened to `y` inside the polygon); the parcel itself stays empty in city data */
+  plateau?: { polygon: Vec2[]; y: number };
 }
 
 export type PropType =
