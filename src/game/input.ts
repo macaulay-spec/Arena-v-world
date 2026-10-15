@@ -21,6 +21,8 @@ export interface InputState {
 export class Input {
   state: InputState = { moveX: 0, moveY: 0, moveMag: 0, run: false, jumpPressed: false, interactPressed: false, cameraPressed: false, pausePressed: false, lookDX: 0, lookDY: 0, zoom: 0, touch: false };
   enabled = true;
+  /** camera look multiplier (settings) */
+  sensitivity = 1; invertY = false;
   private keys = new Set<string>();
   private stickId: number | null = null; private stickOrigin = [0, 0]; private stickVec = [0, 0];
   private lookId: number | null = null; private lookLast = [0, 0];
@@ -110,8 +112,8 @@ export class Input {
     s.run = k.has('ShiftLeft') || k.has('ShiftRight') || this.runToggle;
     s.jumpPressed = this.pending.jump; s.interactPressed = this.pending.interact; s.cameraPressed = this.pending.camera; s.pausePressed = this.pending.pause;
     this.pending.jump = this.pending.interact = this.pending.camera = this.pending.pause = false;
-    const sens = this.isTouch ? 0.0065 : 0.0038;
-    s.lookDX = this.lookAcc[0] * sens; s.lookDY = this.lookAcc[1] * sens; this.lookAcc[0] = this.lookAcc[1] = 0;
+    const sens = (this.isTouch ? 0.0065 : 0.0038) * this.sensitivity;
+    s.lookDX = this.lookAcc[0] * sens; s.lookDY = this.lookAcc[1] * sens * (this.invertY ? -1 : 1); this.lookAcc[0] = this.lookAcc[1] = 0;
     s.zoom = this.zoomAcc; this.zoomAcc = 0;
     if (!this.enabled) { s.moveX = s.moveY = s.moveMag = 0; s.lookDX = s.lookDY = 0; s.jumpPressed = s.interactPressed = false; }
     return s;

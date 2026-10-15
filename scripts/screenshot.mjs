@@ -12,7 +12,7 @@ import chromium from '@sparticuz/chromium';
 import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const base = process.argv[2] ?? 'http://localhost:5173/';
+const base = process.argv[2] ?? 'http://localhost:5173/city.html';
 const outDir = process.argv[3] ?? 'docs/screenshots';
 const W = parseInt(process.env.SHOT_W ?? '1280', 10), H = parseInt(process.env.SHOT_H ?? '720', 10);
 mkdirSync(outDir, { recursive: true });

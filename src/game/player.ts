@@ -94,7 +94,8 @@ export class Avatar {
   update(dt: number) { this.mixer?.update(dt); }
 }
 
-export interface Interactable { prompt: string; pos: THREE.Vector3; radius: number; action: () => void; enabled?: () => boolean }
+export interface Interactable { prompt: string | (() => string); pos: THREE.Vector3; radius: number; action: () => void; enabled?: () => boolean }
+export const promptOf = (i: Interactable) => typeof i.prompt === 'function' ? i.prompt() : i.prompt;
 
 /** Third-person locomotion: camera-relative joystick, acceleration, turning, jump, step-up, collision. */
 export class PlayerController {
@@ -104,8 +105,9 @@ export class PlayerController {
   vy = 0; grounded = true; jumpT = -1;
   readonly radius = 0.34; readonly bodyHeight = 1.7;
   walkSpeed = 1.6; runSpeed = 4.6;
-  private speed = 0;
+  speed = 0;
   busy = false; // sitting / sleeping etc. (no locomotion)
+  get moving() { return this.speed > 0.15; }
   constructor(public avatar: Avatar, public world: CollisionWorld) {}
 
   teleport(x: number, y: number, z: number, yaw = this.yaw) { this.pos.set(x, y, z); this.yaw = yaw; this.vy = 0; this.speed = 0; this.sync(); }
@@ -148,8 +150,8 @@ export class PlayerController {
     // vertical
     const g = this.world.groundAt(nx, nz, this.pos.y, this.grounded ? 0.42 : 0.1);
     if (this.grounded) {
-      this.pos.y = g;
-      if (this.pos.y - g > 0.6) this.grounded = false; // walked off a ledge
+      if (this.pos.y - g > 0.5) { this.grounded = false; this.vy = 0; } // walked off a ledge → fall
+      else this.pos.y = g;
     } else {
       this.vy -= 9.81 * dt; this.pos.y += this.vy * dt;
       if (this.pos.y <= g) { this.pos.y = g; this.vy = 0; this.grounded = true; }
