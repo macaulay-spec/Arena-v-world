@@ -12,7 +12,7 @@ var _auto_start := false
 func _ready() -> void:
 	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	_build_title()
-	if OS.has_feature("screenshot") or "--autostart" in OS.get_cmdline_user_args():
+	if ShotRunner.requested() != "" or "--autostart" in OS.get_cmdline_user_args():
 		_auto_start = true
 	if _auto_start:
 		call_deferred("start_game")
@@ -73,5 +73,8 @@ func start_game() -> void:
 	hud.player = world.player
 	add_child(hud)
 	title.queue_free()
-	if world.player and DisplayServer.get_name() != "headless" and not DisplayServer.is_touchscreen_available():
-		pass
+	if ShotRunner.requested() != "":
+		var runner := ShotRunner.new()
+		runner.name = "Shots"
+		add_child(runner)
+		runner.start(world)

@@ -34,8 +34,8 @@ func _ready() -> void:
 	_lighting()
 	_spawn_player()
 	_spawn_npcs()
-	_spawn_cars()
 	stats = builder.stats.duplicate()
+	_spawn_cars()
 	stats["build_ms"] = Time.get_ticks_msec() - t0
 	stats["npcs"] = npcs.size()
 	stats["collision_shapes"] = builder.collision_boxes.size() + 1
