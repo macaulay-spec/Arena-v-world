@@ -332,19 +332,31 @@ func _build_creator_panel() -> void:
 	preview.add_child(preview_viewport)
 	var stage := Node3D.new()
 	preview_viewport.add_child(stage)
+	var preview_environment := Environment.new()
+	preview_environment.background_mode = Environment.BG_COLOR
+	preview_environment.background_color = Color(0, 0, 0, 0)
+	preview_environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	preview_environment.ambient_light_color = Color(0.82, 0.84, 0.9)
+	preview_environment.ambient_light_energy = 1.0
+	var world_environment := WorldEnvironment.new()
+	world_environment.environment = preview_environment
+	stage.add_child(world_environment)
 	var camera := Camera3D.new()
 	camera.position = Vector3(0, 1.0, -3.8)
 	camera.current = true
 	camera.fov = 34.0
 	stage.add_child(camera)
 	camera.look_at(Vector3(0, 0.92, 0), Vector3.UP)
-	var key_light := DirectionalLight3D.new()
-	key_light.rotation_degrees = Vector3(-26, -22, 0)
-	key_light.light_energy = 1.4
+	var key_light := OmniLight3D.new()
+	key_light.position = Vector3(0.0, 2.4, -2.2)
+	key_light.light_color = Color(1.0, 0.9, 0.78)
+	key_light.light_energy = 3.2
+	key_light.omni_range = 7.0
 	stage.add_child(key_light)
 	var fill_light := OmniLight3D.new()
-	fill_light.position = Vector3(1.0, 1.5, 2.0)
-	fill_light.light_energy = 0.7
+	fill_light.position = Vector3(-1.5, 1.2, -1.8)
+	fill_light.light_color = Color(0.72, 0.82, 1.0)
+	fill_light.light_energy = 1.8
 	fill_light.omni_range = 5.0
 	stage.add_child(fill_light)
 	_refresh_avatar_choices()
