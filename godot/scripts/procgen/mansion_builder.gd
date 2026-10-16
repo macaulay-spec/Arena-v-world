@@ -76,9 +76,17 @@ func _compound_wall() -> void:
 		var end := hinge + dir * leaf
 		var mid := (hinge + end) * 0.5
 		var basis := Basis(Vector3.UP, -atan2(dir.y, dir.x))
-		# bars: frame + vertical bars approximated by a thin box with a slatted colour
-		metal.add_box(W(mid.x, 1.2, mid.y), Vector3(leaf, 2.2, 0.06), basis, 1.0, Color(0.1, 0.1, 0.11), true, true)
-		wb.collision_boxes.append([Transform3D(basis, W(mid.x, 1.2, mid.y)), Vector3(leaf, 2.2, 0.1)])
+		# steel leaf: top/bottom rails, a mid rail, vertical bars every 0.16 m, solid skirt panel at the bottom
+		var mc := Color(0.2, 0.2, 0.22)
+		for ry: float in [0.35, 1.25, 2.25]:
+			metal.add_box(W(mid.x, ry, mid.y), Vector3(leaf, 0.07, 0.05), basis, 1.0, mc, true, true)
+		var n_bars := int(leaf / 0.16)
+		for i in range(n_bars + 1):
+			var t2 := float(i) / float(n_bars)
+			var bp := hinge + dir * (leaf * t2)
+			metal.add_box(W(bp.x, 1.3, bp.y), Vector3(0.035, 2.0, 0.035), basis, 1.0, mc, true, false)
+		metal.add_box(W(mid.x, 0.18, mid.y), Vector3(leaf, 0.36, 0.03), basis, 1.0, mc, true, false)
+		wb.collision_boxes.append([Transform3D(basis, W(mid.x, 1.2, mid.y)), Vector3(leaf, 2.4, 0.1)])
 	# hedge line inside the wall
 	var hedge := wb.batch("grass")
 	for s in segs:
@@ -106,16 +114,30 @@ func _house() -> void:
 	var z0 := 20.0
 	var z1 := 44.0
 	var h_top := RF + 0.6   # parapet top
-	# main volume (two floors)
-	_box(wall, x0, x1, z0, z1, GF - 0.5, RF, Color(0.97, 0.96, 0.93), true)
+	# main volume (two floors) — walls with the glazed openings cut out, so the glass sits in real reveals
+	var wcol := Color(0.97, 0.96, 0.93)
+	var south_open := [[17.0, 27.0, GF + 0.3, F1 - 0.3], [17.0, 27.0, F1 + 0.3, RF - 0.5], [40.0, 49.0, GF + 0.3, F1 - 0.3], [40.0, 49.0, F1 + 0.3, RF - 0.5]]
+	var north_open := [[34.5, 47.5, GF + 0.2, F1 - 0.3], [18.0, 30.0, GF + 0.6, F1 - 0.4], [34.5, 47.5, F1 + 0.3, RF - 0.5]]
+	var side_open := [[22.0, 30.0, GF + 0.9, F1 - 0.5], [35.0, 41.0, GF + 0.9, F1 - 0.5], [22.0, 30.0, F1 + 0.9, RF - 0.6], [35.0, 41.0, F1 + 0.9, RF - 0.6]]
+	_facade(wall, 0, x0, x1, z1, GF - 0.5, RF, south_open, wcol)
+	_facade(wall, 2, x0, x1, z0, GF - 0.5, RF, north_open, wcol)
+	_facade(wall, 1, z0, z1, x1, GF - 0.5, RF, side_open, wcol)
+	_facade(wall, 3, z0, z1, x0, GF - 0.5, RF, side_open, wcol)
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W((x0 + x1) * 0.5, (GF - 0.5 + RF) * 0.5, (z0 + z1) * 0.5)), Vector3(x1 - x0, RF - GF + 0.5, z1 - z0)])
 	# roof slab + parapet
 	slab.add_rect(W(x0, RF + 0.02, z1), W(x1, RF + 0.02, z1), W(x1, RF + 0.02, z0), W(x0, RF + 0.02, z0), 4.0, 4.0, Color(0.8, 0.8, 0.78))
 	_parapet(wall, x0, x1, z0, z1, RF, 0.6)
 	# roof terrace penthouse / stair bulkhead
 	_box(wall, 26.85, 30.15, 32.5, 39.5, RF, RF + 3.0, Color(0.97, 0.96, 0.93), true)
 	slab.add_rect(W(26.85, RF + 3.02, 39.5), W(30.15, RF + 3.02, 39.5), W(30.15, RF + 3.02, 32.5), W(26.85, RF + 3.02, 32.5), 4.0, 4.0, Color(0.8, 0.8, 0.78))
-	# stone-clad entrance tower, proud of the facade
-	_box(stone, 29.0, 37.0, z1 - 0.1, z1 + 0.5, GF - 0.5, h_top + 0.4, Color(0.9, 0.86, 0.8), true)
+	# stone-clad entrance tower, proud of the facade (south face carries the door and a tall window)
+	var scol := Color(0.9, 0.86, 0.8)
+	_facade(stone, 0, 29.0, 37.0, z1 + 0.5, GF - 0.5, h_top + 0.4, [[30.0, 36.0, F1 + 0.4, RF - 0.4]], scol)
+	_facade(stone, 1, z1 - 0.1, z1 + 0.5, 37.0, GF - 0.5, h_top + 0.4, [], scol)
+	_facade(stone, 3, z1 - 0.1, z1 + 0.5, 29.0, GF - 0.5, h_top + 0.4, [], scol)
+	_facade(stone, 2, 29.0, 37.0, z1 - 0.1, RF, h_top + 0.4, [], scol)
+	stone.add_rect(W(29.0, h_top + 0.4, z1 + 0.5), W(37.0, h_top + 0.4, z1 + 0.5), W(37.0, h_top + 0.4, z1 - 0.1), W(29.0, h_top + 0.4, z1 - 0.1), 2.0, 2.0, scol)
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(33.0, (GF - 0.5 + h_top + 0.4) * 0.5, z1 + 0.2)), Vector3(8.0, h_top + 0.9 - GF, 0.6)])
 	# glass: south facade (street side, z1), two floors
 	var zs := z1 + 0.03
 	for band: Array in [[17.0, 27.0], [40.0, 49.0]]:
@@ -275,6 +297,57 @@ func _glass_quad(b: MeshBatch, a0: float, a1: float, fixed: float, y0: float, y1
 		frame.add_box(g0 + along * 0.5 + up * 0.68 + out, Vector3(w, 0.06, 0.05), basis, 1.0, fc, true, true)
 
 
+## Wall face with rectangular openings cut out. face: 0 = south (+Z), 1 = east (+X), 2 = north (-Z), 3 = west (-X).
+## a0..a1 = extent along the face (X for faces 0/2, Z for 1/3), fixed = the plane coordinate,
+## openings = [[a0, a1, y0, y1], ...]. Emits only wall pieces, outward facing.
+func _facade(b: MeshBatch, face: int, a0: float, a1: float, fixed: float, y0: float, y1: float, openings: Array, col: Color) -> void:
+	var xs: Array[float] = [a0, a1]
+	for o in openings:
+		xs.append(clampf(float(o[0]), a0, a1))
+		xs.append(clampf(float(o[1]), a0, a1))
+	xs.sort()
+	for i in range(xs.size() - 1):
+		var c0: float = xs[i]
+		var c1: float = xs[i + 1]
+		if c1 - c0 < 0.005:
+			continue
+		var mid := (c0 + c1) * 0.5
+		var ys: Array = []
+		for o in openings:
+			if float(o[0]) <= mid and float(o[1]) >= mid:
+				ys.append([maxf(float(o[2]), y0), minf(float(o[3]), y1)])
+		ys.sort_custom(func(p, q): return p[0] < q[0])
+		var y := y0
+		for o in ys:
+			if o[0] > y + 0.005:
+				_wall_piece(b, face, c0, c1, fixed, y, o[0], col)
+			y = maxf(y, o[1])
+		if y1 > y + 0.005:
+			_wall_piece(b, face, c0, c1, fixed, y, y1, col)
+
+
+func _wall_piece(b: MeshBatch, face: int, c0: float, c1: float, fixed: float, y0: float, y1: float, col: Color) -> void:
+	var p0: Vector3
+	var p1: Vector3
+	match face:
+		0:
+			p0 = W(c0, y0, fixed)
+			p1 = W(c1, y0, fixed)
+		1:
+			p0 = W(fixed, y0, c1)
+			p1 = W(fixed, y0, c0)
+		2:
+			p0 = W(c1, y0, fixed)
+			p1 = W(c0, y0, fixed)
+		_:
+			p0 = W(fixed, y0, c0)
+			p1 = W(fixed, y0, c1)
+	var up := Vector3(0, y1 - y0, 0)
+	var u0 := c0 / 4.0
+	var u1 := c1 / 4.0
+	b.add_quad(p0, p1, p1 + up, p0 + up, Vector2(u0, -y0 / 4.0), Vector2(u1, -y0 / 4.0), Vector2(u1, -y1 / 4.0), Vector2(u0, -y1 / 4.0), col)
+
+
 func _box(b: MeshBatch, x0: float, x1: float, z0: float, z1: float, y0: float, y1: float, col: Color, collide: bool) -> void:
 	var c := W((x0 + x1) * 0.5, (y0 + y1) * 0.5, (z0 + z1) * 0.5)
 	var size := Vector3(x1 - x0, y1 - y0, z1 - z0)
@@ -356,7 +429,7 @@ func _disc(b: MeshBatch, c: Vector2, r: float, y: float, col: Color) -> void:
 		var p := c + Vector2(cos(ang), sin(ang)) * r
 		ring.append(b.add_vertex(W(p.x, y, p.y), Vector3.UP, p / uvm, col))
 	for i in range(segs):
-		b.indices.append_array(PackedInt32Array([centre, ring[i + 1], ring[i]]))
+		b.indices.append_array(PackedInt32Array([centre, ring[i], ring[i + 1]]))
 
 
 func palm_world_positions() -> Array:

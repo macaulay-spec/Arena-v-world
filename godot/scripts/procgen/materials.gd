@@ -27,7 +27,7 @@ const DEFS := {
 	"stone": [Color(0.55, 0.5, 0.45), 0.8, 2.0],
 	"wood": [Color(0.36, 0.24, 0.14), 0.7, 2.0],
 	"water": [Color(0.1, 0.45, 0.6), 0.05, 4.0],
-	"metal_dark": [Color(0.12, 0.12, 0.13), 0.5, 1.0],
+	"metal_dark": [Color(0.2, 0.2, 0.22), 0.45, 1.0],
 	"lamp_glow": [Color(1.0, 0.9, 0.7), 0.3, 1.0],
 	"tree_palm": [Color(0.3, 0.45, 0.2), 1.0, 1.0],
 	"tree_broad": [Color(0.25, 0.42, 0.18), 1.0, 1.0],
@@ -73,6 +73,9 @@ static func get_mat(name: String) -> StandardMaterial3D:
 	if name == "water":
 		m.metallic = 0.3
 		m.roughness = 0.05
+	if name == "metal_dark":
+		m.metallic = 0.6
+		m.metallic_specular = 0.6
 	_cache[name] = m
 	return m
 

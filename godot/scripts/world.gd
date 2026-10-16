@@ -19,6 +19,8 @@ var npcs: Array[NPC] = []
 var stats := {}
 var car_models: Array[String] = []
 var night_lights: Array[OmniLight3D] = []
+var skirt: MeshInstance3D
+var skirt_mesh: PlaneMesh
 var _night := -1.0
 var _light_timer := 0.0
 
@@ -62,8 +64,8 @@ func _lighting() -> void:
 	var we := WorldEnvironment.new()
 	env = Environment.new()
 	sky_mat = ProceduralSkyMaterial.new()
-	sky_mat.sun_angle_max = 28.0
-	sky_mat.sun_curve = 0.12
+	sky_mat.sun_angle_max = 16.0
+	sky_mat.sun_curve = 0.08
 	sky_mat.sky_curve = 0.09
 	sky_mat.ground_bottom_color = Color(0.2, 0.17, 0.13)
 	var sky := Sky.new()
@@ -86,11 +88,12 @@ func _lighting() -> void:
 	env.adjustment_enabled = false
 	we.environment = env
 	add_child(we)
-	# ground skirt: hides the end of the chunk until streaming (S1) fills the world
-	var skirt := MeshInstance3D.new()
-	var pm := PlaneMesh.new()
-	pm.size = Vector2(3000, 3000)
-	skirt.mesh = pm
+	# ground skirt: hides the end of the chunk until streaming (S1) fills the world. It follows the
+	# player and ends just inside the camera far plane, where it is fully fogged, so no seam shows.
+	skirt = MeshInstance3D.new()
+	skirt_mesh = PlaneMesh.new()
+	skirt_mesh.size = Vector2(2.0, 2.0) * float(Game.quality.get("far", 400.0)) * 0.96
+	skirt.mesh = skirt_mesh
 	var sm := StandardMaterial3D.new()
 	sm.albedo_color = Color(0.36, 0.42, 0.24)
 	sm.roughness = 1.0
@@ -116,6 +119,8 @@ func _apply_quality(q: Dictionary) -> void:
 		sun.shadow_enabled = bool(q.get("shadows", false))
 	if env:
 		env.fog_depth_end = float(q.get("fog_end", 220.0))
+	if skirt_mesh:
+		skirt_mesh.size = Vector2(2.0, 2.0) * float(q.get("far", 400.0)) * 0.96
 	# NPC count follows the preset
 	var want := int(q.get("npcs", 8))
 	for i in range(npcs.size()):
@@ -125,6 +130,9 @@ func _apply_quality(q: Dictionary) -> void:
 
 func _process(_delta: float) -> void:
 	_update_sun(Game.day_fraction())
+	if skirt and player:
+		skirt.position.x = player.global_position.x
+		skirt.position.z = player.global_position.z
 
 
 func _update_sun(f: float) -> void:

@@ -31,17 +31,22 @@ func add_vertex(p: Vector3, n: Vector3, uv: Vector2, c: Color) -> int:
 
 
 ## Quad a-b-c-d counter-clockwise seen from the front; uv per corner.
+## The front is the side the geometric normal (b-a)x(c-a) points to, or `n` when given; the index
+## winding is chosen so Godot (clockwise = front face) renders exactly that side.
 func add_quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, uvd: Vector2, col: Color = Color.WHITE, n: Vector3 = Vector3.ZERO) -> void:
-	if n == Vector3.ZERO:
-		n = (b - a).cross(c - a)
-		if n.length_squared() < 1e-12:
-			n = (c - a).cross(d - a)
-		n = n.normalized()
-	var i0 := add_vertex(a, n, uva, col)
-	var i1 := add_vertex(b, n, uvb, col)
-	var i2 := add_vertex(c, n, uvc, col)
-	var i3 := add_vertex(d, n, uvd, col)
-	indices.append_array(PackedInt32Array([i0, i1, i2, i0, i2, i3]))
+	var g := (b - a).cross(c - a)
+	if g.length_squared() < 1e-12:
+		g = (c - a).cross(d - a)
+	g = g.normalized()
+	var front := n.normalized() if n != Vector3.ZERO else g
+	var i0 := add_vertex(a, front, uva, col)
+	var i1 := add_vertex(b, front, uvb, col)
+	var i2 := add_vertex(c, front, uvc, col)
+	var i3 := add_vertex(d, front, uvd, col)
+	if g.dot(front) >= 0.0:
+		indices.append_array(PackedInt32Array([i0, i2, i1, i0, i3, i2]))
+	else:
+		indices.append_array(PackedInt32Array([i0, i1, i2, i0, i2, i3]))
 
 
 ## Rectangle quad with uv tiled in metres: u along (b-a), v along (d-a).
@@ -51,12 +56,13 @@ func add_rect(a: Vector3, b: Vector3, c: Vector3, d: Vector3, u_scale: float, v_
 	add_quad(a, b, c, d, Vector2(u0, v0 + vl), Vector2(u0 + ul, v0 + vl), Vector2(u0 + ul, v0), Vector2(u0, v0), col)
 
 
+## Triangle a-b-c counter-clockwise seen from the front (front = side of (b-a)x(c-a)).
 func add_tri(a: Vector3, b: Vector3, c: Vector3, uva: Vector2, uvb: Vector2, uvc: Vector2, col: Color = Color.WHITE) -> void:
 	var n := (b - a).cross(c - a).normalized()
 	var i0 := add_vertex(a, n, uva, col)
 	var i1 := add_vertex(b, n, uvb, col)
 	var i2 := add_vertex(c, n, uvc, col)
-	indices.append_array(PackedInt32Array([i0, i1, i2]))
+	indices.append_array(PackedInt32Array([i0, i2, i1]))
 
 
 ## Axis-aligned-in-local-frame box: centre, size, basis (rotation), uv scale per metre; faces: top/bottom optional.
@@ -98,11 +104,11 @@ func add_cylinder(base: Vector3, radius_bottom: float, radius_top: float, height
 		ring0.append(add_vertex(base + dir * radius_bottom, dir, Vector2(u, 0.0), col))
 		ring1.append(add_vertex(base + dir * radius_top + Vector3(0, height, 0), dir, Vector2(u, height / maxf(uv_m, 0.001)), col))
 	for i in range(segs):
-		indices.append_array(PackedInt32Array([ring0[i], ring1[i], ring1[i + 1], ring0[i], ring1[i + 1], ring0[i + 1]]))
+		indices.append_array(PackedInt32Array([ring0[i], ring1[i + 1], ring1[i], ring0[i], ring0[i + 1], ring1[i + 1]]))
 	if cap_top and radius_top > 0.0:
 		var centre := add_vertex(base + Vector3(0, height, 0), Vector3.UP, Vector2(0.5, 0.5), col)
 		for i in range(segs):
-			indices.append_array(PackedInt32Array([centre, ring1[i + 1], ring1[i]]))
+			indices.append_array(PackedInt32Array([centre, ring1[i], ring1[i + 1]]))
 
 
 func commit(mesh: ArrayMesh, material: Material) -> void:

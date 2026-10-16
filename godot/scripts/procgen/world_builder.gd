@@ -191,9 +191,9 @@ func build_roads() -> void:
 				var k0 := sa + inner
 				var k1 := sb + inner
 				if s > 0:
-					kerb.add_quad(k1, k0, k0 + up, k1 + up, Vector2(0, 0), Vector2((sb - sa).length() / 2.0, 0), Vector2((sb - sa).length() / 2.0, 0.08), Vector2(0, 0.08), Color(0.9, 0.9, 0.88))
+					kerb.add_quad(k1, k1 + up, k0 + up, k0, Vector2(0, 0), Vector2(0, 0.08), Vector2((sb - sa).length() / 2.0, 0.08), Vector2((sb - sa).length() / 2.0, 0), Color(0.9, 0.9, 0.88))
 				else:
-					kerb.add_quad(k0, k1, k1 + up, k0 + up, Vector2(0, 0), Vector2((sb - sa).length() / 2.0, 0), Vector2((sb - sa).length() / 2.0, 0.08), Vector2(0, 0.08), Color(0.9, 0.9, 0.88))
+					kerb.add_quad(k0, k0 + up, k1 + up, k1, Vector2(0, 0), Vector2(0, 0.08), Vector2((sb - sa).length() / 2.0, 0.08), Vector2((sb - sa).length() / 2.0, 0), Color(0.9, 0.9, 0.88))
 				# collision slab for the sidewalk
 				var mid := (sa + sb) * 0.5 + side * ((half + sw * 0.5) * s) + Vector3(0, 0.075 - 0.2, 0)
 				var basis := Basis.looking_at(dir, Vector3.UP)
@@ -265,12 +265,12 @@ func _build_mass(m: Dictionary, bld: Dictionary) -> void:
 		var a3 := Vector3(a.x, base_y, a.y)
 		var b3 := Vector3(b.x, base_y, b.y)
 		# main facade: u in bays, v in floors
-		wall.add_quad(a3, b3, b3 + Vector3(0, top_y - base_y, 0), a3 + Vector3(0, top_y - base_y, 0),
-			Vector2(0, floors), Vector2(len / bay, floors), Vector2(len / bay, 0), Vector2(0, 0), col)
+		wall.add_quad(a3, a3 + Vector3(0, top_y - base_y, 0), b3 + Vector3(0, top_y - base_y, 0), b3,
+			Vector2(0, floors), Vector2(0, 0), Vector2(len / bay, 0), Vector2(len / bay, floors), col)
 		# plinth below ground level (buried into the slope)
 		var pa := Vector3(a.x, plinth_y - 0.5, a.y)
 		var pb := Vector3(b.x, plinth_y - 0.5, b.y)
-		plain.add_quad(pa, pb, b3, a3, Vector2(0, 1), Vector2(len / 4.0, 1), Vector2(len / 4.0, 0), Vector2(0, 0), col.darkened(0.25))
+		plain.add_quad(pa, a3, b3, pb, Vector2(0, 1), Vector2(0, 0), Vector2(len / 4.0, 0), Vector2(len / 4.0, 1), col.darkened(0.25))
 	# collision box (rectangle footprint assumed)
 	var ext := Vector2.ZERO
 	var axis_x := (pts[1] - pts[0])
@@ -363,8 +363,8 @@ func _build_pitched_roof(pts: Array[Vector2], top_y: float, roof: Dictionary, rt
 		var c := centre + u_axis * half_l + v_axis * half_w
 		var d := centre - u_axis * half_l + v_axis * half_w
 		var hi := eave_y + 2.0 * rise
-		rb.add_quad(Vector3(a.x, eave_y, a.y), Vector3(b.x, eave_y, b.y), Vector3(c.x, hi, c.y), Vector3(d.x, hi, d.y),
-			Vector2(0, 0), Vector2(half_l * 2.0 / uvm, 0), Vector2(half_l * 2.0 / uvm, half_w * 2.0 / uvm), Vector2(0, half_w * 2.0 / uvm), rcol)
+		rb.add_quad(Vector3(a.x, eave_y, a.y), Vector3(d.x, hi, d.y), Vector3(c.x, hi, c.y), Vector3(b.x, eave_y, b.y),
+			Vector2(0, 0), Vector2(0, half_w * 2.0 / uvm), Vector2(half_l * 2.0 / uvm, half_w * 2.0 / uvm), Vector2(half_l * 2.0 / uvm, 0), rcol)
 		# triangle gables under the slope
 		_gable_tri(wall_batch, Vector3(a.x, top_y, a.y), Vector3(d.x, top_y, d.y), Vector3(d.x, hi, d.y), wall_col)
 		_gable_tri(wall_batch, Vector3(c.x, top_y, c.y), Vector3(b.x, top_y, b.y), Vector3(c.x, hi, c.y), wall_col)
@@ -385,12 +385,12 @@ func _build_pitched_roof(pts: Array[Vector2], top_y: float, roof: Dictionary, rt
 	var ul := half_l * 2.0 / uvm
 	var vl := slope_len / uvm
 	# side A (-v): eave A0->A1, ridge ridge0->ridge1
-	rb.add_quad(A1, A0, ridge0, ridge1, Vector2(ul, 0), Vector2(0, 0), Vector2(hip_inset / uvm, vl), Vector2(ul - hip_inset / uvm, vl), rcol)
+	rb.add_quad(A1, ridge1, ridge0, A0, Vector2(ul, 0), Vector2(ul - hip_inset / uvm, vl), Vector2(hip_inset / uvm, vl), Vector2(0, 0), rcol)
 	# side B (+v)
-	rb.add_quad(B0, B1, ridge1, ridge0, Vector2(0, 0), Vector2(ul, 0), Vector2(ul - hip_inset / uvm, vl), Vector2(hip_inset / uvm, vl), rcol)
+	rb.add_quad(B0, ridge0, ridge1, B1, Vector2(0, 0), Vector2(hip_inset / uvm, vl), Vector2(ul - hip_inset / uvm, vl), Vector2(ul, 0), rcol)
 	if rtype == "hip":
-		rb.add_tri(A0, B0, ridge0, Vector2(0, 0), Vector2(half_w * 2.0 / uvm, 0), Vector2(half_w / uvm, vl), rcol)
-		rb.add_tri(B1, A1, ridge1, Vector2(0, 0), Vector2(half_w * 2.0 / uvm, 0), Vector2(half_w / uvm, vl), rcol)
+		rb.add_tri(A0, ridge0, B0, Vector2(0, 0), Vector2(half_w / uvm, vl), Vector2(half_w * 2.0 / uvm, 0), rcol)
+		rb.add_tri(B1, ridge1, A1, Vector2(0, 0), Vector2(half_w / uvm, vl), Vector2(half_w * 2.0 / uvm, 0), rcol)
 	else:
 		# gable ends in wall material (inside the overhang)
 		var g0 := centre - u_axis * (half_l - overhang)
@@ -400,8 +400,8 @@ func _build_pitched_roof(pts: Array[Vector2], top_y: float, roof: Dictionary, rt
 		_gable_tri(wall_batch, Vector3(g1.x + v_axis.x * w_in, top_y, g1.y + v_axis.y * w_in), Vector3(g1.x - v_axis.x * w_in, top_y, g1.y - v_axis.y * w_in), Vector3(g1.x, ridge_y, g1.y), wall_col)
 	# soffit/fascia underside so the overhang reads from the street
 	var fascia := batch("plaster_plain")
-	fascia.add_quad(A0, A1, A1 - Vector3(0, 0.25, 0), A0 - Vector3(0, 0.25, 0), Vector2(0, 0), Vector2(ul, 0), Vector2(ul, 0.06), Vector2(0, 0.06), wall_col.darkened(0.1))
-	fascia.add_quad(B1, B0, B0 - Vector3(0, 0.25, 0), B1 - Vector3(0, 0.25, 0), Vector2(0, 0), Vector2(ul, 0), Vector2(ul, 0.06), Vector2(0, 0.06), wall_col.darkened(0.1))
+	fascia.add_quad(A0, A0 - Vector3(0, 0.25, 0), A1 - Vector3(0, 0.25, 0), A1, Vector2(0, 0), Vector2(0, 0.06), Vector2(ul, 0.06), Vector2(ul, 0), wall_col.darkened(0.1))
+	fascia.add_quad(B1, B1 - Vector3(0, 0.25, 0), B0 - Vector3(0, 0.25, 0), B0, Vector2(0, 0), Vector2(0, 0.06), Vector2(ul, 0.06), Vector2(ul, 0), wall_col.darkened(0.1))
 
 
 func _gable_tri(b: MeshBatch, p0: Vector3, p1: Vector3, apex: Vector3, col: Color) -> void:

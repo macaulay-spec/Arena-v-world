@@ -35,6 +35,15 @@ func _ready() -> void:
 		{"name": "07_npc_closeup", "minutes": 17 * 60 + 50, "pos": Vector3(-333.5, 22.3, -332.6), "yaw": PI * 0.5, "pitch": -0.05},
 		{"name": "08_sunset_skyline", "minutes": 18 * 60 + 25, "pos": Vector3(-300.0, 0.0, -300.0), "yaw": PI * 0.62, "pitch": 0.06, "ground": true},
 	]
+	# dev helpers: `--only=<name>` keeps one shot; `--shot=name,x,y,z,yaw,pitch,minutes` adds a custom view
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			var keep := arg.substr(7)
+			shots = shots.filter(func(sh): return String(sh["name"]).begins_with(keep))
+		elif arg.begins_with("--shot="):
+			var f := arg.substr(7).split(",")
+			if f.size() >= 7:
+				shots.append({"name": f[0], "pos": Vector3(float(f[1]), float(f[2]), float(f[3])), "yaw": float(f[4]), "pitch": float(f[5]), "minutes": float(f[6])})
 	Game.clock_speed = 0.0
 
 
