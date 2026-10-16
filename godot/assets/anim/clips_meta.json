@@ -1,0 +1,182 @@
+{
+	"f_cell_phone_textmessage": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 20.5333333333333,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.0,
+		"tracks": 46
+	},
+	"f_gestic_listen_neutral_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 21.4333333333333,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.0,
+		"tracks": 58
+	},
+	"f_gestic_talk_neutral_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 27.3333333333333,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.0,
+		"tracks": 64
+	},
+	"f_idle_breathe_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 2.66666666666667,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.0,
+		"tracks": 24
+	},
+	"f_idle_look_around_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 4.46666666666667,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.0,
+		"tracks": 62
+	},
+	"f_run_neutral": {
+		"forward": "(0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 0.833333333333333,
+		"loop": true,
+		"sex": "f",
+		"speed": 3.15718696492164,
+		"tracks": 27
+	},
+	"f_walk_neutral": {
+		"forward": "(0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.23333333333333,
+		"loop": true,
+		"sex": "f",
+		"speed": 1.29456125343734,
+		"tracks": 50
+	},
+	"f_walk_slow_01": {
+		"forward": "(-0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.5,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.887259085973104,
+		"tracks": 26
+	},
+	"f_walk_stroll_01": {
+		"forward": "(-0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.4,
+		"loop": true,
+		"sex": "f",
+		"speed": 0.926193355257057,
+		"tracks": 26
+	},
+	"m_cell_phone_talk_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 31.9,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.0,
+		"tracks": 64
+	},
+	"m_gestic_listen_neutral_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 32.5333333333333,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.00000000000832918020128215,
+		"tracks": 64
+	},
+	"m_gestic_talk_neutral_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 35.5666666666667,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.000000000000286956502387732,
+		"tracks": 64
+	},
+	"m_idle_breathe_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 2.73333333333333,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.0,
+		"tracks": 57
+	},
+	"m_idle_look_around_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 4.63333333333333,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.0000000000584837829719287,
+		"tracks": 60
+	},
+	"m_idle_neutral_02": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 15.5,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.0000000000192273043364913,
+		"tracks": 58
+	},
+	"m_idle_waiting_01": {
+		"forward": "(0.0, 0.0, 0.0)",
+		"kind": "static",
+		"length": 47.0,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.00000000000576542241843984,
+		"tracks": 64
+	},
+	"m_run_neutral": {
+		"forward": "(-0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 0.766666666666667,
+		"loop": true,
+		"sex": "m",
+		"speed": 3.07473551863661,
+		"tracks": 31
+	},
+	"m_walk_cool_01": {
+		"forward": "(-0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.26666666666667,
+		"loop": true,
+		"sex": "m",
+		"speed": 1.0479930958998,
+		"tracks": 27
+	},
+	"m_walk_neutral": {
+		"forward": "(0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.06666666666667,
+		"loop": true,
+		"sex": "m",
+		"speed": 1.40237279372953,
+		"tracks": 55
+	},
+	"m_walk_slow_01": {
+		"forward": "(-0.0, 0.0, 1.0)",
+		"kind": "xy",
+		"length": 1.46666666666667,
+		"loop": true,
+		"sex": "m",
+		"speed": 0.820951660742507,
+		"tracks": 27
+	}
+}

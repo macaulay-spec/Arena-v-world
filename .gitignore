@@ -10,3 +10,9 @@ public/assets/characters/
 
 # local tooling binaries (fetched via the tools-fetch workflow, see docs)
 tools/godot/
+
+# fetched external assets (tools/fetch_assets.py)
+godot/assets/ext/
+godot/.godot/
+godot/build_info.json
+build/
