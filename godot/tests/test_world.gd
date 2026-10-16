@@ -35,6 +35,21 @@ func _ready() -> void:
 		if world.player.anim == null: fails.append("player has no AnimationPlayer (Rocketbox assets missing?)")
 		elif not world.player.anim.has_animation("rb/" + world.player.walk_clip): fails.append("walk clip missing: " + world.player.walk_clip)
 	if world.npcs.size() < 10: fails.append("expected >= 10 NPCs, got %d" % world.npcs.size())
+	var housekeeper: NPC
+	var priority_household := 0
+	for npc in world.npcs:
+		if npc.household_priority: priority_household += 1
+		if npc.role_id == "housekeeper": housekeeper = npc
+	if priority_household < 3: fails.append("JAG House household contacts were not spawned")
+	if housekeeper == null:
+		fails.append("JAG House is missing its housekeeper contact")
+	else:
+		var spawn_before_talk: Vector3 = world.player.global_position
+		world.player.global_position = housekeeper.global_position + Vector3(0, 0, 2.0)
+		if world.interaction_label() != "TALK TO HOUSEKEEPER": fails.append("housekeeper is not interactable from nearby")
+		if housekeeper.dialogue_line(Game.profile).is_empty(): fails.append("housekeeper has no dialogue")
+		world.interact()
+		world.player.global_position = spawn_before_talk
 	# NPC skinned tris budget
 	var npc_tris := 0
 	for n in world.npcs:

@@ -7,6 +7,9 @@ const ANIM_RANGE := 70.0
 const GRAVITY := 14.0
 
 var avatar_name := ""
+var character_name := ""
+var role_id := "resident"
+var household_priority := false
 var mode := "walk"                 # walk | idle | talk
 var idle_category := "idle"        # idle | gestic_talk | gestic_listen | cell_phone
 var path: PackedVector3Array = PackedVector3Array()
@@ -28,6 +31,37 @@ var face_target: Vector3 = Vector3.INF
 func setup(name: String, seed: int) -> void:
 	avatar_name = name
 	rng.seed = seed
+
+
+func role_title() -> String:
+	match role_id:
+		"housekeeper": return "HOUSEKEEPER"
+		"driver": return "DRIVER"
+		"gateman": return "GATEMAN"
+		"police": return "OFFICER"
+		_: return "RESIDENT"
+
+
+func dialogue_line(profile: Dictionary) -> String:
+	var deliveries := int(profile.get("deliveries", 0))
+	var wanted := int(profile.get("wanted", 0))
+	match role_id:
+		"housekeeper":
+			if deliveries > 0:
+				return "Good work, JAG. The house is proud of its new courier."
+			return "Good morning, JAG. Breakfast is warm in the kitchen."
+		"driver":
+			if wanted > 0:
+				return "Police are looking for you, oga. Keep your head down."
+			return "The cars are ready, oga. The roads are yours."
+		"gateman":
+			return "Gate is open, sir. Take care on Ridge Street."
+		"police":
+			return "Keep the road clear and follow the traffic rules."
+		_:
+			if deliveries > 0:
+				return "I've heard JAG Courier is making a name around North Heights."
+			return "Traffic is building up along the ridge today."
 
 
 func _ready() -> void:

@@ -267,11 +267,15 @@ func _apply_quality(q: Dictionary) -> void:
 		env.fog_depth_end = float(q.get("fog_end", 220.0))
 	if skirt_mesh:
 		skirt_mesh.size = Vector2(2.0, 2.0) * float(q.get("far", 400.0)) * 0.96
-	# NPC count follows the preset
-	var want := int(q.get("npcs", 8))
-	for i in range(npcs.size()):
-		npcs[i].visible = i < want
-		npcs[i].process_mode = Node.PROCESS_MODE_INHERIT if i < want else Node.PROCESS_MODE_DISABLED
+	# Keep named household contacts in view on Lite, then fill the remaining crowd budget with street life.
+	var want := int(q.get("npcs", 6))
+	var ordered: Array[NPC] = []
+	ordered.assign(npcs)
+	ordered.sort_custom(func(a: NPC, b: NPC): return a.household_priority and not b.household_priority)
+	for i in range(ordered.size()):
+		var active := i < want
+		ordered[i].visible = active
+		ordered[i].process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 
 
 func _process(delta: float) -> void:
@@ -457,16 +461,60 @@ func _spawn_npcs(center: Vector3 = GATE_WORLD) -> void:
 	var police := Rocketbox.avatar_entries("police")
 	if not police.is_empty():
 		var corner := _nearest_route_point(center + Vector3(-30, 0, -10))
-		_standing(police[0]["name"], corner, "idle_look", corner + Vector3(3, 0, -3))
+		var officer := _standing(police[0]["name"], corner, "idle_look", corner + Vector3(3, 0, -3))
+		officer.role_id = "police"
+		officer.character_name = "Officer Adeyemi"
 	if center.distance_to(GATE_WORLD) < 120.0:
 		var guards := Rocketbox.avatar_entries("guard")
 		if not guards.is_empty():
 			var gpos := mansion.W(31.5, 0.1, 73.0)
-			_standing(guards[0]["name"], gpos, "idle", gpos + Vector3(-3, 0, 2))
+			var gateman := _standing(guards[0]["name"], gpos, "idle", gpos + Vector3(-3, 0, 2))
+			gateman.role_id = "gateman"
+			gateman.character_name = "Musa"
+			gateman.household_priority = true
+		_spawn_household(civs)
+
+
+func _spawn_household(civs: Array) -> void:
+	if civs.is_empty():
+		return
+	var housekeeper := _standing(_choose_civ_avatar(civs, "Female_Adult_04", "f"), mansion.W(46.0, 0.1, 32.0), "gestic_talk", mansion.W(48.0, 0.1, 32.0))
+	housekeeper.character_name = "Bisi"
+	housekeeper.role_id = "housekeeper"
+	housekeeper.household_priority = true
+	var driver := _standing(_choose_civ_avatar(civs, "Male_Adult_04", "m"), mansion.W(58.0, 0.1, 72.0), "cell_phone", mansion.W(56.0, 0.1, 70.0))
+	driver.character_name = "Kola"
+	driver.role_id = "driver"
+	driver.household_priority = true
+
+
+func _choose_civ_avatar(civs: Array, preferred_name: String, preferred_sex: String) -> String:
+	for entry: Dictionary in civs:
+		if String(entry.get("name", "")) == preferred_name:
+			return preferred_name
+	for entry: Dictionary in civs:
+		if String(entry.get("sex", "m")) == preferred_sex:
+			return String(entry.get("name", ""))
+	return String(civs[0].get("name", "Male_Adult_04"))
 
 
 func _get_routes() -> Array:
 	return city_routes if _stream_mode else builder.sidewalk_paths
+
+
+func _nearest_talkable_npc() -> NPC:
+	if player == null:
+		return null
+	var nearest: NPC
+	var nearest_distance := INF
+	for candidate in npcs:
+		if not is_instance_valid(candidate) or not candidate.visible:
+			continue
+		var distance := player.global_position.distance_to(candidate.global_position)
+		if distance < nearest_distance:
+			nearest = candidate
+			nearest_distance = distance
+	return nearest if nearest_distance <= 2.8 else null
 
 
 func _clear_npcs() -> void:
@@ -482,8 +530,8 @@ func _standing(avatar: String, pos: Vector3, category: String, face: Vector3) ->
 	n.mode = "idle"
 	n.idle_category = category
 	n.face_target = face
+	n.position = pos + Vector3(0, 0.1, 0)
 	add_child(n)
-	n.global_position = pos + Vector3(0, 0.1, 0)
 	npcs.append(n)
 	return n
 
@@ -829,6 +877,9 @@ func interaction_label() -> String:
 			nearest_distance = distance
 	if nearest and nearest_distance <= 4.5:
 		return "ENTER %s" % ("SUV" if nearest.vehicle_kind == "owner_suv" else "SEDAN")
+	var talkable := _nearest_talkable_npc()
+	if talkable:
+		return "TALK TO " + talkable.role_title()
 	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
 		return "ACCEPT COURIER SHIFT"
 	return ""
@@ -859,6 +910,11 @@ func interact() -> void:
 		if nearest.enter(player):
 			active_vehicle = nearest
 			toast_requested.emit("JAG car · use the stick to steer, RUN for gas, JUMP to brake.")
+		return
+	var talkable := _nearest_talkable_npc()
+	if talkable:
+		var speaker := talkable.character_name if not talkable.character_name.is_empty() else talkable.role_title().capitalize()
+		toast_requested.emit("%s: %s" % [speaker, talkable.dialogue_line(Game.profile)])
 		return
 	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
 		_start_delivery()
