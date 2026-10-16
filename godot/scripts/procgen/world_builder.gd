@@ -413,8 +413,8 @@ func _gable_tri(b: MeshBatch, p0: Vector3, p1: Vector3, apex: Vector3, col: Colo
 # ---------------------------------------------------------------- props
 const TREE_SIZE := {
 	"tree-palm": [5.0, 8.0, "tree_palm"],
-	"tree-broad": [9.0, 8.5, "tree_broad"],
-	"tree-neem": [7.5, 7.5, "tree_neem"],
+	"tree-broad": [7.5, 7.5, "tree_broad"],
+	"tree-neem": [6.5, 7.0, "tree_neem"],
 	"tree-small": [4.0, 4.2, "tree_small"],
 	"bush": [1.8, 1.4, "tree_small"],
 }

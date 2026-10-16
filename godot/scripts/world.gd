@@ -18,7 +18,9 @@ var sky_mat: ProceduralSkyMaterial
 var npcs: Array[NPC] = []
 var stats := {}
 var car_models: Array[String] = []
+var night_lights: Array[OmniLight3D] = []
 var _night := -1.0
+var _light_timer := 0.0
 
 
 func _ready() -> void:
@@ -60,8 +62,9 @@ func _lighting() -> void:
 	var we := WorldEnvironment.new()
 	env = Environment.new()
 	sky_mat = ProceduralSkyMaterial.new()
-	sky_mat.sun_angle_max = 25.0
-	sky_mat.sun_curve = 0.12
+	sky_mat.sun_angle_max = 10.0
+	sky_mat.sun_curve = 0.06
+	sky_mat.sky_curve = 0.09
 	sky_mat.ground_bottom_color = Color(0.2, 0.17, 0.13)
 	var sky := Sky.new()
 	sky.sky_material = sky_mat
@@ -70,18 +73,42 @@ func _lighting() -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.0
-	env.tonemap_white = 6.0
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 1.15
+	env.tonemap_white = 4.0
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_depth_begin = 40.0
+	env.fog_depth_begin = 70.0
 	env.fog_depth_end = float(Game.quality.get("fog_end", 220.0))
-	env.fog_depth_curve = 1.2
-	env.fog_sky_affect = 0.25
+	env.fog_depth_curve = 1.4
+	env.fog_sky_affect = 0.0
+	env.fog_aerial_perspective = 0.85
 	env.adjustment_enabled = false
 	we.environment = env
 	add_child(we)
+	# ground skirt: hides the end of the chunk until streaming (S1) fills the world
+	var skirt := MeshInstance3D.new()
+	var pm := PlaneMesh.new()
+	pm.size = Vector2(3000, 3000)
+	skirt.mesh = pm
+	var sm := StandardMaterial3D.new()
+	sm.albedo_color = Color(0.36, 0.42, 0.24)
+	sm.roughness = 1.0
+	skirt.material_override = sm
+	skirt.position = Vector3(builder.origin.x + builder.nx * builder.grid * 0.5, 16.5, builder.origin.y + builder.nz * builder.grid * 0.5)
+	skirt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(skirt)
+	# pooled street lights (moved to the lamps nearest the player after dark)
+	for i in range(6):
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.8, 0.55)
+		l.light_energy = 0.0
+		l.omni_range = 16.0
+		l.omni_attenuation = 1.4
+		l.shadow_enabled = false
+		l.visible = false
+		add_child(l)
+		night_lights.append(l)
 
 
 func _apply_quality(q: Dictionary) -> void:
@@ -124,30 +151,62 @@ func _update_sun(f: float) -> void:
 		sun.light_color = Color(0.45, 0.55, 0.85)
 		sun.light_energy = 0.12
 	# sky
-	var top_day := Color(0.27, 0.48, 0.82)
-	var hor_day := Color(0.72, 0.8, 0.9)
-	var top_dusk := Color(0.18, 0.2, 0.45)
-	var hor_dusk := Color(0.98, 0.55, 0.3)
-	var top_night := Color(0.02, 0.03, 0.07)
-	var hor_night := Color(0.08, 0.1, 0.18)
-	var top := top_day.lerp(top_dusk, dusk).lerp(top_night, night * night)
+	var top_day := Color(0.22, 0.45, 0.85)
+	var hor_day := Color(0.66, 0.78, 0.92)
+	var top_dusk := Color(0.16, 0.2, 0.42)
+	var hor_dusk := Color(0.98, 0.58, 0.32)
+	var top_night := Color(0.015, 0.02, 0.05)
+	var hor_night := Color(0.06, 0.08, 0.14)
+	var top := top_day.lerp(top_dusk, dusk * 0.8).lerp(top_night, night * night)
 	var hor := hor_day.lerp(hor_dusk, dusk).lerp(hor_night, night * night)
 	sky_mat.sky_top_color = top
 	sky_mat.sky_horizon_color = hor
-	sky_mat.ground_horizon_color = hor.darkened(0.2)
+	sky_mat.ground_horizon_color = hor.darkened(0.25)
 	sky_mat.sky_energy_multiplier = 1.0
-	env.ambient_light_color = Color(0.5, 0.56, 0.68).lerp(Color(0.95, 0.65, 0.45), dusk * 0.4).lerp(Color(0.1, 0.12, 0.2), night)
-	env.ambient_light_energy = 0.9
+	env.ambient_light_color = Color(0.56, 0.62, 0.72).lerp(Color(0.9, 0.65, 0.5), dusk * 0.25).lerp(Color(0.12, 0.14, 0.24), night)
+	env.ambient_light_energy = 0.75 - 0.35 * night
 	env.fog_light_color = hor
 	# emissive props after dark
 	var n := clampf(night * 1.4, 0.0, 1.0)
 	if absf(n - _night) > 0.02:
 		_night = n
-		Materials.get_mat("lamp_glow").emission_energy_multiplier = 0.3 + 3.5 * n
+		Materials.get_mat("lamp_glow").emission_energy_multiplier = 0.3 + 4.0 * n
 		var g := Materials.get_mat("mansion_glass")
 		g.emission_enabled = true
-		g.emission = Color(1.0, 0.82, 0.55)
-		g.emission_energy_multiplier = 0.9 * n
+		g.emission = Color(1.0, 0.8, 0.5)
+		g.emission_energy_multiplier = 1.4 * n
+	_update_night_lights(n)
+
+
+## Moves the pooled omni lights to the lamps nearest the player (cheap night lighting).
+func _update_night_lights(n: float) -> void:
+	_light_timer -= get_process_delta_time()
+	if _light_timer > 0.0 and n > 0.0:
+		return
+	_light_timer = 0.5
+	var count := int(Game.quality.get("night_lights", 3))
+	if n <= 0.01 or player == null:
+		for l in night_lights:
+			l.visible = false
+		return
+	var pp := player.global_position
+	var lamps: Array = []
+	for lp in builder.lamp_positions:
+		lamps.append(lp)
+	for lp in mansion.lights:
+		lamps.append(lp)
+	lamps.sort_custom(func(a, b): return a.distance_squared_to(pp) < b.distance_squared_to(pp))
+	for i in range(night_lights.size()):
+		var l := night_lights[i]
+		if i < count and i < lamps.size():
+			var lp: Vector3 = lamps[i]
+			var tall := lp.y - builder.height_at(lp.x, lp.z) < 1.0
+			l.global_position = lp + (Vector3(1.2, 6.0, 0) if tall else Vector3(0, 1.0, 0))
+			l.omni_range = 18.0 if tall else 7.0
+			l.light_energy = (2.2 if tall else 1.2) * n
+			l.visible = true
+		else:
+			l.visible = false
 
 
 func _spawn_player() -> void:
@@ -230,7 +289,12 @@ func _nearest_route_point(p: Vector3) -> Vector3:
 	var best := p
 	var bd := INF
 	for r in builder.sidewalk_paths:
-		for q in r:
+		for i in range(r.size() - 1):
+			var a: Vector3 = r[i]
+			var b: Vector3 = r[i + 1]
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var q := a + ab * t
 			var d := Vector2(q.x - p.x, q.z - p.z).length()
 			if d < bd:
 				bd = d

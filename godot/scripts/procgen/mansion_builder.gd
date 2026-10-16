@@ -150,6 +150,23 @@ func _house() -> void:
 		_glass_quad(glass, 35.0, 41.0, x1 + 0.03, yy[0], yy[1], 1)
 		_glass_quad(glass, 22.0, 30.0, x0 - 0.03, yy[0], yy[1], 3)
 		_glass_quad(glass, 35.0, 41.0, x0 - 0.03, yy[0], yy[1], 3)
+	# floor slab bands (shadow lines) at first floor and roof
+	for yy: float in [F1, RF]:
+		slab.add_box(W((x0 + x1) * 0.5, yy, (z0 + z1) * 0.5), Vector3(x1 - x0 + 0.3, 0.22, z1 - z0 + 0.3), Basis.IDENTITY, 4.0, Color(0.92, 0.92, 0.9), true, true)
+	# east balcony off the master suite, glass balustrade
+	slab.add_box(W(x1 + 1.0, F1 - 0.1, 30.0), Vector3(2.0, 0.25, 8.0), Basis.IDENTITY, 4.0, Color(0.9, 0.9, 0.88), true, true)
+	glass.add_quad(W(x1 + 1.98, F1, 26.0), W(x1 + 1.98, F1, 34.0), W(x1 + 1.98, F1 + 1.1, 34.0), W(x1 + 1.98, F1 + 1.1, 26.0),
+		Vector2(0, 0.3), Vector2(2.5, 0.3), Vector2(2.5, 0), Vector2(0, 0), Color(0.75, 0.85, 0.9))
+	# roof terrace pergola (timber slats on posts) west of the bulkhead
+	for px: float in [18.0, 25.0]:
+		for pz: float in [34.0, 41.0]:
+			wood.add_box(W(px, RF + 1.4, pz), Vector3(0.25, 2.8, 0.25), Basis.IDENTITY, 1.0, Color(0.6, 0.45, 0.3), false, false)
+	for i in range(12):
+		wood.add_box(W(21.5, RF + 2.85, 34.0 + i * 0.64), Vector3(7.6, 0.1, 0.16), Basis.IDENTITY, 1.0, Color(0.6, 0.45, 0.3), true, true)
+	# flower beds along the street facade (dark soil + low hedge)
+	for bx: Array in [[17.0, 27.0], [40.0, 49.0]]:
+		wb.batch("earth").add_box(W((bx[0] + bx[1]) * 0.5, 0.2, z1 + 1.0), Vector3(bx[1] - bx[0], 0.4, 1.6), Basis.IDENTITY, 2.0, Color(0.55, 0.45, 0.35), true, false)
+		wb.batch("grass").add_box(W((bx[0] + bx[1]) * 0.5, 0.65, z1 + 1.0), Vector3(bx[1] - bx[0] - 0.4, 0.5, 1.2), Basis.IDENTITY, 1.0, Color(0.5, 0.7, 0.35), true, false)
 	# pool terrace + pool
 	var pav := wb.batch("pavers")
 	pav.add_rect(W(31.0, 0.06, 20.0), W(51.0, 0.06, 20.0), W(51.0, 0.06, 2.5), W(31.0, 0.06, 2.5), 2.0, 2.0, Color(0.95, 0.93, 0.9))
@@ -177,6 +194,14 @@ func _pool_walls(x0: float, x1: float, z0: float, z1: float) -> void:
 
 func _glass_quad(b: MeshBatch, a0: float, a1: float, fixed: float, y0: float, y1: float, face: int) -> void:
 	## face: 0 = south (+Z, varying X), 1 = east (+X, varying Z), 2 = north (-Z), 3 = west (-X)
+	## The glass sits 0.3 m behind the wall plane with reveals, so openings read as real depth.
+	var depth := 0.3
+	var inward: Vector3
+	match face:
+		0: inward = Vector3(0, 0, -1)
+		1: inward = Vector3(-1, 0, 0)
+		2: inward = Vector3(0, 0, 1)
+		_: inward = Vector3(1, 0, 0)
 	var p0: Vector3
 	var p1: Vector3
 	match face:
@@ -195,12 +220,22 @@ func _glass_quad(b: MeshBatch, a0: float, a1: float, fixed: float, y0: float, y1
 	var up := Vector3(0, y1 - y0, 0)
 	var u := (a1 - a0) / 3.0
 	var v := (y1 - y0) / 3.0
-	b.add_quad(p0, p1, p1 + up, p0 + up, Vector2(0, v), Vector2(u, v), Vector2(u, 0), Vector2(0, 0), Color(0.8, 0.9, 1.0))
-	# dark mullions implied by the texture; add a thin frame slab for depth
+	var g0 := p0 + inward * depth
+	var g1 := p1 + inward * depth
+	b.add_quad(g0, g1, g1 + up, g0 + up, Vector2(0, v), Vector2(u, v), Vector2(u, 0), Vector2(0, 0), Color(0.8, 0.9, 1.0))
+	# reveals (sides, head, sill) in wall colour
+	var wall := wb.batch("mansion_wall")
+	var c := Color(0.9, 0.9, 0.88)
+	wall.add_quad(p0, g0, g0 + up, p0 + up, Vector2(0, v), Vector2(0.1, v), Vector2(0.1, 0), Vector2(0, 0), c)
+	wall.add_quad(g1, p1, p1 + up, g1 + up, Vector2(0, v), Vector2(0.1, v), Vector2(0.1, 0), Vector2(0, 0), c)
+	wall.add_quad(p0 + up, g0 + up, g1 + up, p1 + up, Vector2(0, 0.1), Vector2(0, 0), Vector2(u, 0), Vector2(u, 0.1), c)
+	var sill := wb.batch("concrete")
+	sill.add_quad(g0, p0, p1, g1, Vector2(0, 0.1), Vector2(0, 0), Vector2(u, 0), Vector2(u, 0.1), c)
+	# slim dark frame on the glass plane
 	var frame := wb.batch("metal_dark")
-	var mid := (p0 + p1) * 0.5 + up * 0.5
-	var basis := Basis(Vector3.UP, -atan2((p1 - p0).z, (p1 - p0).x))
-	frame.add_box(mid, Vector3((p1 - p0).length() + 0.1, (y1 - y0) + 0.1, 0.04), basis, 1.0, Color(0.15, 0.15, 0.16), true, true)
+	var mid := (g0 + g1) * 0.5 + up * 0.5
+	var basis := Basis(Vector3.UP, -atan2((g1 - g0).z, (g1 - g0).x))
+	frame.add_box(mid, Vector3((g1 - g0).length() + 0.06, (y1 - y0) + 0.06, 0.03), basis, 1.0, Color(0.12, 0.12, 0.13), true, true)
 
 
 func _box(b: MeshBatch, x0: float, x1: float, z0: float, z1: float, y0: float, y1: float, col: Color, collide: bool) -> void:
@@ -296,5 +331,5 @@ func palm_world_positions() -> Array:
 
 func player_spawn() -> Transform3D:
 	# on the porch path, looking towards the gate (+Z local = south)
-	var pos := W(33.0, 0.2, 49.5)
+	var pos := W(26.5, 0.2, 57.0)
 	return Transform3D(Basis(Vector3.UP, 0.0), pos)
