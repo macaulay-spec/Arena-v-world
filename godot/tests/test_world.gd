@@ -56,6 +56,53 @@ func _ready() -> void:
 	if absf(p.y - 22.3) > 0.5: fails.append("player spawn y %.2f not on plateau" % p.y)
 	# sidewalk routes exist near the gate
 	if world.builder.sidewalk_paths.size() < 4: fails.append("too few sidewalk routes")
+	# Exercise the first real driving/job loop in the single-player world.
+	if world.owned_vehicles.size() != 2:
+		fails.append("expected two driveable JAG owner cars, got %d" % world.owned_vehicles.size())
+	if world.interaction_label() != "ACCEPT COURIER SHIFT":
+		fails.append("courier dispatch should be available from the starting foyer, got: " + world.interaction_label())
+	else:
+		world.interact()
+		if not world.delivery_active: fails.append("courier shift did not start")
+		if int(Game.profile.get("job_reward", 0)) <= 0: fails.append("courier job has no reward")
+		world.delivery_destination = world.player.global_position
+		world.interact()
+		if world.delivery_active: fails.append("courier job did not complete at the destination")
+		if int(Game.profile.get("deliveries", 0)) != 1: fails.append("completed delivery was not counted")
+	if not world.owned_vehicles.is_empty():
+		var spawn_before_vehicle_test: Vector3 = world.player.global_position
+		var test_vehicle: DrivableCar = world.owned_vehicles[0]
+		world.player.global_position = test_vehicle.global_position + Vector3(0, 0, 3.0)
+		world.interact()
+		if world.active_vehicle != test_vehicle: fails.append("player could not enter the owner car")
+		elif world.player.model.visible: fails.append("player avatar stayed visible inside the car")
+		if world.active_vehicle == test_vehicle:
+			if not Game.save_game(world):
+				fails.append("could not save while inside an owner car")
+			else:
+				world.active_vehicle.exit()
+				world.active_vehicle = null
+				if not Game.load_save():
+					fails.append("could not reload active-car save")
+				else:
+					Game.restore_world(world)
+					if not is_instance_valid(world.active_vehicle) or world.active_vehicle.vehicle_id != test_vehicle.vehicle_id:
+						fails.append("active owner car did not survive save/load")
+			if is_instance_valid(world.active_vehicle):
+				world.interact()
+		if world.active_vehicle != null: fails.append("player could not exit the owner car")
+		world.player.global_position = spawn_before_vehicle_test
+	# A nearby Rocketbox officer should end a wanted chase with an arrest/fine.
+	Game.set_wanted(1)
+	world._spawn_police_pursuer()
+	if world.police_pursuer == null:
+		fails.append("wanted level did not spawn a Rocketbox police pursuer")
+	else:
+		var cash_before_arrest := int(Game.profile.get("cash", 0))
+		world.police_pursuer.global_position = world.player.global_position + Vector3(0, 0, 1.0)
+		await get_tree().physics_frame
+		if int(Game.profile.get("wanted", -1)) != 0: fails.append("police did not clear wanted level on arrest")
+		if int(Game.profile.get("cash", -1)) != maxi(0, cash_before_arrest - 1000): fails.append("arrest fine was not charged")
 	# Exercise the single-player profile + position save round trip without leaving a test save behind.
 	var profile_before: Dictionary = Game.profile.duplicate(true)
 	var minutes_before: float = Game.minutes

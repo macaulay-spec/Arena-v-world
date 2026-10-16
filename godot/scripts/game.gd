@@ -16,6 +16,10 @@ const DEFAULT_PROFILE := {
 	"health": 100.0,
 	"day": 1,
 	"wanted": 0,
+	"deliveries": 0,
+	"job_active": false,
+	"job_destination": [],
+	"job_reward": 0,
 	"mission_id": "",
 	"mission_stage": 0,
 }
@@ -87,6 +91,23 @@ func day_fraction() -> float:
 	return minutes / (24.0 * 60.0)
 
 
+func add_cash(amount: int) -> void:
+	profile["cash"] = maxi(0, int(profile.get("cash", 0)) + amount)
+	profile_changed.emit(profile.duplicate(true))
+
+
+func set_wanted(level: int) -> void:
+	var next_level := clampi(level, 0, 5)
+	if int(profile.get("wanted", 0)) == next_level:
+		return
+	profile["wanted"] = next_level
+	profile_changed.emit(profile.duplicate(true))
+
+
+func add_wanted(levels: int = 1) -> void:
+	set_wanted(int(profile.get("wanted", 0)) + maxi(0, levels))
+
+
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
@@ -125,6 +146,11 @@ func load_save() -> bool:
 	profile["cash"] = maxi(0, int(profile.get("cash", 25000)))
 	profile["health"] = clampf(float(profile.get("health", 100.0)), 0.0, 100.0)
 	profile["wanted"] = clampi(int(profile.get("wanted", 0)), 0, 5)
+	profile["deliveries"] = maxi(0, int(profile.get("deliveries", 0)))
+	profile["job_active"] = bool(profile.get("job_active", false))
+	profile["job_reward"] = maxi(0, int(profile.get("job_reward", 0)))
+	if typeof(profile.get("job_destination", [])) != TYPE_ARRAY:
+		profile["job_destination"] = []
 	profile["mission_stage"] = maxi(0, int(profile.get("mission_stage", 0)))
 	profile["build"] = clampf(float(profile.get("build", 1.0)), 0.85, 1.2)
 	profile["height"] = clampf(float(profile.get("height", 1.0)), 0.9, 1.1)
@@ -144,6 +170,18 @@ func save_game(world: Node = null) -> bool:
 			var player := player_node as Player
 			world_state["position"] = [player.global_position.x, player.global_position.y, player.global_position.z]
 			world_state["yaw"] = player.yaw
+		if world is World:
+			var game_world := world as World
+			var vehicle_states: Dictionary = {}
+			for car: DrivableCar in game_world.owned_vehicles:
+				if not is_instance_valid(car):
+					continue
+				vehicle_states[car.vehicle_id] = {
+					"position": [car.global_position.x, car.global_position.y, car.global_position.z],
+					"yaw": car.rotation.y,
+				}
+			world_state["owner_cars"] = vehicle_states
+			world_state["active_vehicle_id"] = game_world.active_vehicle.vehicle_id if is_instance_valid(game_world.active_vehicle) else ""
 	var payload := {"schema": SAVE_SCHEMA, "profile": profile.duplicate(true), "world": world_state}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file == null:
@@ -156,16 +194,34 @@ func save_game(world: Node = null) -> bool:
 
 
 func restore_world(world: Node) -> void:
+	var player_node: Node = world.get_node_or_null("Player")
 	var position_data: Variant = saved_world.get("position", [])
 	if typeof(position_data) == TYPE_ARRAY and position_data.size() == 3:
-		var player_node: Node = world.get_node_or_null("Player")
 		if player_node is Player:
 			var player := player_node as Player
 			player.global_position = Vector3(float(position_data[0]), float(position_data[1]), float(position_data[2]))
 			player.yaw = float(saved_world.get("yaw", 0.0))
 			if player.cam_yaw:
 				player.cam_yaw.rotation.y = player.yaw
-		minutes = fposmod(float(saved_world.get("minutes", minutes)), 24.0 * 60.0)
+	if world is World:
+		var game_world := world as World
+		var vehicle_data: Variant = saved_world.get("owner_cars", {})
+		if typeof(vehicle_data) == TYPE_DICTIONARY:
+			for car: DrivableCar in game_world.owned_vehicles:
+				var state: Variant = vehicle_data.get(car.vehicle_id, {})
+				if typeof(state) != TYPE_DICTIONARY:
+					continue
+				var car_position: Variant = state.get("position", [])
+				if typeof(car_position) == TYPE_ARRAY and car_position.size() == 3:
+					car.global_position = Vector3(float(car_position[0]), float(car_position[1]), float(car_position[2]))
+				car.rotation.y = float(state.get("yaw", car.rotation.y))
+		var active_id := String(saved_world.get("active_vehicle_id", ""))
+		if active_id != "" and player_node is Player:
+			for car: DrivableCar in game_world.owned_vehicles:
+				if car.vehicle_id == active_id and car.enter(player_node as Player):
+					game_world.active_vehicle = car
+					break
+	minutes = fposmod(float(saved_world.get("minutes", minutes)), 24.0 * 60.0)
 
 
 func delete_save() -> void:

@@ -1,7 +1,7 @@
 class_name HUD
 extends CanvasLayer
-## Touch HUD: left-half virtual stick, right-half look drag, RUN / JUMP / PERF buttons,
-## build card (always visible, small) and the Perf screen with "Copy report" + quality + time.
+## Touch HUD: left-half virtual stick, right-half look drag, interaction and context-aware
+## on-foot/vehicle controls, a courier objective, and a compact performance/settings panel.
 
 var player: Player
 var stick_origin := Vector2.ZERO
@@ -11,6 +11,12 @@ var stick_base: Control
 var stick_knob: Control
 var build_label: Label
 var profile_label: Label
+var mission_label: Label
+var prompt_label: Label
+var run_button: Button
+var jump_button: Button
+var interact_button: Button
+var _was_driving := false
 var perf_panel: PanelContainer
 var perf_text: Label
 var short_label: Label
@@ -44,13 +50,32 @@ func _ready() -> void:
 	root.add_child(short_label)
 	profile_label = Label.new()
 	profile_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	profile_label.position = Vector2(-300, 10)
-	profile_label.size = Vector2(210, 32)
+	profile_label.position = Vector2(-400, 10)
+	profile_label.size = Vector2(300, 32)
 	profile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	profile_label.add_theme_font_size_override("font_size", 16)
 	profile_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
 	profile_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 	root.add_child(profile_label)
+	mission_label = Label.new()
+	mission_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	mission_label.position = Vector2(-280, 45)
+	mission_label.custom_minimum_size = Vector2(560, 32)
+	mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mission_label.add_theme_font_size_override("font_size", 17)
+	mission_label.add_theme_color_override("font_color", Color(0.75, 0.94, 1.0))
+	mission_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	mission_label.add_theme_constant_override("shadow_offset_y", 2)
+	root.add_child(mission_label)
+	prompt_label = Label.new()
+	prompt_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	prompt_label.position = Vector2(-230, 75)
+	prompt_label.custom_minimum_size = Vector2(460, 28)
+	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	prompt_label.add_theme_font_size_override("font_size", 15)
+	prompt_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.55))
+	prompt_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
+	root.add_child(prompt_label)
 	# stick visuals
 	stick_base = _circle(Color(1, 1, 1, 0.18), 150)
 	stick_knob = _circle(Color(1, 1, 1, 0.45), 64)
@@ -59,13 +84,21 @@ func _ready() -> void:
 	stick_base.visible = false
 	stick_knob.visible = false
 	# buttons (bottom-right cluster)
-	var run := _button("RUN", Vector2(-230, -110), Vector2(96, 72))
-	run.toggle_mode = true
-	run.toggled.connect(func(on): if player: player.run_toggle = on)
-	root.add_child(run)
-	var jump := _button("JUMP", Vector2(-124, -140), Vector2(104, 104))
-	jump.pressed.connect(func(): if player: player.jump_pressed = true)
-	root.add_child(jump)
+	run_button = _button("RUN", Vector2(-230, -110), Vector2(96, 72))
+	run_button.toggle_mode = true
+	run_button.toggled.connect(_on_run_toggled)
+	root.add_child(run_button)
+	jump_button = _button("JUMP", Vector2(-124, -140), Vector2(104, 104))
+	jump_button.button_down.connect(_on_jump_down)
+	jump_button.button_up.connect(_on_jump_up)
+	jump_button.pressed.connect(_on_jump_pressed)
+	root.add_child(jump_button)
+	interact_button = _button("USE", Vector2(-390, -96), Vector2(160, 60))
+	interact_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	interact_button.position = Vector2(-390, -96)
+	interact_button.add_theme_font_size_override("font_size", 15)
+	interact_button.pressed.connect(_interact)
+	root.add_child(interact_button)
 	var perf := _button("PERF", Vector2(-92, 10), Vector2(80, 40))
 	perf.set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	perf.position = Vector2(-92, 10)
@@ -150,6 +183,52 @@ func toggle_perf() -> void:
 	perf_panel.visible = _perf_visible
 
 
+func _current_world() -> World:
+	if player and player.get_parent() is World:
+		return player.get_parent() as World
+	return null
+
+
+func _on_run_toggled(on: bool) -> void:
+	var world := _current_world()
+	if world and is_instance_valid(world.active_vehicle):
+		world.active_vehicle.throttle_input = 1.0 if on else 0.0
+	elif player:
+		player.run_toggle = on
+
+
+func _on_jump_down() -> void:
+	var world := _current_world()
+	if world and is_instance_valid(world.active_vehicle):
+		world.active_vehicle.brake_input = 1.0
+
+
+func _on_jump_up() -> void:
+	var world := _current_world()
+	if world and is_instance_valid(world.active_vehicle):
+		world.active_vehicle.brake_input = 0.0
+
+
+func _on_jump_pressed() -> void:
+	var world := _current_world()
+	if (world == null or not is_instance_valid(world.active_vehicle)) and player:
+		player.jump_pressed = true
+
+
+func _interact() -> void:
+	var world := _current_world()
+	if world:
+		world.interact()
+
+
+func _mission_text(world: World) -> String:
+	if world.delivery_active:
+		var target_position := world.active_vehicle.global_position if is_instance_valid(world.active_vehicle) else player.global_position
+		var distance_m := int(round(target_position.distance_to(world.delivery_destination)))
+		return "JAG COURIER  ·  Deliver the package  ·  %d m  ·  ₦%s" % [distance_m, _format_cash(world.delivery_reward).trim_prefix("₦")]
+	return "JAG COURIER  ·  Start a shift at the glowing dispatch marker"
+
+
 func toast(msg: String) -> void:
 	_toast.text = msg
 	_toast.visible = true
@@ -176,8 +255,26 @@ func _format_cash(amount: int) -> String:
 func _process(delta: float) -> void:
 	var q: String = Game.quality.get("label", "")
 	build_label.text = "VORA CITY · JAG HOUSE · S0 · build %s · %s · %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), q, Game.clock_label()]
-	profile_label.text = "%s  ·  %s" % [str(Game.profile.get("name", "JAG")), _format_cash(int(Game.profile.get("cash", 0)))]
+	var wanted := int(Game.profile.get("wanted", 0))
+	var wanted_text := "  ·  WANTED %d" % wanted if wanted > 0 else ""
+	profile_label.text = "%s  ·  %s%s" % [str(Game.profile.get("name", "JAG")), _format_cash(int(Game.profile.get("cash", 0))), wanted_text]
 	short_label.text = Perf.short_line()
+	var world := _current_world()
+	if world:
+		mission_label.text = _mission_text(world)
+		var prompt := world.interaction_label()
+		interact_button.disabled = prompt.is_empty()
+		interact_button.tooltip_text = prompt
+		prompt_label.text = "[USE] " + prompt if not prompt.is_empty() else ""
+		var driving := is_instance_valid(world.active_vehicle)
+		if driving != _was_driving:
+			run_button.set_pressed_no_signal(false)
+			run_button.text = "GAS" if driving else "RUN"
+			jump_button.text = "BRAKE" if driving else "JUMP"
+			if driving:
+				world.active_vehicle.throttle_input = 0.0
+				world.active_vehicle.brake_input = 0.0
+			_was_driving = driving
 	if _perf_visible:
 		perf_text.text = Perf.report()
 	if _toast_t > 0.0:

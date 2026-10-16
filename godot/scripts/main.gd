@@ -476,6 +476,7 @@ func start_game() -> void:
 	hud = HUD.new()
 	hud.name = "HUD"
 	hud.player = world.player
+	world.toast_requested.connect(hud.toast)
 	add_child(hud)
 	Game.save_game(world)
 	title.queue_free()

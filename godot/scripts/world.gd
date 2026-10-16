@@ -4,6 +4,7 @@ extends Node3D
 ## sun/sky/day-night, the player, street NPCs with mocap and parked cars.
 
 signal built(stats: Dictionary)
+signal toast_requested(message: String)
 
 const CHUNK := "s0"
 const GATE_WORLD := Vector3(-347.1, 22.1, -336.5)   # just outside the gate (local 27, 75.4)
@@ -19,6 +20,16 @@ var _stream_mode := false
 var _stream_initialized := false
 var city_routes: Array = []
 var car_nodes: Array[Node3D] = []
+var owned_vehicles: Array[DrivableCar] = []
+var active_vehicle: DrivableCar
+var dispatcher_position := Vector3.ZERO
+var delivery_destination := Vector3.ZERO
+var delivery_active := false
+var delivery_reward := 0
+var dispatcher_marker: Node3D
+var delivery_marker: Node3D
+var police_pursuer: PolicePursuer
+var _wanted_escape_timer := 0.0
 var sun: DirectionalLight3D
 var env: Environment
 var sky_mat: ProceduralSkyMaterial
@@ -61,6 +72,8 @@ func _ready_s0() -> void:
 	_spawn_npcs()
 	stats = builder.stats.duplicate()
 	_spawn_cars()
+	_add_dispatcher()
+	_restore_delivery_state()
 	stats["build_ms"] = Time.get_ticks_msec() - t0
 	stats["npcs"] = npcs.size()
 	stats["collision_shapes"] = builder.collision_boxes.size() + 1
@@ -111,9 +124,11 @@ func _on_stream_center_changed(_center: Vector2i) -> void:
 	if _stream_initialized:
 		_clear_npcs()
 		for car in car_nodes:
-			if is_instance_valid(car):
+			if is_instance_valid(car) and car != active_vehicle:
 				car.queue_free()
 		car_nodes.clear()
+		if is_instance_valid(active_vehicle):
+			car_nodes.append(active_vehicle)
 		city_routes.clear()
 	var nearest := streamer.nearest_builder(player.global_position) if streamer else null
 	if nearest != null:
@@ -131,6 +146,8 @@ func _on_stream_region_ready(center: Vector2i, loaded_count: int) -> void:
 		_clear_npcs()
 	_spawn_npcs(player.global_position)
 	_spawn_cars()
+	_add_dispatcher()
+	_restore_delivery_state()
 	player.set_physics_process(true)
 	stream_ready = true
 	_stream_initialized = true
@@ -257,11 +274,37 @@ func _apply_quality(q: Dictionary) -> void:
 		npcs[i].process_mode = Node.PROCESS_MODE_INHERIT if i < want else Node.PROCESS_MODE_DISABLED
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	_update_sun(Game.day_fraction())
 	if skirt and player and not _stream_mode:
 		skirt.position.x = player.global_position.x
 		skirt.position.z = player.global_position.z
+	_update_wanted(delta)
+
+
+func _update_wanted(delta: float) -> void:
+	var wanted := int(Game.profile.get("wanted", 0))
+	if wanted <= 0:
+		_wanted_escape_timer = 0.0
+		if is_instance_valid(police_pursuer):
+			police_pursuer.queue_free()
+		police_pursuer = null
+		return
+	if not is_instance_valid(police_pursuer):
+		_spawn_police_pursuer()
+	var target: Node3D = active_vehicle if is_instance_valid(active_vehicle) else player
+	if target == null or not is_instance_valid(police_pursuer):
+		return
+	var distance := police_pursuer.global_position.distance_to(target.global_position)
+	if distance > 100.0:
+		_wanted_escape_timer += delta
+		if _wanted_escape_timer >= 60.0:
+			_wanted_escape_timer = 0.0
+			Game.set_wanted(wanted - 1)
+			if int(Game.profile.get("wanted", 0)) == 0:
+				toast_requested.emit("You lost the police.")
+	else:
+		_wanted_escape_timer = 0.0
 
 
 func _update_sun(f: float) -> void:
@@ -465,9 +508,13 @@ func _nearest_route_point(p: Vector3) -> Vector3:
 # ---------------------------------------------------------------- cars
 func _spawn_cars() -> void:
 	for old_car in car_nodes:
-		if is_instance_valid(old_car):
+		if is_instance_valid(old_car) and old_car != active_vehicle:
 			old_car.queue_free()
 	car_nodes.clear()
+	owned_vehicles.clear()
+	if is_instance_valid(active_vehicle):
+		car_nodes.append(active_vehicle)
+		owned_vehicles.append(active_vehicle)
 	if car_models.is_empty():
 		var dir := DirAccess.open(CAR_DIR)
 		if dir == null:
@@ -489,8 +536,12 @@ func _spawn_cars() -> void:
 	street.sort_custom(func(a, b): return a["pos"].distance_squared_to(car_center) < b["pos"].distance_squared_to(car_center))
 	for i in range(mini(8, street.size())):
 		slots.append(street[i])
-	var count := 0
+	var count := owned_vehicles.size()
 	for s in slots:
+		var is_owned: bool = s["kind"] == "owner_suv" or s["kind"] == "owner_sedan"
+		var owner_id := "jag_suv" if s["kind"] == "owner_suv" else "jag_sedan"
+		if is_owned and is_instance_valid(active_vehicle) and active_vehicle.vehicle_id == owner_id:
+			continue
 		var options: Array = pref.get(s["kind"], pref["car"])
 		var file := ""
 		for o in options:
@@ -514,34 +565,42 @@ func _spawn_cars() -> void:
 			body_col = Color(0.9, 0.9, 0.88)
 		var inst := _merge_static(raw, body_col)   # one MeshInstance3D per car instead of 8-12 parts
 		raw.free()
-		var holder := Node3D.new()
-		holder.name = "Car_%d" % count
-		holder.add_child(inst)
-		add_child(holder)
-		car_nodes.append(holder)
-		# normalise length to real-world size
 		var aabb := _aabb_of(inst)
 		var length := maxf(aabb.size.x, aabb.size.z)
 		var target := 4.6 if s["kind"] != "minibus" else 5.2
 		var sc := target / maxf(length, 0.01)
-		inst.scale = Vector3.ONE * sc
-		inst.position = Vector3(0, -aabb.position.y * sc, 0)
+		var holder: Node3D
+		if is_owned:
+			var owned_car := DrivableCar.new()
+			owned_car.name = "Car_%d" % count
+			var id := "jag_suv" if s["kind"] == "owner_suv" else "jag_sedan"
+			owned_car.configure(id, String(s["kind"]), inst, sc, aabb, target)
+			holder = owned_car
+			owned_vehicles.append(owned_car)
+		else:
+			inst.scale = Vector3.ONE * sc
+			inst.position = Vector3(0, -aabb.position.y * sc, 0)
+			holder = Node3D.new()
+			holder.name = "Car_%d" % count
+			holder.add_child(inst)
+			if s["kind"] == "minibus":
+				_tint(inst, Color(0.95, 0.75, 0.1))
+			for mi in inst.find_children("*", "MeshInstance3D", true, false):
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			var body := StaticBody3D.new()
+			var box := CollisionShape3D.new()
+			var shape := BoxShape3D.new()
+			shape.size = Vector3(aabb.size.x * sc, aabb.size.y * sc, aabb.size.z * sc)
+			box.shape = shape
+			box.position = Vector3(0, aabb.size.y * sc * 0.5, 0)
+			body.add_child(box)
+			holder.add_child(body)
+		add_child(holder)
+		car_nodes.append(holder)
 		holder.global_position = s["pos"]
 		holder.rotation.y = float(s["yaw"]) + (PI * 0.5 if aabb.size.x > aabb.size.z else 0.0)
-		if s["kind"] == "minibus":
-			_tint(inst, Color(0.95, 0.75, 0.1))
-		for mi in inst.find_children("*", "MeshInstance3D", true, false):
-			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
-		var body := StaticBody3D.new()
-		var box := CollisionShape3D.new()
-		var shape := BoxShape3D.new()
-		shape.size = Vector3(aabb.size.x * sc, aabb.size.y * sc, aabb.size.z * sc)
-		box.shape = shape
-		box.position = Vector3(0, aabb.size.y * sc * 0.5, 0)
-		body.add_child(box)
-		holder.add_child(body)
 		count += 1
-	stats["cars"] = count
+	stats["cars"] = car_nodes.size()
 
 
 ## Flattens all MeshInstance3D parts of an imported scene into one mesh (one surface per material).
@@ -625,3 +684,224 @@ func _tint(n: Node3D, c: Color) -> void:
 					var dup: BaseMaterial3D = sm.duplicate()
 					dup.albedo_color = c
 					m.set_surface_override_material(s, dup)
+
+
+func _add_dispatcher() -> void:
+	if is_instance_valid(dispatcher_marker):
+		return
+	dispatcher_position = mansion.W(33.0, 0.05, 45.5)
+	dispatcher_marker = _make_world_marker("CourierDispatch", dispatcher_position, "JAG COURIER\nSTART SHIFT", Color(1.0, 0.68, 0.18))
+
+
+func _make_world_marker(marker_name: String, at: Vector3, caption: String, tint: Color) -> Node3D:
+	var root := Node3D.new()
+	root.name = marker_name
+	root.position = at
+	var mesh_instance := MeshInstance3D.new()
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 0.18
+	cylinder.bottom_radius = 0.42
+	cylinder.height = 0.55
+	cylinder.radial_segments = 12
+	mesh_instance.mesh = cylinder
+	mesh_instance.position.y = 0.28
+	var material := StandardMaterial3D.new()
+	material.albedo_color = tint
+	material.emission_enabled = true
+	material.emission = tint
+	material.emission_energy_multiplier = 1.2
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_instance.material_override = material
+	root.add_child(mesh_instance)
+	var label := Label3D.new()
+	label.text = caption
+	label.position = Vector3(0, 1.7, 0)
+	label.font_size = 32
+	label.outline_size = 8
+	label.modulate = tint.lightened(0.25)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	root.add_child(label)
+	add_child(root)
+	return root
+
+
+func _restore_delivery_state() -> void:
+	delivery_active = bool(Game.profile.get("job_active", false))
+	delivery_reward = maxi(0, int(Game.profile.get("job_reward", 0)))
+	var saved_destination: Variant = Game.profile.get("job_destination", [])
+	if delivery_active and typeof(saved_destination) == TYPE_ARRAY and saved_destination.size() == 3:
+		delivery_destination = Vector3(float(saved_destination[0]), float(saved_destination[1]), float(saved_destination[2]))
+		if not is_instance_valid(delivery_marker):
+			_ensure_delivery_marker()
+	elif delivery_active:
+		delivery_active = false
+		Game.profile["job_active"] = false
+		Game.profile["job_destination"] = []
+
+
+func _ensure_delivery_marker() -> void:
+	if is_instance_valid(delivery_marker):
+		delivery_marker.queue_free()
+	delivery_marker = _make_world_marker("DeliveryDestination", delivery_destination, "DELIVER\n₦%d" % delivery_reward, Color(0.25, 0.9, 1.0))
+
+
+func _choose_delivery_destination() -> Vector3:
+	var anchor := GATE_WORLD
+	var best := Vector3.ZERO
+	var best_score := INF
+	var found := false
+	for route in _get_routes():
+		for point: Vector3 in route:
+			var distance := Vector2(point.x - anchor.x, point.z - anchor.z).length()
+			if distance < 70.0 or distance > 280.0:
+				continue
+			var score := absf(distance - 165.0)
+			if score < best_score:
+				best = point
+				best_score = score
+				found = true
+	if found:
+		return best
+	var fallback := _nearest_route_point(anchor + Vector3(95.0, 0.0, 55.0))
+	return fallback
+
+
+func _start_delivery() -> void:
+	delivery_destination = _choose_delivery_destination()
+	var distance := Vector2(delivery_destination.x - dispatcher_position.x, delivery_destination.z - dispatcher_position.z).length()
+	delivery_reward = 3000 + int(distance * 4.0)
+	delivery_active = true
+	Game.profile["job_active"] = true
+	Game.profile["job_destination"] = [delivery_destination.x, delivery_destination.y, delivery_destination.z]
+	Game.profile["job_reward"] = delivery_reward
+	Game.profile["mission_id"] = "jag_courier"
+	Game.profile["mission_stage"] = 1
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	_ensure_delivery_marker()
+	toast_requested.emit("Courier shift started. Drive to the blue marker.")
+
+
+func _finish_delivery() -> void:
+	var reward := delivery_reward
+	delivery_active = false
+	Game.add_cash(reward)
+	Game.profile["deliveries"] = int(Game.profile.get("deliveries", 0)) + 1
+	Game.profile["job_active"] = false
+	Game.profile["job_destination"] = []
+	Game.profile["job_reward"] = 0
+	Game.profile["mission_id"] = ""
+	Game.profile["mission_stage"] = 0
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	if is_instance_valid(delivery_marker):
+		delivery_marker.queue_free()
+	delivery_marker = null
+	toast_requested.emit("Package delivered · ₦%s earned" % _format_currency(reward))
+	Game.save_game(self)
+
+
+func _format_currency(amount: int) -> String:
+	var digits := str(maxi(amount, 0))
+	var formatted := ""
+	for i in range(digits.length()):
+		if i > 0 and (digits.length() - i) % 3 == 0:
+			formatted += ","
+		formatted += digits.substr(i, 1)
+	return formatted
+
+
+func interaction_label() -> String:
+	if player == null:
+		return ""
+	if delivery_active:
+		var pos := active_vehicle.global_position if is_instance_valid(active_vehicle) else player.global_position
+		if pos.distance_to(delivery_destination) <= 7.0:
+			return "DELIVER PACKAGE · ₦%s" % _format_currency(delivery_reward)
+	if is_instance_valid(active_vehicle):
+		return "EXIT VEHICLE · %d km/h" % active_vehicle.speed_kph()
+	var nearest: DrivableCar
+	var nearest_distance := INF
+	for vehicle in owned_vehicles:
+		if not is_instance_valid(vehicle) or vehicle.driving:
+			continue
+		var distance := player.global_position.distance_to(vehicle.global_position)
+		if distance < nearest_distance:
+			nearest = vehicle
+			nearest_distance = distance
+	if nearest and nearest_distance <= 4.5:
+		return "ENTER %s" % ("SUV" if nearest.vehicle_kind == "owner_suv" else "SEDAN")
+	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
+		return "ACCEPT COURIER SHIFT"
+	return ""
+
+
+func interact() -> void:
+	if player == null:
+		return
+	var interaction_position := active_vehicle.global_position if is_instance_valid(active_vehicle) else player.global_position
+	if delivery_active and interaction_position.distance_to(delivery_destination) <= 7.0:
+		_finish_delivery()
+		return
+	if is_instance_valid(active_vehicle):
+		active_vehicle.exit()
+		active_vehicle = null
+		toast_requested.emit("You left the vehicle.")
+		return
+	var nearest: DrivableCar
+	var nearest_distance := INF
+	for vehicle in owned_vehicles:
+		if not is_instance_valid(vehicle) or vehicle.driving:
+			continue
+		var distance := player.global_position.distance_to(vehicle.global_position)
+		if distance < nearest_distance:
+			nearest = vehicle
+			nearest_distance = distance
+	if nearest and nearest_distance <= 4.5:
+		if nearest.enter(player):
+			active_vehicle = nearest
+			toast_requested.emit("JAG car · use the stick to steer, RUN for gas, JUMP to brake.")
+		return
+	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
+		_start_delivery()
+		return
+
+
+func _spawn_police_pursuer() -> void:
+	var police := Rocketbox.avatar_entries("police")
+	if police.is_empty() or player == null:
+		return
+	var target: Node3D = active_vehicle if is_instance_valid(active_vehicle) else player
+	var start := _nearest_route_point(target.global_position + Vector3(18.0, 0.0, 14.0))
+	police_pursuer = PolicePursuer.new()
+	police_pursuer.setup(self, String(police[0].get("name", "Police_Male_01")))
+	add_child(police_pursuer)
+	police_pursuer.global_position = start + Vector3.UP * 0.1
+	toast_requested.emit("Police are pursuing you. Break line of sight or get away.")
+
+
+func arrest_player() -> void:
+	if player == null:
+		return
+	if is_instance_valid(active_vehicle):
+		active_vehicle.exit()
+		active_vehicle = null
+	Game.set_wanted(0)
+	Game.profile["health"] = 100.0
+	Game.add_cash(-1000)
+	if delivery_active:
+		delivery_active = false
+		Game.profile["job_active"] = false
+		Game.profile["job_destination"] = []
+		Game.profile["job_reward"] = 0
+		Game.profile["mission_id"] = ""
+		Game.profile["mission_stage"] = 0
+		if is_instance_valid(delivery_marker):
+			delivery_marker.queue_free()
+		delivery_marker = null
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	player.global_transform = mansion.player_spawn()
+	player.velocity = Vector3.ZERO
+	player.yaw = PI
+	player.cam_yaw.rotation.y = PI
+	player.model.rotation.y = PI
+	toast_requested.emit("Arrested · ₦1,000 fine · returned to JAG House.")
+	Game.save_game(self)
