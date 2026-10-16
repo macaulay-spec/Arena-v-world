@@ -26,6 +26,9 @@ func _ready() -> void:
 	_load_build_info()
 	var saved := _load_settings()
 	quality_id = saved.get("quality", _auto_quality())
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--quality="):
+			quality_id = a.substr(10)
 	if not PRESETS.has(quality_id):
 		quality_id = "lite"
 	quality = PRESETS[quality_id]

@@ -101,21 +101,28 @@ func _process(_delta: float) -> void:
 
 
 func _update_sun(f: float) -> void:
-	var ang := (f - 0.25) * TAU          # 0 at 06:00, PI/2 at noon
-	var elev := sin(ang)                  # -1..1
-	var day := clampf(elev * 2.0 + 0.1, 0.0, 1.0)
-	var dusk := clampf(1.0 - absf(elev) * 5.0, 0.0, 1.0)   # golden band around the horizon
+	# Lagos (6°N): sunrise ~06:30, sunset ~18:45, short twilight
+	var h := f * 24.0
+	var day_t := (h - 6.5) / 12.25                      # 0 at sunrise, 1 at sunset
+	var elev := sin(clampf(day_t, 0.0, 1.0) * PI)      # 0..1 over the day
+	if day_t < 0.0:
+		elev = -minf(-day_t * 4.0, 1.0)
+	elif day_t > 1.0:
+		elev = -minf((day_t - 1.0) * 4.0, 1.0)
+	var day := clampf(elev * 3.5 + 0.08, 0.0, 1.0)
+	var dusk := clampf(1.0 - absf(elev - 0.08) * 4.0, 0.0, 1.0)   # golden band around the horizon
 	var night := 1.0 - day
-	# sun direction: rises in the east (+x), sets west, arcs through the south (+z)
-	var dir := Vector3(-cos(ang), -maxf(elev, 0.03), -0.35)
+	# sun direction: rises in the east (+x), sets west, arcs slightly through the south (+z)
+	var az := clampf(day_t, -0.1, 1.1) * PI
+	var dir := Vector3(-cos(az), -maxf(elev, 0.04) - 0.05, -0.25)
 	sun.look_at_from_position(Vector3.ZERO, dir.normalized(), Vector3.UP)
-	var warm := Color(1.0, 0.62, 0.35)
-	var white := Color(1.0, 0.96, 0.9)
+	var warm := Color(1.0, 0.6, 0.32)
+	var white := Color(1.0, 0.97, 0.92)
 	sun.light_color = white.lerp(warm, dusk)
-	sun.light_energy = 1.35 * day
-	if day < 0.02:
-		sun.light_color = Color(0.5, 0.6, 0.85)
-		sun.light_energy = 0.15
+	sun.light_energy = 1.4 * day
+	if day < 0.03:
+		sun.light_color = Color(0.45, 0.55, 0.85)
+		sun.light_energy = 0.12
 	# sky
 	var top_day := Color(0.27, 0.48, 0.82)
 	var hor_day := Color(0.72, 0.8, 0.9)
@@ -268,7 +275,9 @@ func _spawn_cars() -> void:
 		var ps = load(CAR_DIR + file)
 		if ps == null:
 			continue
-		var inst: Node3D = ps.instantiate()
+		var raw: Node3D = ps.instantiate()
+		var inst := _merge_static(raw)   # one MeshInstance3D per car instead of 8-12 parts
+		raw.free()
 		var holder := Node3D.new()
 		holder.name = "Car_%d" % count
 		holder.add_child(inst)
@@ -296,6 +305,45 @@ func _spawn_cars() -> void:
 		holder.add_child(body)
 		count += 1
 	stats["cars"] = count
+
+
+## Flattens all MeshInstance3D parts of an imported scene into one mesh (one surface per material).
+func _merge_static(src: Node3D) -> Node3D:
+	var by_mat: Dictionary = {}
+	for mi in src.find_children("*", "MeshInstance3D", true, false):
+		var m: MeshInstance3D = mi
+		if m.mesh == null:
+			continue
+		var xf: Transform3D = m.transform
+		var p := m.get_parent()
+		while p != src and p is Node3D:
+			xf = (p as Node3D).transform * xf
+			p = p.get_parent()
+		for si in range(m.mesh.get_surface_count()):
+			var mat := m.get_active_material(si)
+			var key := mat.get_instance_id() if mat else 0
+			if not by_mat.has(key):
+				var st := SurfaceTool.new()
+				st.begin(Mesh.PRIMITIVE_TRIANGLES)
+				by_mat[key] = [st, mat]
+			(by_mat[key][0] as SurfaceTool).append_from(m.mesh, si, xf)
+	var mesh := ArrayMesh.new()
+	for key in by_mat.keys():
+		var st: SurfaceTool = by_mat[key][0]
+		st.index()
+		st.commit(mesh)
+		var mat: Material = by_mat[key][1]
+		if mat is BaseMaterial3D:
+			var bm: BaseMaterial3D = (mat as BaseMaterial3D).duplicate()
+			bm.roughness = 0.35
+			bm.metallic = 0.25
+			bm.metallic_specular = 0.6
+			mat = bm
+		mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
+	var out := MeshInstance3D.new()
+	out.name = "CarMesh"
+	out.mesh = mesh
+	return out
 
 
 func _aabb_of(n: Node3D) -> AABB:

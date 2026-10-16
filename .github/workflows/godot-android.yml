@@ -155,27 +155,33 @@ jobs:
           retention-days: 30
 
       # ---------------------------------------------------------------- screenshots (software GL) → evidence branch
-      - name: Screenshots under Xvfb (llvmpipe)
-        continue-on-error: true
+      - name: Screenshots under Xvfb (llvmpipe) — Lite (gated) + Standard (reported)
         run: |
           set -euo pipefail
           sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
           mkdir -p /tmp/shots
           cd godot
           export LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe
-          timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --shots=/tmp/shots 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tail -30 || true
+          for q in lite standard; do
+            timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --shots=/tmp/shots --quality=$q 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tail -12 || true
+          done
           ls -la /tmp/shots
+
+      - name: Render budget gate (Lite preset = the 2 GB phone target)
+        run: |
           python3 - <<'PY'
           import json,os
-          p='/tmp/shots/report.json'
-          if os.path.exists(p):
-              r=json.load(open(p)); print("worst draw calls", r["worst_draw_calls"], "worst primitives", r["worst_primitives"], "budget_ok", r["budget_ok"])
-              print(f"::notice title=render budget::worst draw calls {r['worst_draw_calls']}, worst primitives {r['worst_primitives']}, budget_ok {r['budget_ok']}")
-              if not r["budget_ok"]:
-                  print("::error title=render budget::over budget (≤120 draw calls, ≤150k primitives)")
+          for q in ("lite","standard"):
+              p=f'/tmp/shots/report_{q}.json'
+              if not os.path.exists(p):
+                  print(f"::warning title=shots::no report for {q}"); continue
+              r=json.load(open(p))
+              line=f"{q}: worst draw calls {r['worst_draw_calls']}, worst primitives {r['worst_primitives']}, budget_ok {r['budget_ok']}"
+              print(line); print(f"::notice title=render budget {q}::{line}")
+              for s in r["shots"]: print(f"  {s['name']:28s} calls {s['draw_calls']:4d} prims {s['primitives']:7d} objects {s['objects']:4d}")
+              if q=="lite" and not r["budget_ok"]:
+                  print("::error title=render budget::Lite preset over budget (≤120 draw calls, ≤150k primitives) — fail-fast rule")
                   raise SystemExit(1)
-          else:
-              print("::warning title=shots::no report.json (screenshot run failed)")
           PY
 
       - name: Push evidence branch

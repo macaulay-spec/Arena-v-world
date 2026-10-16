@@ -92,7 +92,7 @@ func _compound_wall() -> void:
 			inward = -inward
 		var hm := mid + inward * 0.75
 		var basis := Basis(Vector3.UP, -atan2(n.y, n.x))
-		hedge.add_box(W(hm.x, 0.6, hm.y), Vector3(a.distance_to(b) - 1.2, 1.2, 0.9), basis, 2.0, Color(0.55, 0.75, 0.4), true, false)
+		hedge.add_box(W(hm.x, 0.45, hm.y), Vector3(a.distance_to(b) - 1.2, 0.9, 0.8), basis, 1.0, Color(0.45, 0.62, 0.3), true, false)
 
 
 # -------------------------------------------------------------- house
