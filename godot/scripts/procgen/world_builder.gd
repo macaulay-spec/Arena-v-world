@@ -12,6 +12,7 @@ var nz := 0
 var heights := PackedFloat32Array()
 var batches: Dictionary = {}       # material name -> MeshBatch
 var collision_boxes: Array = []    # [Transform3D, Vector3 size]
+var scene_assets: Array[Dictionary] = [] # imported static glTF placements, emitted as per-asset MultiMeshes
 var sidewalk_paths: Array = []     # Array[PackedVector3Array] for NPC walking
 var lamp_positions: PackedVector3Array = PackedVector3Array()
 var car_slots: Array = []          # [{pos, yaw, kind}]
@@ -482,9 +483,10 @@ func emit(parent: Node3D, include_terrain: bool = true, include_navigation: bool
 	mi.mesh = mesh
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	parent.add_child(mi)
+	stats["static_tris"] = tris
 	stats["tris"] = tris
 	stats["surfaces"] = mesh.get_surface_count()
-	# one terrain heightfield + a compact compound of building/sidewalk/tree colliders per tile
+	# one terrain heightfield + a compact compound of building/sidewalk/tree/furniture colliders per tile
 	var body := StaticBody3D.new()
 	body.name = "Collision"
 	if include_terrain:
@@ -505,8 +507,102 @@ func emit(parent: Node3D, include_terrain: bool = true, include_navigation: bool
 		c.transform = box[0]
 		body.add_child(c)
 	parent.add_child(body)
+	_emit_scene_assets(parent)
 	if include_terrain and include_navigation and not sidewalk_paths.is_empty():
 		_add_navigation(parent)
+
+
+## Repeated imported models are instanced per mesh/material rather than duplicated as dozens of nodes.
+## This keeps licensed GLB furniture real while holding draw calls and node count to one MultiMesh per asset mesh.
+func _emit_scene_assets(parent: Node3D) -> void:
+	stats["scene_assets"] = scene_assets.size()
+	stats["asset_tris"] = 0
+	stats["asset_surfaces"] = 0
+	stats["asset_errors"] = 0
+	if scene_assets.is_empty():
+		return
+	var grouped: Dictionary = {}
+	for placement: Dictionary in scene_assets:
+		var path := String(placement.get("path", ""))
+		if path.is_empty():
+			stats["asset_errors"] = int(stats["asset_errors"]) + 1
+			continue
+		if not grouped.has(path):
+			grouped[path] = []
+		grouped[path].append(placement)
+	var root := Node3D.new()
+	root.name = "FurnitureAssets"
+	parent.add_child(root)
+	var group_count := 0
+	for path_variant: Variant in grouped.keys():
+		var path := String(path_variant)
+		var packed := ResourceLoader.load(path) as PackedScene
+		if packed == null:
+			push_error("WorldBuilder: imported furniture scene could not be loaded: " + path)
+			stats["asset_errors"] = int(stats["asset_errors"]) + 1
+			continue
+		var sample := packed.instantiate()
+		if not sample is Node3D:
+			push_error("WorldBuilder: furniture scene root is not Node3D: " + path)
+			stats["asset_errors"] = int(stats["asset_errors"]) + 1
+			sample.free()
+			continue
+		var mesh_records: Array[Dictionary] = []
+		_collect_scene_meshes(sample as Node3D, Transform3D.IDENTITY, mesh_records)
+		if mesh_records.is_empty():
+			push_error("WorldBuilder: furniture scene contains no MeshInstance3D: " + path)
+			stats["asset_errors"] = int(stats["asset_errors"]) + 1
+			sample.free()
+			continue
+		var placements: Array = grouped[path]
+		for mesh_index in range(mesh_records.size()):
+			var record: Dictionary = mesh_records[mesh_index]
+			var source_mesh := record["mesh"] as Mesh
+			var multi := MultiMesh.new()
+			multi.transform_format = MultiMesh.TRANSFORM_3D
+			multi.mesh = source_mesh
+			multi.instance_count = placements.size()
+			var local_transform: Transform3D = record["transform"]
+			for i in range(placements.size()):
+				var placement: Dictionary = placements[i]
+				var placement_transform: Transform3D = placement["transform"]
+				multi.set_instance_transform(i, placement_transform * local_transform)
+			var instance := MultiMeshInstance3D.new()
+			instance.name = "%s_mesh_%d" % [path.get_file().get_basename(), mesh_index]
+			instance.multimesh = multi
+			instance.material_override = record.get("material_override") as Material
+			instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			root.add_child(instance)
+			stats["asset_tris"] = int(stats["asset_tris"]) + _mesh_triangles(source_mesh) * placements.size()
+			stats["asset_surfaces"] = int(stats["asset_surfaces"]) + source_mesh.get_surface_count() * placements.size()
+		group_count += 1
+		sample.free()
+	stats["asset_mesh_groups"] = group_count
+	stats["tris"] = int(stats.get("static_tris", 0)) + int(stats["asset_tris"])
+
+
+func _collect_scene_meshes(node: Node3D, parent_transform: Transform3D, out: Array[Dictionary]) -> void:
+	var current := parent_transform * node.transform
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh != null and mesh_instance.visible:
+			out.append({"mesh": mesh_instance.mesh, "transform": current, "material_override": mesh_instance.material_override})
+	for child: Node in node.get_children():
+		if child is Node3D:
+			_collect_scene_meshes(child as Node3D, current, out)
+
+
+func _mesh_triangles(mesh: Mesh) -> int:
+	var triangles := 0
+	for surface in range(mesh.get_surface_count()):
+		var arrays: Array = mesh.surface_get_arrays(surface)
+		var indices: Variant = arrays[Mesh.ARRAY_INDEX]
+		var vertices: Variant = arrays[Mesh.ARRAY_VERTEX]
+		if indices != null and indices.size() > 0:
+			triangles += int(indices.size() / 3)
+		elif vertices != null:
+			triangles += int(vertices.size() / 3)
+	return triangles
 
 
 ## Navigation polygons follow the same sidewalk centre-lines as the pedestrian planner. Tiles share

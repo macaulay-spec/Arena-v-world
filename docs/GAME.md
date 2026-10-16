@@ -1,10 +1,11 @@
-# VORA CITY — the game (Phase 3)
+# ARCHIVE — original VORA CITY web-prototype design record (not the current Godot build)
 
-**Studio:** JAG · **Working title:** VORA CITY · **Platform:** Android (landscape phone), also playable in a desktop
-browser · **Tone:** gritty-realistic but light · **Frame:** GTA-style open world, built in APK milestones.
+**Studio:** JAG · **Project title:** VORA CITY · **Platform target:** Android landscape phone · **Tone:** gritty-realistic but light · **Frame:** GTA-style open world.
 
-This document describes what is in the current build (**APK 1 – "App + Home"**), how the runtime is put together,
-how the APK is produced, and the agreed road-map for APK 2–5.
+> **Historical document only.** The APK 1 feature list, runtime, screenshots and test reports below describe the earlier
+> Three.js/Capacitor prototype and its intended design. They are **not** evidence that those features exist in the current
+> Godot project. The active implementation, honest status, phone-test gate and milestones are tracked in
+> [`docs/GODOT.md`](GODOT.md).
 
 ---
 

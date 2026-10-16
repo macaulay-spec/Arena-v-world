@@ -16,6 +16,15 @@ Please cite when publishing:
 Parked vehicles in S0 are the [Kenney Car Kit](https://kenney.nl/assets/car-kit) (public domain, CC0), fetched in CI
 (`.github/workflows/godot-android.yml`) and merged into single meshes at load time. Thanks, Kenney.
 
+## KayKit Furniture Bits + Restaurant Bits — CC0 1.0
+The JAG House's current furniture, rugs, kitchen units and small props are real imported glTF meshes from
+[KayKit Furniture Bits 1.0](https://github.com/yuyou-dev/OpenHome3D/tree/main/public/models/kaykit-furniture) and
+[KayKit Restaurant Bits 1.0](https://github.com/yuyou-dev/OpenHome3D/tree/main/public/models/kaykit-restaurant),
+created/distributed by **Kay Lousberg**. Both packs explicitly permit personal, educational and commercial use under
+CC0 1.0; the pack notices are retained beside the models in `godot/assets/furniture/`. Credit Kay Lousberg and
+[KayKit](https://www.kaylousberg.com) (not required by CC0, but given here). The exact 39 bundled/used model files
+are recorded in `assets/manifest/kaykit-house.json` and emitted as batched MultiMeshes with simple collision proxies.
+
 ## MakeHuman base mesh — CC0
 Phase 2's generated humans used the MakeHuman CC0 base body (kept as variation tooling under `characters/`).
 
@@ -24,7 +33,7 @@ Phase 2's generated humans used the MakeHuman CC0 base body (kept as variation t
 
 ## Generated art
 Brand, UI, textures and key art in `art/src/` were produced for this project with image-generation tools and are
-part of the project. The JAG House expansion adds original honed-stone, smoked-oak, deep-green upholstery, and
-Lagos-lagoon artwork textures (`art/src/textures/interior_*.png`, `jag_house_art.png`), processed for the game by
-`tools/make_textures.py`. Its furnishings are original, low-poly 3D geometry built in Godot; the images are only
-used as material/decorative textures, not as substitute furniture meshes.
+part of the project. The JAG House uses original honed-stone, smoked-oak and Lagos-lagoon artwork textures
+(`art/src/textures/interior_*.png`, `jag_house_art.png`), processed by `tools/make_textures.py`. The building shell,
+trim and display panels are custom 3D geometry; furniture is supplied by the licensed glTF models above. Images
+are used only as material or wall-art textures, never as flat stand-ins for furniture.

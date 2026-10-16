@@ -13,8 +13,12 @@ func _ready() -> void:
 	var st: Dictionary = world.stats
 	print("stats: ", st)
 	if st.get("tris", 0) <= 0: fails.append("no geometry built")
-	if st.get("tris", 0) > 150000: fails.append("static tris %d over 150k budget" % st["tris"])
-	if st.get("surfaces", 0) > 40: fails.append("too many surfaces %d" % st["surfaces"])
+	if st.get("tris", 0) > 150000: fails.append("static + imported tris %d over 150k budget" % st["tris"])
+	if st.get("surfaces", 0) > 40: fails.append("too many batched city/house surfaces %d" % st["surfaces"])
+	if int(st.get("scene_assets", 0)) < 80: fails.append("expected >= 80 licensed 3D house props, got %d" % int(st.get("scene_assets", 0)))
+	if int(st.get("asset_mesh_groups", 0)) < 30: fails.append("too few imported furniture mesh groups: %d" % int(st.get("asset_mesh_groups", 0)))
+	if int(st.get("asset_errors", 0)) != 0: fails.append("failed to load %d imported furniture assets" % int(st.get("asset_errors", 0)))
+	if world.get_node_or_null("FurnitureAssets") == null: fails.append("missing imported 3D furniture scene")
 	if world.player == null: fails.append("no player")
 	else:
 		var local_spawn: Vector3 = world.player.global_position - Vector3(MansionBuilder.OX, MansionBuilder.OY, MansionBuilder.OZ)

@@ -1,0 +1,187 @@
+{
+  "game": "VORA CITY / JAG",
+  "use": "Furnished JAG House static environment props",
+  "license": "CC0-1.0",
+  "models": [
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/armchair-pillows.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/armchair.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/bed-double-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/bed-double-b.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/book-set.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/cabinet-medium-decorated.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/cabinet-small-decorated.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/cactus-medium-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/chair-a-wood.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/chair-b-wood.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/chair-stool-wood.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/couch-pillows.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/lamp-standing.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/lamp-table.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/pictureframe-large-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/pictureframe-medium.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/pillow-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/pillow-b.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/rug-rectangle-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/rug-rectangle-stripes-a.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/shelf-a-big.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/shelf-b-large-decorated.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/table-low.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/table-medium-long.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/table-medium.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-furniture/table-small.glb",
+      "pack": "kaykit-furniture"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/bowl.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/dishrack-plates.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/dishrack.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/fridge-a-decorated.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencabinet-corner.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencabinet-half.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencabinet.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencounter-innercorner.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencounter-sink.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchencounter-straight-a.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/kitchentable-a-large.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/plate.glb",
+      "pack": "kaykit-restaurant"
+    },
+    {
+      "path": "godot/assets/furniture/kaykit-restaurant/stove-multi-decorated.glb",
+      "pack": "kaykit-restaurant"
+    }
+  ],
+  "packs": [
+    {
+      "id": "kaykit-furniture",
+      "name": "KayKit Furniture Bits",
+      "version": "1.0",
+      "creator": "Kay Lousberg",
+      "license": "CC0-1.0",
+      "license_file": "godot/assets/furniture/kaykit-furniture/LICENSE.txt",
+      "source": "https://github.com/yuyou-dev/OpenHome3D/tree/main/public/models/kaykit-furniture",
+      "source_commit": "cb52afc00201b4b7ed90b24631e977112ba07869",
+      "license_sha256": "cd675f2adc31eb5fedaedc1072d8ddc27b917f523682f0561837c03dc56393cb"
+    },
+    {
+      "id": "kaykit-restaurant",
+      "name": "KayKit Restaurant Bits",
+      "version": "1.0",
+      "creator": "Kay Lousberg",
+      "license": "CC0-1.0",
+      "license_file": "godot/assets/furniture/kaykit-restaurant/LICENSE.txt",
+      "source": "https://github.com/yuyou-dev/OpenHome3D/tree/main/public/models/kaykit-restaurant",
+      "source_commit": "cb52afc00201b4b7ed90b24631e977112ba07869",
+      "license_sha256": "4da4ad3a3face68a71c11c8adc8e93017fdeb8fd67fcb0ca8286bd9c3dbbf674"
+    }
+  ]
+}

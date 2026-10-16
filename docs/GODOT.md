@@ -47,10 +47,12 @@ Probe scripts: `tools/godot-probes/`.
 
 ## Asset strategy
 
-* **Source assets are not committed.** `assets/manifest/*.json` lists what the game uses (Rocketbox avatars and
-  clips, CC0 packs, generated art); `tools/fetch_assets.py` downloads and pre-processes them (downscale to the
-  texture budget, strip unused clips) in CI (full internet) and, for small subsets, locally through the
-  tools-fetch proxy. Game-ready, compressed assets are produced by the Godot import step.
+* Large source libraries are not committed: `assets/manifest/rocketbox.json` lists the Rocketbox avatars/clips,
+  and `tools/fetch_assets.py` downloads and pre-processes them in CI. Kenney vehicles are fetched by the Android
+  workflow. The small selected KayKit CC0 house set is committed as game-ready glTF in
+  `godot/assets/furniture/`, with the pack license notices beside it and the exact model list in
+  `assets/manifest/kaykit-house.json`; Godot imports/compresses it for GLES3. Generated art sources remain under
+  `art/src/` and are processed by the project scripts.
 * **Generated art** (image tool): JAG mark, VORA CITY wordmark, adaptive icon, splash/loader, title key art,
   district loading cards, UI/phone icons, billboards, shop signs, posters, danfo liveries, dialogue portraits, and a
   60–100 tile seamless material library (concrete, plaster, corrugated roofing, pavers, laterite, asphalt, lagoon
@@ -84,9 +86,9 @@ Risks: CI screenshot pipeline (fallback: owner screenshots), GDScript crowd/traf
 server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 400 MB gate).
 
 
-## S0 build status (2026-10-16)
+## Last CI-verified S0 baseline (commit `905402b`; 2026-10-16)
 
-Verified by CI on the current home-expansion commit (Godot 4.7.2, Compatibility renderer):
+This is the pre-KayKit-furniture checkpoint, verified by CI with Godot 4.7.2 and the Compatibility renderer:
 
 - North Heights street block + JAG House estate/interior, 26 game-ready textures (no placeholders), day/night,
   12 Rocketbox mocap NPCs, 10 parked Kenney cars, and on-foot controls with kerb step.
@@ -105,27 +107,34 @@ Bugs found by the render loop (keep these in mind for new code):
 
 Open before S0 exit: the user's phone verdict (Perf screen -> "Copy report").
 
-## JAG House interior expansion (CI verified; owner phone test pending)
+## JAG House + full-game project status
 
-The S0 start now places the player in the North Heights foyer. The facade has a real entry opening with
-proximity-controlled, collidable double doors. The initial furnished pass includes a limestone floor, room
-partitions, a walkable stair, finished plaster ceilings, and 3D procedural furnishings for the living room,
-dining room, kitchen, family lounge, study, master bedroom, guest bedrooms and upstairs sitting room. New smoked-
-oak, deep-green upholstery, stone and Lagos-lagoon art textures are processed for GLES3; the images are material
-and wall-art textures, not substitutes for furniture meshes. All content remains on the existing JAG House
-plateau and city plan. This is an initial pass, not a finished/polished house: bathrooms, household schedules,
-interior lighting and additional interactions remain future work.
+The project is the full landscape-phone VORA CITY/JAG game; the house is only its current S0 entry slice, not the
+complete game. The approved city seed, six districts and layout are unchanged. The player starts in the North
+Heights foyer; the mansion has an open, proximity-controlled collidable double door, the established room plan,
+a walkable stair, finished plaster ceilings, custom wall art and the current exterior compound.
 
-CI run `38895000945` passed import, the full headless world smoke test, Android debug export and Lite render gate.
-The headless build reports 49,270 static triangles, 30 material surfaces, 864 collision shapes, 12 NPCs and 10
-cars. Lite's worst frame is 69 draw calls / 75,740 primitives, under its 120 / 150,000 gate. Screenshots were
-captured at 1280×720 with llvmpipe, not on a phone; the owner's 2 GB device performance and input test remain
-open. The [foyer](progress/jag-house-foyer-lite.png), [living room](progress/jag-house-living-lite.png) and
-[media wall](progress/jag-house-media-wall-lite.png) renders show the current S0 implementation.
+The current implementation replaces the prior box-built furniture pass with **39 actual KayKit CC0 glTF models
+and 90 placements** across the living room, dining room, kitchen, family lounge, study, entry, bedrooms and upstairs
+sitting room. Furniture is grouped into static MultiMeshes for mobile rendering and paired with simple collision
+proxies; source/license attribution is in `docs/CREDITS.md`, `assets/manifest/kaykit-house.json` and each pack's
+retained `LICENSE.txt`. This code change has passed a local Godot 4.7.2 headless load audit for all 39 models
+(0 asset-load errors; 79,928 static/imported triangles). The full project smoke test cannot pass in this sandbox
+because the large CI-fetched Rocketbox and Kenney assets are not present locally; CI verification for this change
+is pending. The prior CI evidence below is for the earlier box-furniture baseline, not this updated furniture
+implementation.
 
-The 128 m / 3×3 S1 streamer and multi-tile exporter remain an unverified opt-in draft; there is no S1 build or
-APK yet. After the house is checked on-device, the next spatial expansion is the Ridge Street approach and
-nearby North Heights block. The six-district city plan remains unchanged.
+That previous verified baseline (commit `905402b`, CI run `38895000945`) passed import, headless world test,
+Android debug export and the Lite render gate: 49,270 static triangles, 30 batched surfaces, 864 collision shapes,
+12 NPCs and 10 cars; Lite worst was 69 draw calls / 75,740 primitives. Its llvmpipe [foyer](progress/jag-house-foyer-lite.png),
+[living room](progress/jag-house-living-lite.png) and [media wall](progress/jag-house-media-wall-lite.png) shots
+are not evidence of the new asset pass or of phone performance.
+
+Bathrooms, interior lighting polish, household roles/schedules and deeper interaction systems remain unfinished.
+The 128 m / 3×3 S1 streamer and multi-tile exporter are still an unverified opt-in draft; there is no S1 build or
+APK yet. The next milestone is to verify this asset-backed house in CI, get the owner's 2 GB phone verdict, then
+expand the Ridge Street approach and North Heights block before progressing through city streaming, simulation,
+jobs/economy, wanted/arrest, story/persistence and multiplayer milestones.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,

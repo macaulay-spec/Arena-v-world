@@ -1,35 +1,37 @@
 # VORA CITY · by JAG
 
-**A landscape mobile open-world game set in Vora City** — the fictional West-African-inspired city built in this
-repository. Create your own protagonist, wake up in your mansion in North Heights, meet your household and walk out
-into a living city. Built in APK milestones; **APK 1 – "App + Home"** is the current build and is produced by GitHub
-Actions on every push (`Actions → Android APK → Artifacts`). See **[docs/GAME.md](docs/GAME.md)** for the game design,
-controls, architecture and road-map.
+**The deliverable is a full landscape-phone open-world game**, not a one-page demo. The project scope is the
+VORA CITY/JAG design: character creation, the owner's North Heights mansion as the start, a streamed six-district
+city, NPC life, vehicles, jobs/economy, missions, police pursuit/arrest, persistence, story/audio/UI, and planned
+16–32-player multiplayer. The district names, city plan and seed remain the existing ones. See
+[docs/GODOT.md](docs/GODOT.md) for the Godot implementation plan and actual milestone status.
 
-| | |
-|---|---|
-| ![title](docs/screenshots/game/title.png) *live title — the camera orbits your compound* | ![create](docs/screenshots/game/create.png) *character creation on the roof terrace* |
-| ![wake up](docs/screenshots/game/wake-up.png) *Day 1, 07:12 — wake up in the master bedroom* | ![landing](docs/screenshots/game/landing-stairs.png) *the landing and stairs* |
-| ![living room](docs/screenshots/game/living-room.png) *living room — housekeeper sweeping, a friend on the sofa* | ![dining](docs/screenshots/game/dining.png) *dining room — the steward* |
-| ![kitchen](docs/screenshots/game/kitchen.png) *kitchen* | ![forecourt](docs/screenshots/game/forecourt-fountain.png) *forecourt fountain and the owner's cars* |
-| ![gate](docs/screenshots/game/gate.png) *the gate, the gateman and the gatehouse* | ![carport](docs/screenshots/game/carport.png) *carport — Range Rover, G-Wagon, saloon, pickup, danfo, okada* |
-| ![pool](docs/screenshots/game/pool.png) *pool deck* | ![night pool](docs/screenshots/game/night-pool.png) *21:00 — pool lights, the city's windows come on* |
-| ![roof terrace](docs/screenshots/game/roof-terrace.png) *roof terrace at dusk* | ![street](docs/screenshots/game/street-outside.png) *outside the gate — Garden Terrace, North Heights* |
+> **Honest status (2026-10-16):** this is still an early **S0 proof slice**, not a complete game and not yet
+> verified on the owner's phone. The whole city is not streamed/playable yet, and major game systems below the
+> mansion slice are not implemented. The older web-game write-up at [docs/GAME.md](docs/GAME.md) is explicitly
+> archived; its feature checklist is not a claim about the current Godot build.
 
-```
-JAG logo → loading → live title → New game: create your character (look, body build/muscle, face shape) → wake up at home → explore
-```
+The Android runtime is **Godot 4.7.2 · Compatibility/GLES3**, landscape, with a 2 GB device target. CI builds debug
+APKs on pushes (`Actions → Godot Android APK → Artifacts`). The last fully CI-verified checkpoint before the
+current KayKit asset integration is commit `905402b`; the earlier APK is not phone-test evidence.
 
-* **Runs on any phone** — Lite / Standard / High presets (auto-detected), landscape, touch stick + buttons; also
-  playable in a desktop browser (`npm run dev`, WASD + mouse).
-* **Your home** — JAG House, 1 Ridge Street: two storeys, roof terrace, pool, fountain, gatehouse, carport, staff
-  quarters, generator house; working doors, sliders, fans, TVs, beds (sleep → next day), fridge (eat), wardrobes
-  (change outfit), the main gate and the generator ("Up NEPA").
-* **Your household** — gateman, security, driver, housekeeper, cook, gardener, steward, night guard, a friend and a
-  guest, cast from the Phase 2 population, each at their post doing their job; walk up and talk to them.
-* **HUD** — radar, ₦ cash, clock + day, health, place cards, interaction prompts; pause menu with save and settings.
-* **Android** — Capacitor shell (`android/`, `com.jag.voracity`), immersive landscape, JAG splash and icon; the debug
-  APK (~55 MB) is built by `.github/workflows/android.yml`.
+### Current Godot slice
+
+- A small North Heights block and the JAG House estate/interior, including the existing entrance, walkable stair,
+  room plan, day/night and on-foot controls; the house is the start of the game, not the game itself.
+- This project change replaces the earlier box-prop furniture pass with **39 licensed KayKit CC0 glTF models / 90
+  placements**, grouped into static MultiMeshes with collision proxies. The local Godot headless asset audit loaded
+  them with zero asset errors; **CI verification for this furniture change is pending**.
+- CI-fetched Rocketbox characters/mocap and Kenney vehicles are part of the build pipeline. The previous CI
+  checkpoint contained 12 NPCs and 10 parked cars; those are not a city-wide population or traffic simulation.
+- **Still missing:** Godot character creator, household schedules, usable/drivable vehicles, traffic routines,
+  jobs/economy, missions, police chase/arrest, save/persistence, story/audio, and multiplayer. The 128 m streamer is
+  an unverified draft, and the 2 GB phone test remains open.
+
+The next acceptance steps are CI import/test/Android export and Lite render-budget verification, then the owner's
+phone test. A headless CI build or screenshot is not a substitute for that device test. Full milestone scope and
+known unfinished work are in [docs/GODOT.md](docs/GODOT.md); third-party licences are tracked in
+[docs/CREDITS.md](docs/CREDITS.md).
 
 ---
 
