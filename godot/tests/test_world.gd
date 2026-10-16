@@ -7,14 +7,27 @@ func _ready() -> void:
 	var t0 := Time.get_ticks_msec()
 	var world := World.new()
 	add_child(world)
+	for frame in range(3):
+		await get_tree().physics_frame
+	await get_tree().create_timer(0.6).timeout
 	var st: Dictionary = world.stats
 	print("stats: ", st)
 	if st.get("tris", 0) <= 0: fails.append("no geometry built")
 	if st.get("tris", 0) > 150000: fails.append("static tris %d over 150k budget" % st["tris"])
 	if st.get("surfaces", 0) > 40: fails.append("too many surfaces %d" % st["surfaces"])
 	if world.player == null: fails.append("no player")
-	elif world.player.anim == null: fails.append("player has no AnimationPlayer (Rocketbox assets missing?)")
-	elif not world.player.anim.has_animation("rb/" + world.player.walk_clip): fails.append("walk clip missing: " + world.player.walk_clip)
+	else:
+		var local_spawn: Vector3 = world.player.global_position - Vector3(MansionBuilder.OX, MansionBuilder.OY, MansionBuilder.OZ)
+		if local_spawn.x < 27.0 or local_spawn.x > 39.0 or local_spawn.z < 39.0 or local_spawn.z > 44.0:
+			fails.append("player did not start inside JAG House foyer: %s" % str(local_spawn))
+		if world.front_door == null: fails.append("JAG House has no working front door")
+		elif not world.front_door.is_open: fails.append("front door did not auto-open for the starting player")
+		else:
+			var door_probe := KinematicCollision3D.new()
+			if world.player.test_move(world.player.global_transform, Vector3(0, 0, 2.5), door_probe):
+				fails.append("front-door opening blocked by %s at %s (normal %s)" % [str(door_probe.get_collider()), str(door_probe.get_position()), str(door_probe.get_normal())])
+		if world.player.anim == null: fails.append("player has no AnimationPlayer (Rocketbox assets missing?)")
+		elif not world.player.anim.has_animation("rb/" + world.player.walk_clip): fails.append("walk clip missing: " + world.player.walk_clip)
 	if world.npcs.size() < 10: fails.append("expected >= 10 NPCs, got %d" % world.npcs.size())
 	# NPC skinned tris budget
 	var npc_tris := 0

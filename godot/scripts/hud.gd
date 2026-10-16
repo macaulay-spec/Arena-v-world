@@ -143,7 +143,7 @@ func toast(msg: String) -> void:
 
 func _process(delta: float) -> void:
 	var q: String = Game.quality.get("label", "")
-	build_label.text = "VORA CITY  S0 · build %s · %s · %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), q, Game.clock_label()]
+	build_label.text = "VORA CITY · JAG HOUSE · S0 · build %s · %s · %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), q, Game.clock_label()]
 	short_label.text = Perf.short_line()
 	if _perf_visible:
 		perf_text.text = Perf.report()

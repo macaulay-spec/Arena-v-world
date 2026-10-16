@@ -1,7 +1,7 @@
 class_name MansionBuilder
 extends RefCounted
-## JAG House exterior (S0): compound wall + gate, the two-storey villa with glass fronts, entrance
-## canopy, pool deck, fountain drive, carport, staff quarters, hedges and palms — on the real plateau
+## JAG House estate: compound wall + gate, two-storey villa, enterable furnished interior, pool deck,
+## fountain drive, carport, staff quarters, hedges and palms — on the real North Heights plateau
 ## of landmark L-jag-house (local frame: X = x + 374.1, Z = z + 411.9, Y = y − 22.1; Z = 76 is the street).
 
 const OX := -374.1
@@ -28,6 +28,7 @@ func W(x: float, y: float, z: float) -> Vector3:
 func build() -> void:
 	_compound_wall()
 	_house()
+	MansionInterior.new(wb).build()
 	_grounds()
 	_staff_quarters()
 
@@ -104,6 +105,35 @@ func _compound_wall() -> void:
 
 
 # -------------------------------------------------------------- house
+func _add_local_collider(center: Vector3, size: Vector3, basis: Basis = Basis.IDENTITY) -> void:
+	wb.collision_boxes.append([Transform3D(basis, W(center.x, center.y, center.z)), size])
+
+
+## The original solid house-sized blocker kept the player outside. Replace it with the actual shell,
+## leaving the front entrance clear and retaining solid collision behind the glazed windows.
+func _add_house_shell_collisions() -> void:
+	var bottom := GF - 0.5
+	var top := RF
+	var h := top - bottom
+	var cy := (bottom + top) * 0.5
+	_add_local_collider(Vector3(33.0, cy, 20.0), Vector3(34.0, h, 0.28))
+	_add_local_collider(Vector3(16.0, cy, 32.0), Vector3(0.28, h, 24.0))
+	_add_local_collider(Vector3(50.0, cy, 32.0), Vector3(0.28, h, 24.0))
+	_add_local_collider(Vector3((16.0 + 31.2) * 0.5, cy, 44.0), Vector3(31.2 - 16.0, h, 0.28))
+	_add_local_collider(Vector3((34.8 + 50.0) * 0.5, cy, 44.0), Vector3(50.0 - 34.8, h, 0.28))
+	# lintel above the double-door opening in the main facade
+	var door_top := GF + 2.75
+	_add_local_collider(Vector3(33.0, (door_top + top) * 0.5, 44.0), Vector3(3.6, top - door_top, 0.28))
+	# projecting stone tower: jambs, side cheeks and upper lintel around the clear doorway
+	var tower_top := RF + 1.0
+	var tower_h := tower_top - bottom
+	_add_local_collider(Vector3((29.0 + 31.2) * 0.5, (bottom + tower_top) * 0.5, 44.5), Vector3(31.2 - 29.0, tower_h, 0.55))
+	_add_local_collider(Vector3((34.8 + 37.0) * 0.5, (bottom + tower_top) * 0.5, 44.5), Vector3(37.0 - 34.8, tower_h, 0.55))
+	_add_local_collider(Vector3(33.0, (door_top + tower_top) * 0.5, 44.5), Vector3(3.6, tower_top - door_top, 0.55))
+	_add_local_collider(Vector3(29.0, (bottom + tower_top) * 0.5, 44.25), Vector3(0.2, tower_h, 0.7))
+	_add_local_collider(Vector3(37.0, (bottom + tower_top) * 0.5, 44.25), Vector3(0.2, tower_h, 0.7))
+
+
 func _house() -> void:
 	var wall := wb.batch("mansion_wall")
 	var glass := wb.batch("mansion_glass")
@@ -116,14 +146,14 @@ func _house() -> void:
 	var h_top := RF + 0.6   # parapet top
 	# main volume (two floors) — walls with the glazed openings cut out, so the glass sits in real reveals
 	var wcol := Color(0.97, 0.96, 0.93)
-	var south_open := [[17.0, 27.0, GF + 0.3, F1 - 0.3], [17.0, 27.0, F1 + 0.3, RF - 0.5], [40.0, 49.0, GF + 0.3, F1 - 0.3], [40.0, 49.0, F1 + 0.3, RF - 0.5]]
+	var south_open := [[17.0, 27.0, GF + 0.3, F1 - 0.3], [17.0, 27.0, F1 + 0.3, RF - 0.5], [40.0, 49.0, GF + 0.3, F1 - 0.3], [40.0, 49.0, F1 + 0.3, RF - 0.5], [31.2, 34.8, GF - 0.1, GF + 2.75]]
 	var north_open := [[34.5, 47.5, GF + 0.2, F1 - 0.3], [18.0, 30.0, GF + 0.6, F1 - 0.4], [34.5, 47.5, F1 + 0.3, RF - 0.5]]
 	var side_open := [[22.0, 30.0, GF + 0.9, F1 - 0.5], [35.0, 41.0, GF + 0.9, F1 - 0.5], [22.0, 30.0, F1 + 0.9, RF - 0.6], [35.0, 41.0, F1 + 0.9, RF - 0.6]]
 	_facade(wall, 0, x0, x1, z1, GF - 0.5, RF, south_open, wcol)
 	_facade(wall, 2, x0, x1, z0, GF - 0.5, RF, north_open, wcol)
 	_facade(wall, 1, z0, z1, x1, GF - 0.5, RF, side_open, wcol)
 	_facade(wall, 3, z0, z1, x0, GF - 0.5, RF, side_open, wcol)
-	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W((x0 + x1) * 0.5, (GF - 0.5 + RF) * 0.5, (z0 + z1) * 0.5)), Vector3(x1 - x0, RF - GF + 0.5, z1 - z0)])
+	_add_house_shell_collisions()
 	# roof slab + parapet
 	slab.add_rect(W(x0, RF + 0.02, z1), W(x1, RF + 0.02, z1), W(x1, RF + 0.02, z0), W(x0, RF + 0.02, z0), 4.0, 4.0, Color(0.8, 0.8, 0.78))
 	_parapet(wall, x0, x1, z0, z1, RF, 0.6)
@@ -132,21 +162,19 @@ func _house() -> void:
 	slab.add_rect(W(26.85, RF + 3.02, 39.5), W(30.15, RF + 3.02, 39.5), W(30.15, RF + 3.02, 32.5), W(26.85, RF + 3.02, 32.5), 4.0, 4.0, Color(0.8, 0.8, 0.78))
 	# stone-clad entrance tower, proud of the facade (south face carries the door and a tall window)
 	var scol := Color(0.9, 0.86, 0.8)
-	_facade(stone, 0, 29.0, 37.0, z1 + 0.5, GF - 0.5, h_top + 0.4, [[30.0, 36.0, F1 + 0.4, RF - 0.4]], scol)
+	_facade(stone, 0, 29.0, 37.0, z1 + 0.5, GF - 0.5, h_top + 0.4, [[31.2, 34.8, GF - 0.1, GF + 2.75], [30.0, 36.0, F1 + 0.4, RF - 0.4]], scol)
 	_facade(stone, 1, z1 - 0.1, z1 + 0.5, 37.0, GF - 0.5, h_top + 0.4, [], scol)
 	_facade(stone, 3, z1 - 0.1, z1 + 0.5, 29.0, GF - 0.5, h_top + 0.4, [], scol)
 	_facade(stone, 2, 29.0, 37.0, z1 - 0.1, RF, h_top + 0.4, [], scol)
 	stone.add_rect(W(29.0, h_top + 0.4, z1 + 0.5), W(37.0, h_top + 0.4, z1 + 0.5), W(37.0, h_top + 0.4, z1 - 0.1), W(29.0, h_top + 0.4, z1 - 0.1), 2.0, 2.0, scol)
-	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(33.0, (GF - 0.5 + h_top + 0.4) * 0.5, z1 + 0.2)), Vector3(8.0, h_top + 0.9 - GF, 0.6)])
+	# The entrance tower colliders are split around the real doorway in _add_house_shell_collisions().
 	# glass: south facade (street side, z1), two floors
 	var zs := z1 + 0.03
 	for band: Array in [[17.0, 27.0], [40.0, 49.0]]:
 		_glass_quad(glass, band[0], band[1], zs, GF + 0.3, F1 - 0.3, 0)   # ground floor
 		_glass_quad(glass, band[0], band[1], zs, F1 + 0.3, RF - 0.5, 0)   # first floor
-	# entrance: double door recessed into the stone tower
+	# Entrance leaf is a real animated, collidable double door (MansionDoor), not a baked wall quad.
 	var wood := wb.batch("wood")
-	wood.add_quad(W(31.4, GF, z1 + 0.52), W(34.6, GF, z1 + 0.52), W(34.6, GF + 2.7, z1 + 0.52), W(31.4, GF + 2.7, z1 + 0.52),
-		Vector2(0, 1), Vector2(1.6, 1), Vector2(1.6, 0), Vector2(0, 0), Color(0.5, 0.35, 0.22))
 	_glass_quad(glass, 30.0, 36.0, z1 + 0.52, F1 + 0.4, RF - 0.4, 0)     # tower window
 	# canopy over the entrance on two columns
 	slab.add_box(W(33.0, 3.55, z1 + 2.4), Vector3(9.0, 0.3, 4.4), Basis.IDENTITY, 4.0, Color(0.9, 0.9, 0.88), true, true)
@@ -172,9 +200,14 @@ func _house() -> void:
 		_glass_quad(glass, 35.0, 41.0, x1 + 0.03, yy[0], yy[1], 1)
 		_glass_quad(glass, 22.0, 30.0, x0 - 0.03, yy[0], yy[1], 3)
 		_glass_quad(glass, 35.0, 41.0, x0 - 0.03, yy[0], yy[1], 3)
-	# floor slab bands (shadow lines) at first floor and roof
-	for yy: float in [F1, RF]:
-		slab.add_box(W((x0 + x1) * 0.5, yy, (z0 + z1) * 0.5), Vector3(x1 - x0 + 0.3, 0.22, z1 - z0 + 0.3), Basis.IDENTITY, 4.0, Color(0.92, 0.92, 0.9), true, true)
+	# first-floor exterior shadow band; keep its centre open so the interior stairwell is real.
+	var band_col := Color(0.92, 0.92, 0.9)
+	slab.add_box(W(33.0, F1, z0), Vector3(x1 - x0 + 0.3, 0.22, 0.3), Basis.IDENTITY, 4.0, band_col, true, true)
+	slab.add_box(W(33.0, F1, z1), Vector3(x1 - x0 + 0.3, 0.22, 0.3), Basis.IDENTITY, 4.0, band_col, true, true)
+	slab.add_box(W(x0, F1, 32.0), Vector3(0.3, 0.22, z1 - z0), Basis.IDENTITY, 4.0, band_col, true, true)
+	slab.add_box(W(x1, F1, 32.0), Vector3(0.3, 0.22, z1 - z0), Basis.IDENTITY, 4.0, band_col, true, true)
+	# roof slab at parapet height
+	slab.add_box(W((x0 + x1) * 0.5, RF, (z0 + z1) * 0.5), Vector3(x1 - x0 + 0.3, 0.22, z1 - z0 + 0.3), Basis.IDENTITY, 4.0, band_col, true, true)
 	# east balcony off the master suite, glass balustrade
 	slab.add_box(W(x1 + 1.0, F1 - 0.1, 30.0), Vector3(2.0, 0.25, 8.0), Basis.IDENTITY, 4.0, Color(0.9, 0.9, 0.88), true, true)
 	glass.add_quad(W(x1 + 1.98, F1, 26.0), W(x1 + 1.98, F1, 34.0), W(x1 + 1.98, F1 + 1.1, 34.0), W(x1 + 1.98, F1 + 1.1, 26.0),
@@ -440,6 +473,6 @@ func palm_world_positions() -> Array:
 
 
 func player_spawn() -> Transform3D:
-	# on the porch path, looking towards the gate (+Z local = south)
-	var pos := W(26.5, 0.2, 57.0)
-	return Transform3D(Basis(Vector3.UP, 0.0), pos)
+	# Start in the foyer just inside the double doors, looking out through the opened entrance.
+	var pos := W(33.0, GF + 0.03, 43.0)
+	return Transform3D(Basis(Vector3.UP, PI), pos)

@@ -22,7 +22,9 @@ TILES = {  # name: (size, seamless)
     "concrete_grid": (512, True), "compound_wall": (512, True), "mansion_glass": (256, True), "mansion_wall": (256, True),
     "roof_concrete": (256, True), "roof_metal": (256, True), "concrete": (256, True), "stone": (256, True),
     "wood": (256, True), "earth": (256, True),
+    "interior_floor": (512, True), "interior_oak": (512, True), "interior_fabric": (512, True),
 }
+ART_IMAGES = {"jag_house_art": (512, 384)}
 TREES = {"tree_palm": 512, "tree_broad": 512, "tree_neem": 512, "tree_small": 256}
 ALIASES = {"plaster_louvre": "plaster_win", "concrete_grid": "plaster_win2", "mansion_wall": "compound_wall"}
 
@@ -193,6 +195,27 @@ def main():
             made.append(name)
         else:
             placeholder(name, size).save(OUT / f"{name}.png", optimize=True)
+            placeholders.append(name)
+    for name, size in ART_IMAGES.items():
+        src = SRC / f"{name}.png"
+        if src.exists():
+            img = Image.open(src).convert("RGB")
+            target_w, target_h = size
+            # Center-crop to the canvas aspect ratio, then resize without stretching the artwork.
+            ratio = target_w / target_h
+            w, h = img.size
+            if w / h > ratio:
+                nw = int(h * ratio)
+                x0 = (w - nw) // 2
+                img = img.crop((x0, 0, x0 + nw, h))
+            else:
+                nh = int(w / ratio)
+                y0 = (h - nh) // 2
+                img = img.crop((0, y0, w, y0 + nh))
+            img.resize(size, Image.LANCZOS).save(OUT / f"{name}.png", optimize=True)
+            made.append(name)
+        else:
+            placeholder(name, size[0]).save(OUT / f"{name}.png", optimize=True)
             placeholders.append(name)
     for name, size in TREES.items():
         src = SRC / f"{name}_src.png"

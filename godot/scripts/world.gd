@@ -1,7 +1,7 @@
 class_name World
 extends Node3D
-## S0 world: the JAG House neighbourhood (North Heights) built from the city plan export,
-## sun/sky/day-night, the player, street NPCs with mocap, parked cars.
+## Vora City runtime: S0 proof neighborhood plus the opt-in S1 128 m streamed city ring,
+## sun/sky/day-night, the player, street NPCs with mocap and parked cars.
 
 signal built(stats: Dictionary)
 
@@ -11,7 +11,14 @@ const CAR_DIR := "res://assets/ext/kenney/car-kit/"
 
 var builder: WorldBuilder
 var mansion: MansionBuilder
+var front_door: MansionDoor
+var streamer: ChunkStreamer
 var player: Player
+var stream_ready := false
+var _stream_mode := false
+var _stream_initialized := false
+var city_routes: Array = []
+var car_nodes: Array[Node3D] = []
 var sun: DirectionalLight3D
 var env: Environment
 var sky_mat: ProceduralSkyMaterial
@@ -23,9 +30,22 @@ var skirt: MeshInstance3D
 var skirt_mesh: PlaneMesh
 var _night := -1.0
 var _light_timer := 0.0
+var _stream_t0 := 0
+var _mansion_tris := 0
+var _mansion_surfaces := 0
 
 
 func _ready() -> void:
+	if "--stream-city" in OS.get_cmdline_user_args():
+		_ready_streamed()
+	else:
+		_ready_s0()
+	Game.quality_changed.connect(_apply_quality)
+	_apply_quality(Game.quality)
+
+
+## The proven S0 baseline stays available for direct phone comparison (`--stream-city` opts into S1).
+func _ready_s0() -> void:
 	var t0 := Time.get_ticks_msec()
 	var chunk := WorldBuilder.load_chunk(CHUNK)
 	builder = WorldBuilder.new(chunk)
@@ -35,6 +55,7 @@ func _ready() -> void:
 	for p in mansion.palm_world_positions():
 		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
 	builder.emit(self)
+	_add_front_door()
 	_lighting()
 	_spawn_player()
 	_spawn_npcs()
@@ -43,10 +64,109 @@ func _ready() -> void:
 	stats["build_ms"] = Time.get_ticks_msec() - t0
 	stats["npcs"] = npcs.size()
 	stats["collision_shapes"] = builder.collision_boxes.size() + 1
+	stream_ready = true
 	print("World built: ", stats)
 	built.emit(stats)
-	Game.quality_changed.connect(_apply_quality)
+
+
+## S1 runtime: the mansion remains its own handcrafted overlay while the city planner streams 128 m tiles.
+func _ready_streamed() -> void:
+	var t0 := Time.get_ticks_msec()
+	_stream_t0 = t0
+	_stream_mode = true
+	builder = WorldBuilder.new(WorldBuilder.load_chunk(CHUNK))
+	mansion = MansionBuilder.new(builder)
+	mansion.build()
+	for p in mansion.palm_world_positions():
+		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
+	builder.emit(self, false)
+	_add_front_door()
+	_mansion_tris = int(builder.stats.get("tris", 0))
+	_mansion_surfaces = int(builder.stats.get("surfaces", 0))
+	_lighting()
+	_spawn_player()
+	player.set_physics_process(false) # don't let the avatar fall while the first 3×3 terrain ring loads
+	streamer = ChunkStreamer.new()
+	streamer.name = "ChunkStreamer"
+	streamer.region_ready.connect(_on_stream_region_ready)
+	streamer.center_changed.connect(_on_stream_center_changed)
+	add_child(streamer)
+	streamer.set_target(player)
+	stats = {"tris": builder.stats.get("tris", 0), "surfaces": builder.stats.get("surfaces", 0),
+		"buildings": 0, "trees": 0, "chunks": 0, "cars": 0, "npcs": 0,
+		"build_ms": Time.get_ticks_msec() - t0, "collision_shapes": builder.collision_boxes.size()}
+	print("S1 streaming started at ", ChunkStreamer.cell_for(player.global_position))
+
+
+func _add_front_door() -> void:
+	front_door = MansionDoor.new()
+	front_door.name = "FrontDoor"
+	front_door.position = mansion.W(33.0, MansionBuilder.GF, 44.52)
+	add_child(front_door)
+
+
+func _on_stream_center_changed(_center: Vector2i) -> void:
+	if not _stream_mode:
+		return
+	if _stream_initialized:
+		_clear_npcs()
+		for car in car_nodes:
+			if is_instance_valid(car):
+				car.queue_free()
+		car_nodes.clear()
+		city_routes.clear()
+	var nearest := streamer.nearest_builder(player.global_position) if streamer else null
+	if nearest != null:
+		builder = nearest
+
+
+func _on_stream_region_ready(center: Vector2i, loaded_count: int) -> void:
+	if not _stream_mode or streamer == null:
+		return
+	var nearest := streamer.nearest_builder(player.global_position)
+	if nearest != null:
+		builder = nearest
+	city_routes = streamer.sidewalk_paths()
+	if _stream_initialized:
+		_clear_npcs()
+	_spawn_npcs(player.global_position)
+	_spawn_cars()
+	player.set_physics_process(true)
+	stream_ready = true
+	_stream_initialized = true
+	_update_stream_stats(center, loaded_count)
 	_apply_quality(Game.quality)
+	print("S1 region ready: ", stats)
+	if int(stats.get("region_loads", 0)) == 0:
+		built.emit(stats)
+	stats["region_loads"] = int(stats.get("region_loads", 0)) + 1
+
+
+func _update_stream_stats(center: Vector2i, loaded_count: int) -> void:
+	var tris := _mansion_tris
+	var surfaces := _mansion_surfaces
+	var buildings := 0
+	var trees := 0
+	var collision_shapes := 1 # the custom mansion collision body
+	var nav_regions := 0
+	for chunk in streamer.loaded_builders():
+		tris += int(chunk.stats.get("tris", 0))
+		surfaces += int(chunk.stats.get("surfaces", 0))
+		buildings += int(chunk.stats.get("buildings", 0))
+		trees += int(chunk.stats.get("trees", 0))
+		collision_shapes += chunk.collision_boxes.size() + 1
+		nav_regions += 1 if not chunk.sidewalk_paths.is_empty() else 0
+	stats["tris"] = tris
+	stats["surfaces"] = surfaces
+	stats["buildings"] = buildings
+	stats["trees"] = trees
+	stats["chunks"] = loaded_count
+	stats["nav_regions"] = nav_regions
+	stats["collision_shapes"] = collision_shapes
+	stats["cars"] = car_nodes.size()
+	stats["npcs"] = npcs.size()
+	stats["build_ms"] = Time.get_ticks_msec() - _stream_t0
+	stats["center_chunk"] = "%d,%d" % [center.x, center.y]
 
 
 func _lighting() -> void:
@@ -100,7 +220,7 @@ func _lighting() -> void:
 	skirt.material_override = sm
 	skirt.position = Vector3(builder.origin.x + builder.nx * builder.grid * 0.5, 16.5, builder.origin.y + builder.nz * builder.grid * 0.5)
 	skirt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	if not Game.dbg("noskirt"):
+	if not _stream_mode and not Game.dbg("noskirt"):
 		add_child(skirt)
 	if Game.dbg("nofog"):
 		env.fog_enabled = false
@@ -139,7 +259,7 @@ func _apply_quality(q: Dictionary) -> void:
 
 func _process(_delta: float) -> void:
 	_update_sun(Game.day_fraction())
-	if skirt and player:
+	if skirt and player and not _stream_mode:
 		skirt.position.x = player.global_position.x
 		skirt.position.z = player.global_position.z
 
@@ -213,8 +333,12 @@ func _update_night_lights(n: float) -> void:
 		return
 	var pp := player.global_position
 	var lamps: Array = []
-	for lp in builder.lamp_positions:
-		lamps.append(lp)
+	if _stream_mode and streamer:
+		for lp in streamer.lamp_positions():
+			lamps.append(lp)
+	else:
+		for lp in builder.lamp_positions:
+			lamps.append(lp)
 	for lp in mansion.lights:
 		lamps.append(lp)
 	lamps.sort_custom(func(a, b): return a.distance_squared_to(pp) < b.distance_squared_to(pp))
@@ -239,24 +363,30 @@ func _spawn_player() -> void:
 		player.avatar_name = entry[0]["name"]
 	add_child(player)
 	player.global_transform = mansion.player_spawn()
-	player.yaw = 0.0
+	player.yaw = PI
+	player.cam_yaw.rotation.y = PI
+	player.model.rotation.y = PI
 
 
-func _spawn_npcs() -> void:
+func _spawn_npcs(center: Vector3 = GATE_WORLD) -> void:
 	var civs := Rocketbox.avatar_entries("civ")
 	if civs.is_empty():
 		return
-	var routes := builder.sidewalk_paths
-	# routes near the house first
+	var routes := _get_routes()
+	if routes.is_empty():
+		return
+	# Populate the loaded neighbourhood around the player; each route is planner-generated sidewalk geometry.
 	var near_routes := []
 	for r in routes:
+		if r.size() < 2:
+			continue
 		var mid: Vector3 = r[r.size() / 2]
-		if mid.distance_to(GATE_WORLD) < 140.0:
+		if mid.distance_to(center) < 140.0:
 			near_routes.append(r)
 	if near_routes.is_empty():
 		near_routes = routes
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 7
+	rng.seed = 7 + int(absf(center.x) * 17.0 + absf(center.z) * 31.0)
 	var ci := 0
 	# walkers
 	for i in range(7):
@@ -264,7 +394,7 @@ func _spawn_npcs() -> void:
 			break
 		var r: PackedVector3Array = near_routes[i % near_routes.size()]
 		var n := NPC.new()
-		n.setup(civs[ci % civs.size()]["name"], 100 + i)
+		n.setup(civs[ci % civs.size()]["name"], 100 + i + int(absf(center.x) * 3.0))
 		ci += 1
 		n.mode = "walk"
 		n.path = r
@@ -274,25 +404,35 @@ func _spawn_npcs() -> void:
 		add_child(n)
 		n.global_position = r[n.path_index] + Vector3(0, 0.1, 0)
 		npcs.append(n)
-	# talking pair near the gate on the sidewalk
-	var spot := _nearest_route_point(GATE_WORLD + Vector3(9, 0, 0))
+	# an animated conversation and phone user add life without a large crowd cost
+	var spot := _nearest_route_point(center + Vector3(9, 0, 0))
 	var a := _standing(civs[ci % civs.size()]["name"], spot + Vector3(-0.6, 0, 0), "gestic_talk", spot + Vector3(0.6, 0, 0))
 	ci += 1
-	var b := _standing(civs[ci % civs.size()]["name"], spot + Vector3(0.6, 0, 0), "gestic_listen", spot + Vector3(-0.6, 0, 0))
+	_standing(civs[ci % civs.size()]["name"], spot + Vector3(0.6, 0, 0), "gestic_listen", spot + Vector3(-0.6, 0, 0))
 	ci += 1
-	# phone caller further along
-	var spot2 := _nearest_route_point(GATE_WORLD + Vector3(-26, 0, 0))
+	var spot2 := _nearest_route_point(center + Vector3(-26, 0, 0))
 	_standing(civs[ci % civs.size()]["name"], spot2, "cell_phone", spot2 + Vector3(0, 0, 4))
-	# police officer at the street corner
+	# A police presence follows the player through the city; the household guard stays at JAG House.
 	var police := Rocketbox.avatar_entries("police")
 	if not police.is_empty():
-		var corner := _nearest_route_point(Vector3(-379.0, 22.0, -333.0))
+		var corner := _nearest_route_point(center + Vector3(-30, 0, -10))
 		_standing(police[0]["name"], corner, "idle_look", corner + Vector3(3, 0, -3))
-	# guard inside the gate
-	var guards := Rocketbox.avatar_entries("guard")
-	if not guards.is_empty():
-		var gpos := mansion.W(31.5, 0.1, 73.0)
-		_standing(guards[0]["name"], gpos, "idle", gpos + Vector3(-3, 0, 2))
+	if center.distance_to(GATE_WORLD) < 120.0:
+		var guards := Rocketbox.avatar_entries("guard")
+		if not guards.is_empty():
+			var gpos := mansion.W(31.5, 0.1, 73.0)
+			_standing(guards[0]["name"], gpos, "idle", gpos + Vector3(-3, 0, 2))
+
+
+func _get_routes() -> Array:
+	return city_routes if _stream_mode else builder.sidewalk_paths
+
+
+func _clear_npcs() -> void:
+	for n in npcs:
+		if is_instance_valid(n):
+			n.queue_free()
+	npcs.clear()
 
 
 func _standing(avatar: String, pos: Vector3, category: String, face: Vector3) -> NPC:
@@ -310,7 +450,7 @@ func _standing(avatar: String, pos: Vector3, category: String, face: Vector3) ->
 func _nearest_route_point(p: Vector3) -> Vector3:
 	var best := p
 	var bd := INF
-	for r in builder.sidewalk_paths:
+	for r in _get_routes():
 		for i in range(r.size() - 1):
 			var a: Vector3 = r[i]
 			var b: Vector3 = r[i + 1]
@@ -326,13 +466,18 @@ func _nearest_route_point(p: Vector3) -> Vector3:
 
 # ---------------------------------------------------------------- cars
 func _spawn_cars() -> void:
-	var dir := DirAccess.open(CAR_DIR)
-	if dir == null:
-		print("World: no car models at ", CAR_DIR, " (parked cars skipped)")
-		return
-	for f in dir.get_files():
-		if f.ends_with(".glb") or f.ends_with(".gltf"):
-			car_models.append(f)
+	for old_car in car_nodes:
+		if is_instance_valid(old_car):
+			old_car.queue_free()
+	car_nodes.clear()
+	if car_models.is_empty():
+		var dir := DirAccess.open(CAR_DIR)
+		if dir == null:
+			print("World: no car models at ", CAR_DIR, " (parked cars skipped)")
+			return
+		for f in dir.get_files():
+			if f.ends_with(".glb") or f.ends_with(".gltf"):
+				car_models.append(f)
 	if car_models.is_empty():
 		return
 	var rng := RandomNumberGenerator.new()
@@ -340,9 +485,10 @@ func _spawn_cars() -> void:
 	var pref := {"owner_suv": ["suv-luxury", "suv"], "owner_sedan": ["sedan-sports", "sedan", "race"],
 		"car": ["sedan", "hatchback-sports", "suv", "taxi", "van", "truck"], "minibus": ["van", "delivery"]}
 	var slots: Array = mansion.car_slots.duplicate()
-	# a handful of street cars near the house (budget: ≤ 10 cars in S0)
-	var street: Array = builder.car_slots.duplicate()
-	street.sort_custom(func(a, b): return a["pos"].distance_to(GATE_WORLD) < b["pos"].distance_to(GATE_WORLD))
+	# Keep a bounded set near the active 3×3 ring to avoid loading citywide vehicle meshes.
+	var street: Array = streamer.car_slots() if _stream_mode and streamer else builder.car_slots.duplicate()
+	var car_center := player.global_position if _stream_mode and player else GATE_WORLD
+	street.sort_custom(func(a, b): return a["pos"].distance_squared_to(car_center) < b["pos"].distance_squared_to(car_center))
 	for i in range(mini(8, street.size())):
 		slots.append(street[i])
 	var count := 0
@@ -374,6 +520,7 @@ func _spawn_cars() -> void:
 		holder.name = "Car_%d" % count
 		holder.add_child(inst)
 		add_child(holder)
+		car_nodes.append(holder)
 		# normalise length to real-world size
 		var aabb := _aabb_of(inst)
 		var length := maxf(aabb.size.x, aabb.size.z)

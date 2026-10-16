@@ -34,6 +34,10 @@ const DEFS := {
 	"tree_neem": [Color(0.28, 0.45, 0.2), 1.0, 1.0],
 	"tree_small": [Color(0.3, 0.48, 0.22), 1.0, 1.0],
 	"tank": [Color(0.1, 0.1, 0.1), 0.7, 1.0],
+	"interior_floor": [Color(0.73, 0.68, 0.59), 0.55, 4.0],
+	"interior_oak": [Color(0.28, 0.17, 0.1), 0.38, 2.5],
+	"interior_fabric": [Color(0.15, 0.23, 0.16), 0.92, 1.5],
+	"jag_house_art": [Color.WHITE, 0.85, 1.0],
 }
 
 static var _cache: Dictionary = {}

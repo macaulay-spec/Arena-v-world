@@ -34,6 +34,8 @@ func _ready() -> void:
 		{"name": "06_pool_terrace", "minutes": 10 * 60, "pos": M.call(50.0, 0.65, 9.0), "yaw": PI * 0.5 + 0.35, "pitch": -0.08},
 		{"name": "07_npc_closeup", "minutes": 17 * 60 + 50, "pos": Vector3(-333.5, 22.3, -332.6), "yaw": PI * 0.5, "pitch": -0.05},
 		{"name": "08_sunset_skyline", "minutes": 18 * 60 + 25, "pos": Vector3(-300.0, 0.0, -300.0), "yaw": PI * 0.62, "pitch": 0.06, "ground": true},
+		{"name": "09_jag_house_foyer", "minutes": 14 * 60, "pos": M.call(33.0, 0.35, 43.0), "yaw": PI, "pitch": -0.08, "door_open": true},
+		{"name": "10_jag_house_living", "minutes": 14 * 60, "pos": M.call(21.5, 0.4, 40.0), "yaw": 0.0, "pitch": -0.18},
 	]
 	# dev helpers: `--only=<name>` keeps one shot; `--shot=name,x,y,z,yaw,pitch,minutes` adds a custom view
 	for arg in OS.get_cmdline_user_args():
@@ -67,7 +69,7 @@ func _process(_delta: float) -> void:
 		_finish()
 		return
 	_apply(shots[index])
-	wait = 6   # frames to settle (shadows, fog, skinning)
+	wait = 28 if shots[index].get("door_open", false) else 6   # let the auto-swing finish before the foyer capture
 
 
 func _apply(s: Dictionary) -> void:
@@ -80,6 +82,8 @@ func _apply(s: Dictionary) -> void:
 	world.player.yaw = float(s["yaw"])
 	world.player.pitch = float(s["pitch"])
 	world.player.look_delta = Vector2.ZERO
+	if s.get("door_open", false) and world.front_door:
+		world.front_door.is_open = true
 	world._update_sun(Game.day_fraction())
 
 

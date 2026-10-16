@@ -70,7 +70,7 @@ func _build_title() -> void:
 	name.add_theme_constant_override("shadow_offset_y", 3)
 	vb.add_child(name)
 	var sub := Label.new()
-	sub.text = "a JAG game  ·  slice S0 proof  ·  build %s  ·  %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), str(Game.build.get("date", ""))]
+	sub.text = "a JAG game  ·  North Heights / JAG House  ·  S0 home expansion  ·  build %s  ·  %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), str(Game.build.get("date", ""))]
 	sub.add_theme_font_size_override("font_size", 16)
 	sub.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	vb.add_child(sub)

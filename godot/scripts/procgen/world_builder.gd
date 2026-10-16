@@ -466,8 +466,9 @@ func _build_lamps() -> void:
 
 
 # ---------------------------------------------------------------- emit
-## Builds MeshInstance3D nodes (one surface per material) + static collision under `parent`.
-func emit(parent: Node3D) -> void:
+## Builds batched mesh, per-chunk collision and a lightweight walkable navmesh under `parent`.
+## `include_terrain` is false for the custom JAG House overlay, which shares S0 height data but not its terrain.
+func emit(parent: Node3D, include_terrain: bool = true, include_navigation: bool = false) -> void:
 	var mesh := ArrayMesh.new()
 	var tris := 0
 	for name in batches.keys():
@@ -483,18 +484,19 @@ func emit(parent: Node3D) -> void:
 	parent.add_child(mi)
 	stats["tris"] = tris
 	stats["surfaces"] = mesh.get_surface_count()
-	# terrain collision
+	# one terrain heightfield + a compact compound of building/sidewalk/tree colliders per tile
 	var body := StaticBody3D.new()
 	body.name = "Collision"
-	var hm := HeightMapShape3D.new()
-	hm.map_width = nx
-	hm.map_depth = nz
-	hm.map_data = heights
-	var cs := CollisionShape3D.new()
-	cs.shape = hm
-	cs.position = Vector3(origin.x + (nx - 1) * grid * 0.5, 0.0, origin.y + (nz - 1) * grid * 0.5)
-	cs.scale = Vector3(grid, 1.0, grid)
-	body.add_child(cs)
+	if include_terrain:
+		var hm := HeightMapShape3D.new()
+		hm.map_width = nx
+		hm.map_depth = nz
+		hm.map_data = heights
+		var cs := CollisionShape3D.new()
+		cs.shape = hm
+		cs.position = Vector3(origin.x + (nx - 1) * grid * 0.5, 0.0, origin.y + (nz - 1) * grid * 0.5)
+		cs.scale = Vector3(grid, 1.0, grid)
+		body.add_child(cs)
 	for box in collision_boxes:
 		var shape := BoxShape3D.new()
 		shape.size = box[1]
@@ -503,3 +505,38 @@ func emit(parent: Node3D) -> void:
 		c.transform = box[0]
 		body.add_child(c)
 	parent.add_child(body)
+	if include_terrain and include_navigation and not sidewalk_paths.is_empty():
+		_add_navigation(parent)
+
+
+## Navigation polygons follow the same sidewalk centre-lines as the pedestrian planner. Tiles share
+## exact boundaries, so Godot connects the regions as they stream in and out.
+func _add_navigation(parent: Node3D) -> void:
+	var vertices := PackedVector3Array()
+	var polygons: Array[PackedInt32Array] = []
+	for path: PackedVector3Array in sidewalk_paths:
+		for i in range(path.size() - 1):
+			var a := path[i] + Vector3(0, 0.04, 0)
+			var b := path[i + 1] + Vector3(0, 0.04, 0)
+			var dir := Vector3(b.x - a.x, 0.0, b.z - a.z).normalized()
+			if dir.length_squared() < 0.0001:
+				continue
+			var side := Vector3(-dir.z, 0.0, dir.x) * 1.35
+			var base := vertices.size()
+			vertices.append_array(PackedVector3Array([a - side, b - side, b + side, a + side]))
+			polygons.append(PackedInt32Array([base, base + 1, base + 2, base + 3]))
+	if polygons.is_empty():
+		return
+	var nav := NavigationMesh.new()
+	nav.agent_radius = 0.3
+	nav.agent_height = 1.8
+	nav.cell_size = 0.2
+	nav.cell_height = 0.1
+	nav.vertices = vertices
+	for polygon in polygons:
+		nav.add_polygon(polygon)
+	var region := NavigationRegion3D.new()
+	region.name = "Navigation"
+	region.navigation_mesh = nav
+	region.navigation_layers = 1
+	parent.add_child(region)

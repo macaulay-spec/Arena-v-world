@@ -24,4 +24,7 @@ Phase 2's generated humans used the MakeHuman CC0 base body (kept as variation t
 
 ## Generated art
 Brand, UI, textures and key art in `art/src/` were produced for this project with image-generation tools and are
-part of the project.
+part of the project. The JAG House expansion adds original honed-stone, smoked-oak, deep-green upholstery, and
+Lagos-lagoon artwork textures (`art/src/textures/interior_*.png`, `jag_house_art.png`), processed for the game by
+`tools/make_textures.py`. Its furnishings are original, low-poly 3D geometry built in Godot; the images are only
+used as material/decorative textures, not as substitute furniture meshes.

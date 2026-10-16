@@ -71,9 +71,9 @@ Probe scripts: `tools/godot-probes/`.
 
 | Slice | Content | Exit test |
 |---|---|---|
-| **S0 Proof** | Godot project + CI APK, build card + perf report, one street block + mansion exterior (textured, lit), player on foot, 10 mocap Rocketbox NPCs, two parked cars, day/night | 30 fps steady, < 300 MB, "already looks better than APK 1" |
+| **S0 Proof** | Godot project + CI APK, build card + perf report, one street block, player/NPCs/owner cars/day-night; current expansion adds an enterable furnished JAG House foyer and main rooms | 30 fps steady, < 300 MB, "already looks better than APK 1" |
 | **S1 Streaming city** | full generator city as streamed chunks with façades, generated materials + signage, LODs, MultiMesh props, per-chunk collision + navmesh, radar/map, districts | all six districts on foot at 30 fps, flat memory |
-| **S2 Home** | JAG House rebuilt (modelled furniture, baked interior light, doors/stairs/pool), household with mocap + schedules, owner's cars, creator (Rocketbox base + variation) | every room and the compound without a collision complaint |
+| **S2 Home** | finish/polish all JAG House rooms and interior lighting, household roles + schedules, interactions, owner's cars, creator (Rocketbox base + variation) | every room and the compound without a collision complaint |
 | **S3 Alive** | pedestrian routines by role/district, traffic (lanes, junctions, danfo stops, okadas), animated world, ambient audio | busy Unity Boulevard at 30 fps |
 | **S4 Ride & earn** | arcade vehicles for touch, enter/exit, damage, fuel, money, shops, jobs, phone UI | a 10-minute delivery loop that is fun |
 | **S5 Wanted** | crimes, wanted levels, police on foot/cars, chase AI, arrest/escape/respawn, save slots | a chase that feels like a chase |
@@ -104,6 +104,20 @@ Bugs found by the render loop (keep these in mind for new code):
    that looked like a sky-shader bug. `tests/test_world.gd` now fails on any mesh larger than 12 m.
 
 Open before S0 exit: the user's phone verdict (Perf screen -> "Copy report").
+
+## JAG House interior expansion (working branch; product verification pending)
+
+The current working tree extends the S0 spawn into the North Heights house: a real foyer opening with proximity-
+controlled, collidable double doors; ground-floor limestone surfaces, room partitions, stairs and upper-floor slab;
+3D procedural furniture for the living room, dining room, kitchen, family lounge, study and master suite; and
+original smoked-oak, deep-green fabric, stone and lagoon-art textures. The house remains attached to the same
+JAG House plateau/city plan. This is an initial furnished pass, not a claim that every upstairs room is complete.
+
+Godot 4.7.2 `--editor --import --quit` parsed the project, and a headless world build reached 48,650 static
+triangles, 30 material surfaces and 852 collision shapes. The foyer spawn, proximity-open state and clear doorway
+probe also passed in the headless scene. The full smoke suite, rendered product captures, APK export and owner
+phone test are still pending; headless results are not product/render evidence. CI shots are configured for the
+foyer and living room so the first visual pass can be reviewed before the Ridge Street approach/block is added.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
