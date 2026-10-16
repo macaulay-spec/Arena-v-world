@@ -86,36 +86,26 @@ server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 
 
 ## S0 build status (2026-10-16)
 
-**Pipeline live.** Every push runs `.github/workflows/godot-android.yml`: fetch Rocketbox subset (sparse clone,
-textures → ≤512² PNG) + Kenney Car Kit → `--import` → bake mocap library → headless world test → **Android APK export**
-(`vora-city-<sha>-s0-debug.apk`, ~72 MB, artifact) → Xvfb/llvmpipe screenshots at 8 viewpoints × {Lite, Standard}
-→ `ci/evidence` branch + render report. **Gate:** the Lite preset (the 2 GB-phone preset) must stay ≤ 120 draw calls and
-≤ 150k primitives in every shot — first green run: worst 63 calls / 77k primitives.
+Done, verified on renders (local llvmpipe + CI evidence branch `ci/evidence`):
 
-What is in the S0 world (`godot/`):
-- The real North Heights block around JAG House, exported from the city plan (`tools/export_chunk.ts` → `assets/world/s0.json`,
-  260 × 260 m, 2 m heightmap, 26 road edges, 51 buildings / 62 masses, 474 props). Terrain is flattened under roads and on the plateau.
-- Roads with kerbs + paver sidewalks (sidewalks trimmed at junctions), buildings extruded from their footprints with the plan's
-  façade tile/colour, hip/gable/shed/flat roofs with overhangs, plinths buried into the slope, rooftop tanks; palms / trees as
-  alpha-scissor cutouts; lamp posts; parked Kenney cars merged to one mesh each. Whole block = 26 surfaces, ~44k triangles,
-  builds in ~0.3 s.
-- JAG House exterior: compound wall with coping + hedges, stone gate piers with an open steel gate, two-storey white villa with
-  recessed glass openings, stone entrance tower, canopy on columns, steps, balconies with glass balustrades, slab bands, roof
-  pergola + stair bulkhead, pool terrace with loungers, fountain drive circle, carport with the owner's two cars, bollard lights,
-  staff quarters, generator shed, palms along the drive.
-- Sun/sky/day–night tuned for Lagos (sunrise 06:30, sunset 18:45), AgX tonemap, aerial-perspective fog; after dark: emissive
-  lamps/windows + up to 3 (Lite) / 5 / 6 pooled OmniLights that follow the player.
-- Player: Rocketbox `Male_Adult_01`, third-person SpringArm camera, touch stick + look drag + RUN/JUMP, walk 1.40 m/s and run
-  3.07 m/s taken from the clips' root motion (no foot sliding). 12 NPCs: 7 walkers on sidewalk routes, a talking pair at the gate,
-  a phone caller, a police officer at the corner, the gate guard — 20 baked clips, animation paused beyond 70 m.
-- Build card + Perf screen (fps, p10, frame ms, draw calls, primitives, RAM/VRAM, device/GPU, budget verdict, "Copy report",
-  quality presets, time-of-day buttons).
+- Street block + mansion exterior, generated textures (22, no placeholders), day/night cycle,
+  Rocketbox mocap NPCs (12), parked cars (Kenney Car Kit, 10), on-foot controls with kerb step.
+- Title key art `godot/ui/title.png` (source `art/src/brand/title-key-art.png`).
+- CI Lite preset (2 GB phones): worst 59 draw calls / 70.9k primitives — inside the budget gate
+  (<=120 calls, <=150k prims). Standard preset is reported only (158 calls / 208k).
+- APK per commit: `vora-city-<sha>-s0-debug.apk` (~72 MB) in the workflow run artifacts.
 
-All 22 material tiles / tree cutouts are now generated art (`art/src/textures` → `tools/make_textures.py`); no
-procedural placeholders remain. Still open before S0 exit: title key art (`godot/ui/title.png`), and the phone test itself.
+Bugs found by the render loop (keep these in mind for new code):
 
-Local off-screen rendering (fast loop, ~5 s per view): the CI job `tools-xroot.yml` exports a Debian user-space tree with
-Xvfb + Mesa to the branch `tools/xroot-*`; unpack it, start `Xvfb :99 -screen 0 1280x720x24`, then
-`DISPLAY=:99 LIBGL_ALWAYS_SOFTWARE=1 godot --path godot --rendering-driver opengl3 -- --shots=/tmp/shots --quality=standard --only=03`
-(`--shot=name,x,y,z,yaw,pitch,minutes` adds a custom view). Debian 12's Mesa 22.3 mis-renders the Godot sky (white sheets);
-use the Debian 13 tree for faithful skies.
+1. Godot front faces are **clockwise** when seen from the front; all MeshBatch helpers take
+   points counter-clockwise and flip internally. New geometry: a->b->c->d CCW from the front.
+2. `Node.find_children()` never returns the node itself — `_aabb_of()` on a single MeshInstance3D
+   returned an empty AABB, so merged cars were scaled 460x and became "white sheets in the sky"
+   that looked like a sky-shader bug. `tests/test_world.gd` now fails on any mesh larger than 12 m.
+
+Open before S0 exit: the user's phone verdict (Perf screen -> "Copy report").
+
+Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
+(`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
+`--dbg=noskirt,nofog,defaultsky,nosky`.
+
