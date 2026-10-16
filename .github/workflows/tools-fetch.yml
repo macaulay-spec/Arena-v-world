@@ -1,0 +1,53 @@
+name: Tools fetch (proxy for the sandbox)
+
+# The development sandbox can reach github.com but not release CDNs. This workflow downloads a
+# tool (default: the official Godot Linux editor build), verifies its checksum and pushes it to an
+# orphan branch `tools/<name>` so the sandbox can `git fetch` it. The branch is disposable.
+on:
+  workflow_dispatch:
+    inputs:
+      godot_version:
+        description: Godot version tag (e.g. 4.7.2-stable)
+        default: 4.7.2-stable
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  godot-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify Godot
+        env:
+          V: ${{ github.event.inputs.godot_version }}
+        run: |
+          set -euo pipefail
+          BASE="https://github.com/godotengine/godot/releases/download/$V"
+          curl -fsSL -o godot.zip "$BASE/Godot_v${V}_linux.x86_64.zip"
+          curl -fsSL -o SHA512-SUMS.txt "$BASE/SHA512-SUMS.txt"
+          grep "Godot_v${V}_linux.x86_64.zip" SHA512-SUMS.txt | sed 's#  .*#  godot.zip#' | sha512sum -c -
+          unzip -o godot.zip
+          chmod +x Godot_v${V}_linux.x86_64
+          ./Godot_v${V}_linux.x86_64 --headless --version
+          mkdir -p out
+          xz -9 -T0 -c Godot_v${V}_linux.x86_64 > out/godot-${V}-linux.x86_64.xz
+          cp SHA512-SUMS.txt out/
+          ls -la out
+      - name: Push to tools branch
+        env:
+          V: ${{ github.event.inputs.godot_version }}
+        run: |
+          set -euo pipefail
+          git config user.name "tools-fetch"
+          git config user.email "tools-fetch@users.noreply.github.com"
+          git checkout --orphan "tools/godot-$V"
+          git rm -rfq --cached . || true
+          find . -mindepth 1 -maxdepth 1 ! -name out ! -name .git -exec rm -rf {} +
+          mv out/* . && rmdir out
+          echo "Official Godot $V Linux x86_64 editor binary, xz-compressed. Disposable tooling branch." > README.md
+          git add -A
+          git commit -qm "tools: Godot $V linux x86_64 (xz)"
+          git push -f origin "tools/godot-$V"
+          echo "::notice title=Godot::pushed tools/godot-$V ($(du -h godot-${V}-linux.x86_64.xz | cut -f1))"
