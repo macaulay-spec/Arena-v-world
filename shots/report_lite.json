@@ -1,0 +1,137 @@
+{
+	"budget_ok": true,
+	"build": {
+		"commit": "d6d852ff1caf9dc15a51550f2f782c3590da48ea",
+		"date": "2026-10-16T20:10Z",
+		"run": "38960278865",
+		"slice": "S0"
+	},
+	"device": [
+		"device: GenericDevice (Linux 24.04)",
+		"cpu: AMD EPYC 7763 64-Core Processor x4",
+		"ram: 15.6 GB physical",
+		"gpu: llvmpipe (LLVM 20.1.2, 256 bits) / Mesa",
+		"api: opengl3 4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+		"window: 1280x720  render scale 0.75  dpi 96"
+	],
+	"quality": "lite",
+	"shots": [
+		{
+			"draw_calls": 71,
+			"minutes": 1050,
+			"name": "01_porch_spawn",
+			"objects": 530,
+			"primitives": 69479,
+			"static_mem_mb": 97.7565126419067,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 71,
+			"minutes": 1050,
+			"name": "02_gate_to_house",
+			"objects": 530,
+			"primitives": 73831,
+			"static_mem_mb": 97.7575922012329,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 55,
+			"minutes": 990,
+			"name": "03_street_garden_terrace",
+			"objects": 514,
+			"primitives": 54154,
+			"static_mem_mb": 97.7586259841919,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 117,
+			"minutes": 750,
+			"name": "04_ridge_street_downhill",
+			"objects": 576,
+			"primitives": 85941,
+			"static_mem_mb": 97.7610521316528,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 68,
+			"minutes": 1275,
+			"name": "05_mansion_night",
+			"objects": 530,
+			"primitives": 68820,
+			"static_mem_mb": 97.7972078323364,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 55,
+			"minutes": 600,
+			"name": "06_pool_terrace",
+			"objects": 517,
+			"primitives": 54160,
+			"static_mem_mb": 97.7988290786743,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 64,
+			"minutes": 1070,
+			"name": "07_npc_closeup",
+			"objects": 523,
+			"primitives": 68444,
+			"static_mem_mb": 97.8082437515259,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 56,
+			"minutes": 1105,
+			"name": "08_sunset_skyline",
+			"objects": 515,
+			"primitives": 56186,
+			"static_mem_mb": 97.8091249465942,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 113,
+			"minutes": 840,
+			"name": "09_jag_house_foyer",
+			"objects": 641,
+			"primitives": 83218,
+			"static_mem_mb": 97.8196573257446,
+			"video_mem_mb": 90.5927181243896
+		},
+		{
+			"draw_calls": 99,
+			"minutes": 840,
+			"name": "10_jag_house_living",
+			"objects": 558,
+			"primitives": 81663,
+			"static_mem_mb": 97.8113069534302,
+			"video_mem_mb": 90.5897197723389
+		},
+		{
+			"draw_calls": 75,
+			"minutes": 840,
+			"name": "11_jag_house_media_wall",
+			"objects": 534,
+			"primitives": 55840,
+			"static_mem_mb": 97.8121347427368,
+			"video_mem_mb": 90.5897197723389
+		}
+	],
+	"world": {
+		"asset_errors": 0,
+		"asset_mesh_groups": 39,
+		"asset_surfaces": 92,
+		"asset_tris": 32904,
+		"build_ms": 326,
+		"buildings": 51,
+		"cars": 10,
+		"collision_shapes": 873,
+		"npcs": 14,
+		"scene_assets": 90,
+		"static_tris": 46982,
+		"surfaces": 29,
+		"trees": 268,
+		"tris": 79886
+	},
+	"worst_draw_calls": 117,
+	"worst_primitives": 85941
+}

@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+World built: { "tris": 79886, "surfaces": 29, "buildings": 51, "trees": 268, "static_tris": 46982, "scene_assets": 90, "asset_tris": 32904, "asset_surfaces": 92, "asset_errors": 0, "asset_mesh_groups": 39, "cars": 10, "build_ms": 278, "npcs": 14, "collision_shapes": 873 }
+stats: { "tris": 79886, "surfaces": 29, "buildings": 51, "trees": 268, "static_tris": 46982, "scene_assets": 90, "asset_tris": 32904, "asset_surfaces": 92, "asset_errors": 0, "asset_mesh_groups": 39, "cars": 10, "build_ms": 278, "npcs": 14, "collision_shapes": 873 }
+npc tris total: 117672 over 14 npcs
+build+checks 730 ms
+TEST OK
