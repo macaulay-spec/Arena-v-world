@@ -100,7 +100,16 @@ func _lighting() -> void:
 	skirt.material_override = sm
 	skirt.position = Vector3(builder.origin.x + builder.nx * builder.grid * 0.5, 16.5, builder.origin.y + builder.nz * builder.grid * 0.5)
 	skirt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(skirt)
+	if not Game.dbg("noskirt"):
+		add_child(skirt)
+	if Game.dbg("nofog"):
+		env.fog_enabled = false
+	if Game.dbg("defaultsky"):
+		sky_mat = ProceduralSkyMaterial.new()
+		sky.sky_material = sky_mat
+	if Game.dbg("nosky"):
+		env.background_mode = Environment.BG_COLOR
+		env.background_color = Color(0.5, 0.7, 1.0)
 	# pooled street lights (moved to the lamps nearest the player after dark)
 	for i in range(6):
 		var l := OmniLight3D.new()
@@ -353,7 +362,13 @@ func _spawn_cars() -> void:
 		if ps == null:
 			continue
 		var raw: Node3D = ps.instantiate()
-		var inst := _merge_static(raw)   # one MeshInstance3D per car instead of 8-12 parts
+		var palette: Array = [Color(0.92, 0.92, 0.9), Color(0.1, 0.1, 0.12), Color(0.55, 0.57, 0.6), Color(0.45, 0.08, 0.08), Color(0.08, 0.14, 0.32), Color(0.2, 0.2, 0.22), Color(0.75, 0.72, 0.65)]
+		var body_col: Color = palette[count % palette.size()]
+		if s["kind"] == "owner_suv":
+			body_col = Color(0.08, 0.08, 0.09)
+		elif s["kind"] == "owner_sedan":
+			body_col = Color(0.9, 0.9, 0.88)
+		var inst := _merge_static(raw, body_col)   # one MeshInstance3D per car instead of 8-12 parts
 		raw.free()
 		var holder := Node3D.new()
 		holder.name = "Car_%d" % count
@@ -385,7 +400,8 @@ func _spawn_cars() -> void:
 
 
 ## Flattens all MeshInstance3D parts of an imported scene into one mesh (one surface per material).
-func _merge_static(src: Node3D) -> Node3D:
+## Materials without an albedo texture (e.g. a kit whose shared colormap is missing) get `fallback_col`.
+func _merge_static(src: Node3D, fallback_col: Color = Color.WHITE) -> Node3D:
 	var by_mat: Dictionary = {}
 	for mi in src.find_children("*", "MeshInstance3D", true, false):
 		var m: MeshInstance3D = mi
@@ -415,6 +431,8 @@ func _merge_static(src: Node3D) -> Node3D:
 			bm.roughness = 0.35
 			bm.metallic = 0.25
 			bm.metallic_specular = 0.6
+			if bm.albedo_texture == null and fallback_col != Color.WHITE:
+				bm.albedo_color = fallback_col
 			mat = bm
 		mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
 	var out := MeshInstance3D.new()
@@ -426,10 +444,20 @@ func _merge_static(src: Node3D) -> Node3D:
 func _aabb_of(n: Node3D) -> AABB:
 	var out := AABB()
 	var first := true
-	for mi in n.find_children("*", "MeshInstance3D", true, false):
+	var parts: Array = n.find_children("*", "MeshInstance3D", true, false)
+	if n is MeshInstance3D:
+		parts.append(n)   # find_children never returns the node itself
+	for mi in parts:
 		var a: AABB = (mi as MeshInstance3D).get_aabb()
+		if mi == n:
+			if first:
+				out = a
+				first = false
+			else:
+				out = out.merge(a)
+			continue
 		a = (mi as Node3D).transform * a
-		var p := mi.get_parent()
+		var p: Node = mi.get_parent()
 		while p != n and p is Node3D:
 			a = (p as Node3D).transform * a
 			p = p.get_parent()

@@ -35,6 +35,14 @@ func _ready() -> void:
 	_apply_quality()
 
 
+## Debug switches from the command line: `-- --dbg=noskirt,nofog` (dev / CI diagnosis only).
+static func dbg(flag: String) -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--dbg="):
+			return flag in a.substr(6).split(",")
+	return false
+
+
 func _process(delta: float) -> void:
 	if not paused:
 		minutes = fmod(minutes + delta * clock_speed, 24.0 * 60.0)

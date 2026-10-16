@@ -25,6 +25,13 @@ func _ready() -> void:
 				npc_tris += m.surface_get_arrays(s)[Mesh.ARRAY_INDEX].size() / 3
 	print("npc tris total: ", npc_tris, " over ", world.npcs.size(), " npcs")
 	if world.npcs.size() > 0 and npc_tris / world.npcs.size() > 9000: fails.append("NPC average tris too high")
+	# every placed object must have a sane world size (a 460x car once filled the sky)
+	for mi in world.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null or mi == world.skirt or mi.name == "Chunk":
+			continue
+		var wsz: Vector3 = ((mi as MeshInstance3D).global_transform * (mi as MeshInstance3D).get_aabb()).size
+		if maxf(wsz.x, maxf(wsz.y, wsz.z)) > 12.0:
+			fails.append("oversized mesh %s: %s" % [mi.get_path(), str(wsz)])
 	# spawn on the plateau
 	var p := world.player.global_position
 	if absf(p.y - 22.3) > 0.5: fails.append("player spawn y %.2f not on plateau" % p.y)
