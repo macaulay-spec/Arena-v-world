@@ -1,8 +1,11 @@
 name: Tools fetch — X11/Mesa root for the sandbox
 
-# Builds a Debian 12 user-space tree (Xvfb + Mesa llvmpipe + X11 client libs) so the sandbox can run
-# Godot off-screen for screenshots. Trigger: push a new tag to tools/fetch/xroot.txt.
-# Result: orphan branch tools/xroot-bookworm with xroot.tar.xz.partNN (≤ 90 MB each) + SHA256.txt.
+# Exports a Debian 13 root (Xvfb + Mesa 25 llvmpipe + X11 client libs) so the sandbox can run Godot
+# off-screen for screenshots with a current Mesa (Debian 12's Mesa 22.3 mis-renders the Godot sky).
+# Trigger: push a new tag to tools/fetch/xroot.txt.
+# Result: orphan branch tools/xroot-trixie with xroot.tar.xz.partNN (≤ 90 MB each) + SHA256.txt.
+# Use: extract to $R, then run binaries through the tree's own loader:
+#   $R/lib64/ld-linux-x86-64.so.2 --library-path $R/lib/x86_64-linux-gnu:$R/usr/lib/x86_64-linux-gnu <binary>
 
 on:
   push:
@@ -18,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Collect Debian 12 packages inside docker
+      - name: Build a Debian 13 user-space tree inside docker and export it
         run: |
           set -euo pipefail
           mkdir -p /tmp/out
@@ -26,29 +29,21 @@ jobs:
           set -eu
           export DEBIAN_FRONTEND=noninteractive
           apt-get update -qq
-          apt-get install -y -qq --no-install-recommends xz-utils > /dev/null
-          dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt
           apt-get install -y -qq --no-install-recommends \
             xvfb xauth x11-xkb-utils xkb-data \
             libgl1 libglx-mesa0 libgl1-mesa-dri libegl1 libegl-mesa0 libgbm1 libglapi-mesa \
             libx11-6 libx11-xcb1 libxcursor1 libxinerama1 libxrandr2 libxi6 libxext6 libxrender1 libxfixes3 libxxf86vm1 libxkbcommon0 \
-            libasound2 libpulse0 libdbus-1-3 libfontconfig1 fonts-dejavu-core > /dev/null
-          dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt
-          comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt
-          echo "new packages: $(wc -l < /tmp/new.txt)"
-          mkdir -p /tmp/xroot
-          while read -r p; do
-            dpkg -L "$p" | while read -r f; do
-              if [ -f "$f" ] || [ -L "$f" ]; then mkdir -p "/tmp/xroot$(dirname "$f")"; cp -a "$f" "/tmp/xroot$f" 2>/dev/null || true; fi
-            done
-          done < /tmp/new.txt
-          du -sh /tmp/xroot
-          tar -C /tmp/xroot -cf - . | xz -6 -T0 > /out/xroot.tar.xz
-          cd /out && split -b 90m -d xroot.tar.xz xroot.tar.xz.part && rm xroot.tar.xz
-          sha256sum xroot.tar.xz.part* > SHA256.txt
-          ls -la /out
+            libasound2t64 libpulse0 libdbus-1-3 libfontconfig1 fonts-dejavu-core ca-certificates > /dev/null
+          echo "mesa: $(dpkg-query -W -f='${Version}' libgl1-mesa-dri)"
+          apt-get clean
+          rm -rf /var/lib/apt/lists/* /var/cache/* /usr/share/doc /usr/share/man /usr/share/locale /usr/share/info
           EOS
-          docker run --rm -v /tmp/out:/out -v /tmp/collect.sh:/collect.sh:ro debian:12 bash /collect.sh
+          docker run --name xroot -v /tmp/collect.sh:/collect.sh:ro debian:13 bash /collect.sh
+          docker export xroot | xz -6 -T0 > /tmp/out/xroot.tar.xz
+          docker rm xroot > /dev/null
+          cd /tmp/out && split -b 90m -d xroot.tar.xz xroot.tar.xz.part && rm xroot.tar.xz
+          sha256sum xroot.tar.xz.part* > SHA256.txt
+          ls -la /tmp/out
           echo "::notice title=xroot::$(ls /tmp/out | tr '\n' ' ') ($(du -ch /tmp/out/xroot.tar.xz.part* | tail -1 | cut -f1))"
 
       - name: Push to tools branch
@@ -60,10 +55,10 @@ jobs:
           git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/repo
           cd /tmp/repo
           git config user.name "tools-fetch"; git config user.email "tools-fetch@users.noreply.github.com"
-          git checkout -q --orphan tools/xroot-bookworm
+          git checkout -q --orphan tools/xroot-trixie
           git rm -rfq --cached . || true
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp /tmp/out/* .
-          echo "Debian 12 user-space tree: Xvfb + Mesa (llvmpipe) + X11 client libs for off-screen Godot rendering in the sandbox. Disposable." > README.md
-          git add -A && git commit -qm "tools: xroot bookworm (Xvfb + Mesa)" && git push -f origin tools/xroot-bookworm
-          echo "::notice title=xroot::pushed tools/xroot-bookworm"
+          echo "Debian 13 root filesystem export (Xvfb + Mesa llvmpipe + X11 client libs). Run Godot through this tree's ld.so for off-screen rendering in the sandbox. Disposable." > README.md
+          git add -A && git commit -qm "tools: xroot trixie (Xvfb + Mesa 25)" && git push -f origin tools/xroot-trixie
+          echo "::notice title=xroot::pushed tools/xroot-trixie"
