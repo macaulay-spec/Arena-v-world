@@ -12,26 +12,28 @@ city, NPC life, vehicles, jobs/economy, missions, police pursuit/arrest, persist
 > archived; its feature checklist is not a claim about the current Godot build.
 
 The Android runtime is **Godot 4.7.2 · Compatibility/GLES3**, landscape, with a 2 GB device target. CI builds debug
-APKs on pushes (`Actions → Godot Android APK → Artifacts`). The last fully CI-verified checkpoint before the
-current KayKit asset integration is commit `905402b`; the earlier APK is not phone-test evidence.
+APKs on pushes (`Actions → Godot Android APK → Artifacts`). Commit `d25a7c3` passed CI; its debug APK is
+[`vora-city-d25a7c3-s0-debug.apk`](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38938258611). The
+headless render counters pass the Lite budget; **the owner's phone test is still outstanding**.
 
 ### Current Godot slice
 
 - A small North Heights block and the JAG House estate/interior, including the existing entrance, walkable stair,
   room plan, day/night and on-foot controls; the house is the start of the game, not the game itself.
-- This project change replaces the earlier box-prop furniture pass with **39 licensed KayKit CC0 glTF models / 90
-  placements**, grouped into static MultiMeshes with collision proxies. The local Godot headless asset audit loaded
-  them with zero asset errors; **CI verification for this furniture change is pending**.
+- The earlier box-prop furniture pass is replaced with **39 licensed KayKit CC0 glTF models / 90 placements**,
+  grouped into static MultiMeshes with collision proxies. CI loaded all assets with zero errors and passed the world
+  smoke test. The first set is intentionally low-poly/stylized and still needs visual and on-device review; it is not
+  a claim that the mansion art pass is finished.
 - CI-fetched Rocketbox characters/mocap and Kenney vehicles are part of the build pipeline. The previous CI
   checkpoint contained 12 NPCs and 10 parked cars; those are not a city-wide population or traffic simulation.
 - **Still missing:** Godot character creator, household schedules, usable/drivable vehicles, traffic routines,
   jobs/economy, missions, police chase/arrest, save/persistence, story/audio, and multiplayer. The 128 m streamer is
   an unverified draft, and the 2 GB phone test remains open.
 
-The next acceptance steps are CI import/test/Android export and Lite render-budget verification, then the owner's
-phone test. A headless CI build or screenshot is not a substitute for that device test. Full milestone scope and
-known unfinished work are in [docs/GODOT.md](docs/GODOT.md); third-party licences are tracked in
-[docs/CREDITS.md](docs/CREDITS.md).
+The next acceptance step is the owner's phone test of that APK; a headless CI build or screenshot is not a
+substitute. CI's Lite worst case is 108 draw calls / 84.7k primitives (within 120 / 150k); Standard is report-only
+and remains over budget at 230 / 273.1k. Full milestone scope and unfinished work are in
+[docs/GODOT.md](docs/GODOT.md); third-party licences are tracked in [docs/CREDITS.md](docs/CREDITS.md).
 
 ---
 

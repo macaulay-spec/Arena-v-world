@@ -118,23 +118,26 @@ The current implementation replaces the prior box-built furniture pass with **39
 and 90 placements** across the living room, dining room, kitchen, family lounge, study, entry, bedrooms and upstairs
 sitting room. Furniture is grouped into static MultiMeshes for mobile rendering and paired with simple collision
 proxies; source/license attribution is in `docs/CREDITS.md`, `assets/manifest/kaykit-house.json` and each pack's
-retained `LICENSE.txt`. This code change has passed a local Godot 4.7.2 headless load audit for all 39 models
-(0 asset-load errors; 79,928 static/imported triangles). The full project smoke test cannot pass in this sandbox
-because the large CI-fetched Rocketbox and Kenney assets are not present locally; CI verification for this change
-is pending. The prior CI evidence below is for the earlier box-furniture baseline, not this updated furniture
-implementation.
+retained `LICENSE.txt`. The first model set is intentionally low-poly/stylized and is a real 3D asset pass, not the
+final mansion art/lighting pass.
 
-That previous verified baseline (commit `905402b`, CI run `38895000945`) passed import, headless world test,
-Android debug export and the Lite render gate: 49,270 static triangles, 30 batched surfaces, 864 collision shapes,
-12 NPCs and 10 cars; Lite worst was 69 draw calls / 75,740 primitives. Its llvmpipe [foyer](progress/jag-house-foyer-lite.png),
-[living room](progress/jag-house-living-lite.png) and [media wall](progress/jag-house-media-wall-lite.png) shots
-are not evidence of the new asset pass or of phone performance.
+**CI verified on commit `d25a7c3`**, run [38938258611](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38938258611):
+clean Godot import, full headless world test (`TEST OK`), Android debug export and Lite render gate all passed. The
+world reports 46,982 batched/static triangles + 32,904 imported-asset triangles = 79,886 before NPC/car meshes,
+29 batched surfaces, 39 imported mesh groups, 90 placements, zero asset-load errors, 873 collision shapes, 12 NPCs
+and 10 parked cars. Lite worst is **108 draw calls / 84,714 primitives**, inside the 120 / 150,000 gate. Standard
+remains report-only and is over its budget at **230 / 273,091**. APK:
+`vora-city-d25a7c3-s0-debug.apk` (101 MB), downloadable from the linked Actions run.
+
+The CI screenshots and render reports are llvmpipe software-renderer evidence, not an Android frame-rate or user
+experience result. The owner's 2 GB phone install/input/performance test remains open. The earlier commit `905402b`
+(run `38895000945`) was the box-furniture baseline; its images are historical and not evidence for this asset pass.
 
 Bathrooms, interior lighting polish, household roles/schedules and deeper interaction systems remain unfinished.
 The 128 m / 3×3 S1 streamer and multi-tile exporter are still an unverified opt-in draft; there is no S1 build or
-APK yet. The next milestone is to verify this asset-backed house in CI, get the owner's 2 GB phone verdict, then
-expand the Ridge Street approach and North Heights block before progressing through city streaming, simulation,
-jobs/economy, wanted/arrest, story/persistence and multiplayer milestones.
+APK yet. Next is the owner's phone verdict and review of the in-game placement/art style, followed by deeper mansion
+systems and the Ridge Street / North Heights expansion, then city streaming, simulation, jobs/economy,
+wanted/arrest, story/persistence and multiplayer milestones.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
