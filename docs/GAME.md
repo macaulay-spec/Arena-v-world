@@ -4,8 +4,8 @@
 
 > **Historical document only.** The APK 1 feature list, runtime, screenshots and test reports below describe the earlier
 > Three.js/Capacitor prototype and its intended design. They are **not** evidence that those features exist in the current
-> Godot project. The active implementation, honest status, phone-test gate and milestones are tracked in
-> [`docs/GODOT.md`](GODOT.md).
+> Godot project. The active target is a complete single-player game; multiplayer is explicitly out of scope. Current
+> implementation, status, phone-test gate and milestones are tracked in [`docs/GODOT.md`](GODOT.md).
 
 ---
 
@@ -258,7 +258,6 @@ env `SHOTS=…`, `QUALITY=…`, `MOBILE=1`).
 | **APK 3 – Ride & earn** | driving (owner's cars + city vehicles), jobs, money, shops |
 | **APK 4 – Wanted** | crimes, wanted level, police chase and arrest, respawn, save slots |
 | **APK 5 – Story** | missions, phone apps, more interiors, audio / radio, polish |
-| later | multiplayer, normal houses for other players |
 
 Known limitations in APK 1: procedural (not mocap) animation, painted faces, NPCs do not yet walk between spots,
 no vehicles to drive, no sound. See `docs/REPORT.md` and `docs/CHARACTERS.md` for the earlier phases.

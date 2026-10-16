@@ -2,8 +2,23 @@ extends Node
 ## Global game state: build info, quality preset, clock. Autoload "Game".
 
 signal quality_changed(preset: Dictionary)
+signal profile_changed(profile: Dictionary)
 
 const BUILD_INFO_PATH := "res://build_info.json"
+const SAVE_PATH := "user://save_v1.json"
+const SAVE_SCHEMA := 1
+const DEFAULT_PROFILE := {
+	"name": "JAG",
+	"avatar_name": "Male_Adult_01",
+	"build": 1.0,
+	"height": 1.0,
+	"cash": 25000,
+	"health": 100.0,
+	"day": 1,
+	"wanted": 0,
+	"mission_id": "",
+	"mission_stage": 0,
+}
 
 ## Quality presets. Lite is the 2 GB-phone preset and the default when memory is unknown or ≤ 3 GB.
 const PRESETS := {
@@ -19,6 +34,9 @@ var quality: Dictionary = PRESETS["lite"]
 var minutes: float = 8.0 * 60.0
 var clock_speed: float = 1.0
 var paused: bool = false
+var profile: Dictionary = DEFAULT_PROFILE.duplicate(true)
+var saved_world: Dictionary = {}
+var has_loaded_save := false
 
 
 func _ready() -> void:
@@ -67,6 +85,94 @@ func clock_label() -> String:
 ## 0 = midnight, 0.5 = noon; used by the sky
 func day_fraction() -> float:
 	return minutes / (24.0 * 60.0)
+
+
+func has_save() -> bool:
+	return FileAccess.file_exists(SAVE_PATH)
+
+
+func begin_new_game(player_name: String, avatar_name: String, body_build: float, body_height: float) -> void:
+	profile = DEFAULT_PROFILE.duplicate(true)
+	profile["name"] = player_name.strip_edges().substr(0, 24) if not player_name.strip_edges().is_empty() else "JAG"
+	profile["avatar_name"] = avatar_name
+	profile["build"] = clampf(body_build, 0.85, 1.2)
+	profile["height"] = clampf(body_height, 0.9, 1.1)
+	saved_world.clear()
+	has_loaded_save = false
+	minutes = 8.0 * 60.0
+	profile_changed.emit(profile.duplicate(true))
+
+
+func load_save() -> bool:
+	if not has_save():
+		return false
+	var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return false
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) != TYPE_DICTIONARY or int(parsed.get("schema", 0)) != SAVE_SCHEMA:
+		push_warning("Save file has an unknown or invalid schema")
+		return false
+	var raw_profile: Variant = parsed.get("profile", {})
+	if typeof(raw_profile) != TYPE_DICTIONARY:
+		return false
+	profile = DEFAULT_PROFILE.duplicate(true)
+	for key: String in DEFAULT_PROFILE.keys():
+		if raw_profile.has(key):
+			profile[key] = raw_profile[key]
+	profile["name"] = String(profile.get("name", "JAG")).strip_edges().substr(0, 24)
+	profile["avatar_name"] = String(profile.get("avatar_name", "Male_Adult_01"))
+	profile["cash"] = maxi(0, int(profile.get("cash", 25000)))
+	profile["health"] = clampf(float(profile.get("health", 100.0)), 0.0, 100.0)
+	profile["wanted"] = clampi(int(profile.get("wanted", 0)), 0, 5)
+	profile["mission_stage"] = maxi(0, int(profile.get("mission_stage", 0)))
+	profile["build"] = clampf(float(profile.get("build", 1.0)), 0.85, 1.2)
+	profile["height"] = clampf(float(profile.get("height", 1.0)), 0.9, 1.1)
+	saved_world = parsed.get("world", {}) if typeof(parsed.get("world", {})) == TYPE_DICTIONARY else {}
+	minutes = fposmod(float(saved_world.get("minutes", 8.0 * 60.0)), 24.0 * 60.0)
+	has_loaded_save = true
+	profile_changed.emit(profile.duplicate(true))
+	return true
+
+
+func save_game(world: Node = null) -> bool:
+	var world_state: Dictionary = saved_world.duplicate(true)
+	world_state["minutes"] = minutes
+	if world != null:
+		var player_node: Node = world.get_node_or_null("Player")
+		if player_node is Player:
+			var player := player_node as Player
+			world_state["position"] = [player.global_position.x, player.global_position.y, player.global_position.z]
+			world_state["yaw"] = player.yaw
+	var payload := {"schema": SAVE_SCHEMA, "profile": profile.duplicate(true), "world": world_state}
+	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		push_error("Could not open save file: " + SAVE_PATH)
+		return false
+	file.store_string(JSON.stringify(payload))
+	file.flush()
+	saved_world = world_state
+	return true
+
+
+func restore_world(world: Node) -> void:
+	var position_data: Variant = saved_world.get("position", [])
+	if typeof(position_data) == TYPE_ARRAY and position_data.size() == 3:
+		var player_node: Node = world.get_node_or_null("Player")
+		if player_node is Player:
+			var player := player_node as Player
+			player.global_position = Vector3(float(position_data[0]), float(position_data[1]), float(position_data[2]))
+			player.yaw = float(saved_world.get("yaw", 0.0))
+			if player.cam_yaw:
+				player.cam_yaw.rotation.y = player.yaw
+		minutes = fposmod(float(saved_world.get("minutes", minutes)), 24.0 * 60.0)
+
+
+func delete_save() -> void:
+	if has_save():
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+	saved_world.clear()
+	has_loaded_save = false
 
 
 func _apply_quality() -> void:

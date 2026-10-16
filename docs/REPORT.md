@@ -98,7 +98,7 @@ Screenshots were taken by the script above from the real viewer — see `docs/sc
   height rather than graded embankments.
 * FPS readout in the headless screenshots shows 0–2 fps because SwiftShader renders in software; the HUD measures
   wall-clock frames and will show real values in a browser.
-* Not done (out of scope by brief): interiors, traffic AI, NPCs, economy, multiplayer, missions.
+* Not part of the exterior-world phase: interiors, traffic AI, NPC routines, economy, missions.
 
 ## 5. Files
 

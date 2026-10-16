@@ -5,6 +5,7 @@ extends Node
 func _ready() -> void:
 	var fails: Array[String] = []
 	var t0 := Time.get_ticks_msec()
+	Game.begin_new_game("Test Hero", "Female_Adult_01", 1.05, 0.98)
 	var world := World.new()
 	add_child(world)
 	for frame in range(3):
@@ -21,6 +22,7 @@ func _ready() -> void:
 	if world.get_node_or_null("FurnitureAssets") == null: fails.append("missing imported 3D furniture scene")
 	if world.player == null: fails.append("no player")
 	else:
+		if world.player.avatar_name != "Female_Adult_01": fails.append("new-game avatar selection was not applied to the player")
 		var local_spawn: Vector3 = world.player.global_position - Vector3(MansionBuilder.OX, MansionBuilder.OY, MansionBuilder.OZ)
 		if local_spawn.x < 27.0 or local_spawn.x > 39.0 or local_spawn.z < 39.0 or local_spawn.z > 44.0:
 			fails.append("player did not start inside JAG House foyer: %s" % str(local_spawn))
@@ -54,6 +56,29 @@ func _ready() -> void:
 	if absf(p.y - 22.3) > 0.5: fails.append("player spawn y %.2f not on plateau" % p.y)
 	# sidewalk routes exist near the gate
 	if world.builder.sidewalk_paths.size() < 4: fails.append("too few sidewalk routes")
+	# Exercise the single-player profile + position save round trip without leaving a test save behind.
+	var profile_before: Dictionary = Game.profile.duplicate(true)
+	var minutes_before: float = Game.minutes
+	var player_pos_before: Vector3 = world.player.global_position
+	Game.profile["cash"] = int(Game.profile.get("cash", 25000)) + 177
+	Game.minutes = 22.5 * 60.0
+	if not Game.save_game(world):
+		fails.append("could not write game save")
+	else:
+		Game.profile["cash"] = 0
+		if not Game.load_save():
+			fails.append("could not load game save")
+		else:
+			if int(Game.profile.get("cash", -1)) != int(profile_before.get("cash", 25000)) + 177:
+				fails.append("saved profile cash did not round-trip")
+			if absf(Game.minutes - 22.5 * 60.0) > 0.01:
+				fails.append("saved in-game clock did not round-trip")
+			Game.restore_world(world)
+			if world.player.global_position.distance_to(player_pos_before) > 0.01:
+				fails.append("saved player position did not round-trip")
+	Game.profile = profile_before
+	Game.minutes = minutes_before
+	Game.delete_save()
 	print("build+checks %d ms" % (Time.get_ticks_msec() - t0))
 	if fails.is_empty():
 		print("TEST OK")

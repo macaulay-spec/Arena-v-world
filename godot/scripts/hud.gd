@@ -10,6 +10,7 @@ var look_id := -1
 var stick_base: Control
 var stick_knob: Control
 var build_label: Label
+var profile_label: Label
 var perf_panel: PanelContainer
 var perf_text: Label
 var short_label: Label
@@ -41,6 +42,15 @@ func _ready() -> void:
 	short_label.add_theme_color_override("font_color", Color(1, 0.9, 0.6, 0.9))
 	short_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	root.add_child(short_label)
+	profile_label = Label.new()
+	profile_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	profile_label.position = Vector2(-300, 10)
+	profile_label.size = Vector2(210, 32)
+	profile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	profile_label.add_theme_font_size_override("font_size", 16)
+	profile_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	profile_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	root.add_child(profile_label)
 	# stick visuals
 	stick_base = _circle(Color(1, 1, 1, 0.18), 150)
 	stick_knob = _circle(Color(1, 1, 1, 0.45), 64)
@@ -61,6 +71,11 @@ func _ready() -> void:
 	perf.position = Vector2(-92, 10)
 	perf.pressed.connect(toggle_perf)
 	root.add_child(perf)
+	var save_button := _button("SAVE", Vector2(-92, 58), Vector2(80, 40))
+	save_button.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	save_button.position = Vector2(-92, 58)
+	save_button.pressed.connect(_save_game)
+	root.add_child(save_button)
 	# perf panel
 	perf_panel = PanelContainer.new()
 	perf_panel.set_anchors_preset(Control.PRESET_TOP_RIGHT)
@@ -141,9 +156,27 @@ func toast(msg: String) -> void:
 	_toast_t = 2.0
 
 
+func _save_game() -> void:
+	if Game.save_game(player.get_parent() if player else null):
+		toast("Game saved")
+	else:
+		toast("Save failed — check device storage")
+
+
+func _format_cash(amount: int) -> String:
+	var digits := str(maxi(amount, 0))
+	var formatted := ""
+	for i in range(digits.length()):
+		if i > 0 and (digits.length() - i) % 3 == 0:
+			formatted += ","
+		formatted += digits.substr(i, 1)
+	return "₦" + formatted
+
+
 func _process(delta: float) -> void:
 	var q: String = Game.quality.get("label", "")
 	build_label.text = "VORA CITY · JAG HOUSE · S0 · build %s · %s · %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), q, Game.clock_label()]
+	profile_label.text = "%s  ·  %s" % [str(Game.profile.get("name", "JAG")), _format_cash(int(Game.profile.get("cash", 0)))]
 	short_label.text = Perf.short_line()
 	if _perf_visible:
 		perf_text.text = Perf.report()

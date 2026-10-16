@@ -109,6 +109,13 @@ jobs:
           /home/runner/godot-bin/godot --headless res://tests/test_world.tscn 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tee /tmp/test.log
           grep -q "TEST OK" /tmp/test.log
 
+      - name: Headless profile and save round-trip test
+        run: |
+          set -euo pipefail
+          cd godot
+          /home/runner/godot-bin/godot --headless res://tests/test_save.tscn 2>&1 | tee /tmp/save-test.log
+          grep -q "SAVE TEST OK" /tmp/save-test.log
+
       # ---------------------------------------------------------------- Android export
       - name: Android debug keystore + editor settings
         run: |

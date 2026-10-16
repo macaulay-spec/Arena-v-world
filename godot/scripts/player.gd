@@ -31,17 +31,21 @@ var _state := ""
 
 
 func _ready() -> void:
+	avatar_name = String(Game.profile.get("avatar_name", avatar_name))
+	var body_build := clampf(float(Game.profile.get("build", 1.0)), 0.85, 1.2)
+	var body_height := clampf(float(Game.profile.get("height", 1.0)), 0.9, 1.1)
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.32
-	capsule.height = 1.72
+	capsule.radius = 0.32 * body_build
+	capsule.height = 1.72 * body_height
 	shape.shape = capsule
-	shape.position = Vector3(0, 0.9, 0)
+	shape.position = Vector3(0, capsule.height * 0.5 + 0.04, 0)
 	add_child(shape)
 	floor_snap_length = 0.4
 	floor_max_angle = deg_to_rad(50)
 	# avatar
 	model = Rocketbox.create(avatar_name)
+	model.scale = Vector3(body_build, body_height, body_build)
 	add_child(model)
 	anim = model.get_meta("anim") if model.has_meta("anim") else null
 	var sex: String = model.get_meta("sex") if model.has_meta("sex") else "m"
@@ -53,7 +57,7 @@ func _ready() -> void:
 	# camera rig
 	cam_yaw = Node3D.new()
 	cam_yaw.name = "CamYaw"
-	cam_yaw.position = Vector3(0, 1.55, 0)
+	cam_yaw.position = Vector3(0, 1.55 * body_height, 0)
 	add_child(cam_yaw)
 	cam_pitch = Node3D.new()
 	cam_yaw.add_child(cam_pitch)
@@ -164,4 +168,4 @@ func _animate(speed: float, running: bool) -> void:
 
 
 func head_position() -> Vector3:
-	return global_position + Vector3(0, 1.6, 0)
+	return global_position + Vector3(0, 1.6 * float(Game.profile.get("height", 1.0)), 0)

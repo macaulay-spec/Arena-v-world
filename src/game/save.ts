@@ -1,4 +1,4 @@
-/** Save game + settings (localStorage; a cloud/multiplayer profile replaces this later). */
+/** Archived prototype save + settings. The current Godot game uses a local single-player profile. */
 import { DEFAULT_APPEARANCE, normalizeAppearance, type Appearance } from './player';
 
 export type QualityId = 'lite' | 'standard' | 'high';

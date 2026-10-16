@@ -1,9 +1,9 @@
 # VORA CITY · by JAG
 
-**The deliverable is a full landscape-phone open-world game**, not a one-page demo. The project scope is the
-VORA CITY/JAG design: character creation, the owner's North Heights mansion as the start, a streamed six-district
-city, NPC life, vehicles, jobs/economy, missions, police pursuit/arrest, persistence, story/audio/UI, and planned
-16–32-player multiplayer. The district names, city plan and seed remain the existing ones. See
+**The deliverable is the full single-player landscape-phone open-world game**, not a one-page demo. Multiplayer is
+out of scope. The VORA CITY/JAG game scope is character creation, the owner's North Heights mansion as the start, a
+streamed six-district city, NPC life, vehicles, jobs/economy, missions, police pursuit/arrest, persistence,
+story/audio/UI and an endgame. The district names, city plan and seed remain the existing ones. See
 [docs/GODOT.md](docs/GODOT.md) for the Godot implementation plan and actual milestone status.
 
 > **Honest status (2026-10-16):** this is still an early **S0 proof slice**, not a complete game and not yet
@@ -26,13 +26,19 @@ headless render counters pass the Lite budget; **the owner's phone test is still
   a claim that the mansion art pass is finished.
 - CI-fetched Rocketbox characters/mocap and Kenney vehicles are part of the build pipeline. The previous CI
   checkpoint contained 12 NPCs and 10 parked cars; those are not a city-wide population or traffic simulation.
-- **Still missing:** Godot character creator, household schedules, usable/drivable vehicles, traffic routines,
-  jobs/economy, missions, police chase/arrest, save/persistence, story/audio, and multiplayer. The 128 m streamer is
-  an unverified draft, and the 2 GB phone test remains open.
+- **Implemented first-game flow (not yet phone-verified):** new game asks for a player name, Rocketbox avatar and
+  basic build/height proportions; Continue loads a local single-slot save, with manual and 45-second autosave of
+  profile, clock, position and facing. This is only a basic creator—not the planned full MakeHuman appearance and
+  wardrobe editor.
+- **Still missing:** household schedules, usable/drivable vehicles, traffic routines, jobs/economy, missions,
+  police chase/arrest, and story/audio. The 128 m streamer is an unverified draft. The complete game remains in
+  development; no device-performance claim is made.
 
-The next acceptance step is the owner's phone test of that APK; a headless CI build or screenshot is not a
-substitute. CI's Lite worst case is 108 draw calls / 84.7k primitives (within 120 / 150k); Standard is report-only
-and remains over budget at 230 / 273.1k. Full milestone scope and unfinished work are in
+The linked APK is the last CI-verified S0 baseline, before the new-game and save-flow changes in the working branch;
+those changes still need a fresh CI Android export before they are an installable update. The owner tests each build;
+headless CI is not a substitute for real-phone input and performance checks. CI's Lite worst case on the previous
+baseline was 108 draw calls / 84.7k primitives (within 120 / 150k); Standard is report-only and remains over budget
+at 230 / 273.1k. Full milestone scope and unfinished work are in
 [docs/GODOT.md](docs/GODOT.md); third-party licences are tracked in [docs/CREDITS.md](docs/CREDITS.md).
 
 ---
@@ -184,5 +190,6 @@ Phase 1 delivered the exterior world (terrain, water, roads, blocks, buildings, 
 materials, lighting, time-of-day, LOD/performance); Phase 2 the human assets (bodies, wardrobe, hair, props,
 animation clips, population manifest) and an ambient sidewalk crowd; Phase 3 turns it into the game, milestone by
 milestone — **APK 1 App + Home** (this build) → APK 2 Alive (mocap, schedules, traffic, animated world, cinematic) →
-APK 3 Ride & earn → APK 4 Wanted (police, arrests) → APK 5 Story, then multiplayer and player houses. Details and the
-honest list of limitations: `docs/GAME.md`; earlier phases: `docs/REPORT.md`, `docs/CHARACTERS.md`.
+APK 3 Ride & earn → APK 4 Wanted (police, arrests) → APK 5 single-player Story and endgame. Multiplayer is
+explicitly excluded from this project. Details and the honest list of limitations: `docs/GAME.md`; earlier phases:
+`docs/REPORT.md`, `docs/CHARACTERS.md`.

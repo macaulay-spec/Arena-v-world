@@ -358,9 +358,7 @@ func _update_night_lights(n: float) -> void:
 func _spawn_player() -> void:
 	player = Player.new()
 	player.name = "Player"
-	var entry := Rocketbox.avatar_entries("player")
-	if not entry.is_empty():
-		player.avatar_name = entry[0]["name"]
+	player.avatar_name = String(Game.profile.get("avatar_name", "Male_Adult_01"))
 	add_child(player)
 	player.global_transform = mansion.player_spawn()
 	player.yaw = PI

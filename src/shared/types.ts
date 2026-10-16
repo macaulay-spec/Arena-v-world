@@ -4,7 +4,7 @@
  * The generator (Node) writes `data/city.json` conforming to `CityData`.
  * The renderer (browser) and the verification tests (Node) both consume it.
  * Every entity carries a stable, human-readable id so future gameplay systems
- * (ownership, jobs, navigation, multiplayer) can reference the world safely.
+ * (ownership, jobs, navigation and other single-player systems) can reference the world safely.
  *
  * Units: meters. Axes: x = east, z = south (screen-like map), y = up.
  */

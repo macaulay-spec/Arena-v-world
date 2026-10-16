@@ -79,8 +79,7 @@ Probe scripts: `tools/godot-probes/`.
 | **S3 Alive** | pedestrian routines by role/district, traffic (lanes, junctions, danfo stops, okadas), animated world, ambient audio | busy Unity Boulevard at 30 fps |
 | **S4 Ride & earn** | arcade vehicles for touch, enter/exit, damage, fuel, money, shops, jobs, phone UI | a 10-minute delivery loop that is fun |
 | **S5 Wanted** | crimes, wanted levels, police on foot/cars, chase AI, arrest/escape/respawn, save slots | a chase that feels like a chase |
-| **S6 Story & city life** | missions with portraits, interiors, radio, weather, photo mode, Pidgin/English | 2–3 hours of content |
-| **S7 Multiplayer** | dedicated Godot server, 16–32 players per instance, player houses, police roles, shared economy | — |
+| **S6 Single-player campaign & endgame** | story missions with portraits, interiors, radio, weather, photo mode, Pidgin/English, final mission and ending | complete offline campaign |
 
 Risks: CI screenshot pipeline (fallback: owner screenshots), GDScript crowd/traffic cost on A53 cores (counts,
 server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 400 MB gate).
@@ -135,9 +134,16 @@ experience result. The owner's 2 GB phone install/input/performance test remains
 
 Bathrooms, interior lighting polish, household roles/schedules and deeper interaction systems remain unfinished.
 The 128 m / 3×3 S1 streamer and multi-tile exporter are still an unverified opt-in draft; there is no S1 build or
-APK yet. Next is the owner's phone verdict and review of the in-game placement/art style, followed by deeper mansion
-systems and the Ridge Street / North Heights expansion, then city streaming, simulation, jobs/economy,
-wanted/arrest, story/persistence and multiplayer milestones.
+APK yet. The working branch now also contains a first new-game flow (name, Rocketbox avatar selection, basic build /
+height controls), a single-slot profile/world save, Continue, manual save and 45-second autosave. This is deliberately
+only a first slice of character creation and persistence: wardrobe/face variation, gameplay progression and the
+mission/career systems do not yet exist. The new code has had local headless parse/start and save-round-trip checks,
+but has not yet run through CI with the fetched Rocketbox assets or been tested on a phone.
+
+Development continues toward the full offline campaign: finish the creator and mansion interactions, stream the six
+districts, implement NPC schedules and traffic, then drivable vehicles/jobs/economy, police pursuit/arrest, story and
+endgame. The owner's phone test remains a required performance/input gate, not a substitute for implementing those
+single-player systems.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
