@@ -2,10 +2,21 @@
 # Every push produces an installable artifact; tags `v*` also attach the APK to a GitHub Release.
 name: Android APK
 
+# Legacy three.js/Capacitor build (APK 1). Kept until the Godot S0 build passes on the user's phone;
+# only runs when the web runtime itself changes.
 on:
   push:
     branches: ['**']
     tags: ['v*']
+    paths:
+      - 'src/**'
+      - 'android/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - 'vite.config.*'
+      - '.github/workflows/android.yml'
   workflow_dispatch:
 
 permissions:
