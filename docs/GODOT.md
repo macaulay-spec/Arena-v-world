@@ -82,3 +82,34 @@ Probe scripts: `tools/godot-probes/`.
 
 Risks: CI screenshot pipeline (fallback: owner screenshots), GDScript crowd/traffic cost on A53 cores (counts,
 server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 400 MB gate).
+
+
+## S0 build status (2026-10-16)
+
+**Pipeline live.** Every push runs `.github/workflows/godot-android.yml`: fetch Rocketbox subset (sparse clone,
+textures → ≤512² PNG) + Kenney Car Kit → `--import` → bake mocap library → headless world test → **Android APK export**
+(`vora-city-<sha>-s0-debug.apk`, ~72 MB, artifact) → Xvfb/llvmpipe screenshots at 8 viewpoints × {Lite, Standard}
+→ `ci/evidence` branch + render report. **Gate:** the Lite preset (the 2 GB-phone preset) must stay ≤ 120 draw calls and
+≤ 150k primitives in every shot — first green run: worst 63 calls / 77k primitives.
+
+What is in the S0 world (`godot/`):
+- The real North Heights block around JAG House, exported from the city plan (`tools/export_chunk.ts` → `assets/world/s0.json`,
+  260 × 260 m, 2 m heightmap, 26 road edges, 51 buildings / 62 masses, 474 props). Terrain is flattened under roads and on the plateau.
+- Roads with kerbs + paver sidewalks (sidewalks trimmed at junctions), buildings extruded from their footprints with the plan's
+  façade tile/colour, hip/gable/shed/flat roofs with overhangs, plinths buried into the slope, rooftop tanks; palms / trees as
+  alpha-scissor cutouts; lamp posts; parked Kenney cars merged to one mesh each. Whole block = 26 surfaces, ~44k triangles,
+  builds in ~0.3 s.
+- JAG House exterior: compound wall with coping + hedges, stone gate piers with an open steel gate, two-storey white villa with
+  recessed glass openings, stone entrance tower, canopy on columns, steps, balconies with glass balustrades, slab bands, roof
+  pergola + stair bulkhead, pool terrace with loungers, fountain drive circle, carport with the owner's two cars, bollard lights,
+  staff quarters, generator shed, palms along the drive.
+- Sun/sky/day–night tuned for Lagos (sunrise 06:30, sunset 18:45), AgX tonemap, aerial-perspective fog; after dark: emissive
+  lamps/windows + up to 3 (Lite) / 5 / 6 pooled OmniLights that follow the player.
+- Player: Rocketbox `Male_Adult_01`, third-person SpringArm camera, touch stick + look drag + RUN/JUMP, walk 1.40 m/s and run
+  3.07 m/s taken from the clips' root motion (no foot sliding). 12 NPCs: 7 walkers on sidewalk routes, a talking pair at the gate,
+  a phone caller, a police officer at the corner, the gate guard — 20 baked clips, animation paused beyond 70 m.
+- Build card + Perf screen (fps, p10, frame ms, draw calls, primitives, RAM/VRAM, device/GPU, budget verdict, "Copy report",
+  quality presets, time-of-day buttons).
+
+Open before the phone test is meaningful: generated art for the remaining tiles (plaster_plain, roof_concrete, roof_metal,
+concrete, stone, wood) and the three non-palm tree cutouts (currently procedural placeholders), title key art.
