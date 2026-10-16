@@ -12,9 +12,9 @@ story/audio/UI and an endgame. The district names, city plan and seed remain the
 > archived; its feature checklist is not a claim about the current Godot build.
 
 The Android runtime is **Godot 4.7.2 · Compatibility/GLES3**, landscape, with a 2 GB device target. CI builds debug
-APKs on pushes (`Actions → Godot Android APK → Artifacts`). Commit `d25a7c3` passed CI; its debug APK is
-[`vora-city-d25a7c3-s0-debug.apk`](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38938258611). The
-headless render counters pass the Lite budget; **the owner's phone test is still outstanding**.
+APKs on pushes (`Actions → Godot Android APK → Artifacts`). Latest CI build: commit `e67aa5b`,
+[`vora-city-e67aa5b-s0-debug.apk`](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38945708208) (101 MB).
+Lite passed the headless render gate; **the owner's phone test is still outstanding**.
 
 ### Current Godot slice
 
@@ -24,8 +24,8 @@ headless render counters pass the Lite budget; **the owner's phone test is still
   grouped into static MultiMeshes with collision proxies. CI loaded all assets with zero errors and passed the world
   smoke test. The first set is intentionally low-poly/stylized and still needs visual and on-device review; it is not
   a claim that the mansion art pass is finished.
-- CI-fetched Rocketbox characters/mocap and Kenney vehicles are part of the build pipeline. The previous CI
-  checkpoint contained 12 NPCs and 10 parked cars; those are not a city-wide population or traffic simulation.
+- CI-fetched Rocketbox characters/mocap and Kenney vehicles are part of the build pipeline. The latest CI
+  checkpoint contains 12 NPCs and 10 parked cars; those are not a city-wide population or traffic simulation.
 - **Implemented first-game flow (not yet phone-verified):** new game asks for a player name, Rocketbox avatar and
   basic build/height proportions; Continue loads a local single-slot save, with manual and 45-second autosave of
   profile, clock, position and facing. This is only a basic creator—not the planned full MakeHuman appearance and
@@ -34,11 +34,11 @@ headless render counters pass the Lite budget; **the owner's phone test is still
   police chase/arrest, and story/audio. The 128 m streamer is an unverified draft. The complete game remains in
   development; no device-performance claim is made.
 
-The linked APK is the last CI-verified S0 baseline, before the new-game and save-flow changes in the working branch;
-those changes still need a fresh CI Android export before they are an installable update. The owner tests each build;
-headless CI is not a substitute for real-phone input and performance checks. CI's Lite worst case on the previous
-baseline was 108 draw calls / 84.7k primitives (within 120 / 150k); Standard is report-only and remains over budget
-at 230 / 273.1k. Full milestone scope and unfinished work are in
+The latest CI run `38945708208` imported the project, passed the headless world and save/profile tests, exported the
+APK, captured the character-creator preview, and passed the Lite render gate. Its Lite worst case was **118 draw calls
+/ 84,864 primitives** (within 120 / 150k); Standard is report-only and remains over budget at **240 / 273,235**.
+These are software-renderer checks, not real-phone performance. The owner tests each build; a headless pass is not a
+substitute. Full milestone scope and unfinished work are in
 [docs/GODOT.md](docs/GODOT.md); third-party licences are tracked in [docs/CREDITS.md](docs/CREDITS.md).
 
 ---

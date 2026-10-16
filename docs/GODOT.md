@@ -85,9 +85,9 @@ Risks: CI screenshot pipeline (fallback: owner screenshots), GDScript crowd/traf
 server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 400 MB gate).
 
 
-## Last CI-verified S0 baseline (commit `905402b`; 2026-10-16)
+## Earlier CI-verified S0 baseline (commit `905402b`; 2026-10-16)
 
-This is the pre-KayKit-furniture checkpoint, verified by CI with Godot 4.7.2 and the Compatibility renderer:
+This was the pre-KayKit-furniture checkpoint, verified by CI with Godot 4.7.2 and the Compatibility renderer:
 
 - North Heights street block + JAG House estate/interior, 26 game-ready textures (no placeholders), day/night,
   12 Rocketbox mocap NPCs, 10 parked Kenney cars, and on-foot controls with kerb step.
@@ -120,13 +120,15 @@ proxies; source/license attribution is in `docs/CREDITS.md`, `assets/manifest/ka
 retained `LICENSE.txt`. The first model set is intentionally low-poly/stylized and is a real 3D asset pass, not the
 final mansion art/lighting pass.
 
-**CI verified on commit `d25a7c3`**, run [38938258611](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38938258611):
-clean Godot import, full headless world test (`TEST OK`), Android debug export and Lite render gate all passed. The
-world reports 46,982 batched/static triangles + 32,904 imported-asset triangles = 79,886 before NPC/car meshes,
-29 batched surfaces, 39 imported mesh groups, 90 placements, zero asset-load errors, 873 collision shapes, 12 NPCs
-and 10 parked cars. Lite worst is **108 draw calls / 84,714 primitives**, inside the 120 / 150,000 gate. Standard
-remains report-only and is over its budget at **230 / 273,091**. APK:
-`vora-city-d25a7c3-s0-debug.apk` (101 MB), downloadable from the linked Actions run.
+**Latest CI verified commit `e67aa5b`**, run [38945708208](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38945708208): clean Godot import,
+headless world test (`TEST OK`), character-profile/save round-trip test (`SAVE TEST OK`), Android debug export,
+title/creator screenshots and Lite render gate all passed. The world reports 46,982 batched/static triangles +
+32,904 imported-asset triangles = 79,886 before NPC/car meshes, 29 batched surfaces, 39 imported mesh groups,
+90 placements, zero asset-load errors, 873 collision shapes, 12 NPCs and 10 parked cars. Lite worst is
+**118 draw calls / 84,864 primitives**, inside the 120 / 150,000 gate. Standard remains report-only and is over its
+budget at **240 / 273,235**. The local profile saves player name/avatar proportions, cash/health, clock and
+position/facing; autosave is 45 seconds, with manual save and Continue. APK:
+`vora-city-e67aa5b-s0-debug.apk` (101 MB), downloadable from the linked Actions run.
 
 The CI screenshots and render reports are llvmpipe software-renderer evidence, not an Android frame-rate or user
 experience result. The owner's 2 GB phone install/input/performance test remains open. The earlier commit `905402b`
@@ -134,11 +136,11 @@ experience result. The owner's 2 GB phone install/input/performance test remains
 
 Bathrooms, interior lighting polish, household roles/schedules and deeper interaction systems remain unfinished.
 The 128 m / 3×3 S1 streamer and multi-tile exporter are still an unverified opt-in draft; there is no S1 build or
-APK yet. The working branch now also contains a first new-game flow (name, Rocketbox avatar selection, basic build /
-height controls), a single-slot profile/world save, Continue, manual save and 45-second autosave. This is deliberately
-only a first slice of character creation and persistence: wardrobe/face variation, gameplay progression and the
-mission/career systems do not yet exist. The new code has had local headless parse/start and save-round-trip checks,
-but has not yet run through CI with the fetched Rocketbox assets or been tested on a phone.
+APK yet. The current build now contains a first new-game flow (name, Rocketbox avatar selection, basic build/height controls),
+a single-slot profile/world save, Continue, manual save and 45-second autosave. CI verifies the flow's real 3D
+Rocketbox preview and a profile/save round-trip. This is deliberately only a first slice of character creation and
+persistence: wardrobe/face variation and gameplay progression do not yet exist. No Android device test has been
+reported, and CI screenshots do not establish phone input quality or performance.
 
 Development continues toward the full offline campaign: finish the creator and mansion interactions, stream the six
 districts, implement NPC schedules and traffic, then drivable vehicles/jobs/economy, police pursuit/arrest, story and
