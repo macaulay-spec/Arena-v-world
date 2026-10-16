@@ -1,0 +1,26 @@
+{
+  "source": "https://github.com/microsoft/Microsoft-Rocketbox",
+  "license": "MIT (Microsoft Rocketbox avatar library) — see docs/CREDITS.md",
+  "texture_max": {"body": 512, "head": 512, "opacity": 256},
+  "avatars": [
+    {"name": "Male_Adult_01", "sex": "m", "role": "player"},
+    {"name": "Male_Adult_04", "sex": "m", "role": "civ"},
+    {"name": "Male_Adult_07", "sex": "m", "role": "civ"},
+    {"name": "Male_Adult_11", "sex": "m", "role": "civ"},
+    {"name": "Male_Adult_15", "sex": "m", "role": "civ"},
+    {"name": "Female_Adult_01", "sex": "f", "role": "civ"},
+    {"name": "Female_Adult_04", "sex": "f", "role": "civ"},
+    {"name": "Female_Adult_08", "sex": "f", "role": "civ"},
+    {"name": "Female_Adult_12", "sex": "f", "role": "civ"},
+    {"name": "Police_Male_01", "sex": "m", "role": "police"},
+    {"name": "Security_Male_01", "sex": "m", "role": "guard"},
+    {"name": "Business_Male_02", "sex": "m", "role": "civ"}
+  ],
+  "clips": {
+    "static": ["m_idle_breathe_01", "m_idle_neutral_02", "m_idle_look_around_01", "m_idle_waiting_01",
+               "m_gestic_talk_neutral_01", "m_gestic_listen_neutral_01", "m_cell_phone_talk_01",
+               "f_idle_breathe_01", "f_idle_look_around_01", "f_gestic_talk_neutral_01", "f_gestic_listen_neutral_01", "f_cell_phone_textmessage"],
+    "xy": ["m_walk_neutral", "m_walk_slow_01", "m_walk_cool_01", "m_run_neutral",
+           "f_walk_neutral", "f_walk_slow_01", "f_walk_stroll_01", "f_run_neutral"]
+  }
+}

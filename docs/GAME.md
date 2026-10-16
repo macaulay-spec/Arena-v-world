@@ -1,0 +1,263 @@
+# ARCHIVE — original VORA CITY web-prototype design record (not the current Godot build)
+
+**Studio:** JAG · **Project title:** VORA CITY · **Platform target:** Android landscape phone · **Tone:** gritty-realistic but light · **Frame:** GTA-style open world.
+
+> **Historical document only.** The APK 1 feature list, runtime, screenshots and test reports below describe the earlier
+> Three.js/Capacitor prototype and its intended design. They are **not** evidence that those features exist in the current
+> Godot project. The active target is a complete single-player game; multiplayer is explicitly out of scope. Current
+> implementation, status, phone-test gate and milestones are tracked in [`docs/GODOT.md`](GODOT.md).
+
+---
+
+## 1. APK 1 — "App + Home"
+
+The player **creates their own protagonist** and wakes up in **their home: JAG House, 1 Ridge Street, North
+Heights** — a furnished two-storey mansion with roof terrace, pool, forecourt fountain, gatehouse, carport with the
+owner's cars, staff quarters and a generator house, sitting on the plateau of the existing landmark `L-jag-house`
+in the Vora City data. The whole city from Phase 1 is loaded around it, with the Phase 2 crowd on the streets.
+
+### Flow
+
+```
+JAG logo  →  loading (city + characters + house)  →  live title (slow orbit of the compound, "tap to start")
+   →  Continue / New game / Settings
+   →  New game: character creation on the roof terrace — Look (name, sex, skin tone, hair, outfit, height),
+      Body (build, muscle) and Face (jaw, chin, nose width/length, eye spacing/size, lips, mouth width, cheeks)
+   →  fade → wake up in the master bedroom at 07:12, Day 1, ₦25,000
+```
+
+### What you can do
+
+| Thing | Interaction |
+|---|---|
+| Doors (every room, gatehouse, BQ, generator house) | open / close — many start open so the house reads as lived-in |
+| Beds | **Sleep** → fade, clock jumps to 07:00 next day, health 100, game saved |
+| Fridge / cooker | **Eat** (health + meals stat) |
+| Wardrobes (and the mirror in the dressing room) | re-open the creator and change outfit / hair |
+| TV screens | switch on / off (animated screen content) |
+| Laptop on the study desk | "coming soon" (phone / apps land in APK 5) |
+| Owner's cars (Range Rover, G-Wagon, saloon, pickup, danfo, okada) | "Drive — next update" (APK 3) |
+| Main gate | slides open / closed (also opens for the player when the gateman is asked) |
+| Generator | "Up NEPA" — toggles the generator (lights at night) |
+| Household NPCs | walk up and **Talk** — one-liners by role, they turn to face you |
+| Streets | walk out of the gate into North Heights; the place card shows `North Heights · Vora City` |
+
+### The household (src/game/npcs.ts `HOUSEHOLD`)
+
+Cast from the Phase 2 manifest by role id (falls back by tag/sex). Each stands at a named spot in the compound and
+performs its function with the animation library: gateman (guard clip at the gate), security (porch), driver
+(carport, on the phone), housekeeper (sweeping the living room), cook (kitchen, work clip), gardener (back garden),
+friend (sitting on the sofa), guest (poolside), steward (dining room), night guard (gatehouse). Scheduling, walking
+between spots and mocap come in APK 2.
+
+### HUD and controls
+
+* **Radar** (top-left, rotates with the camera, shows the house footprint, roads, NPCs), **cash** (₦, en-NG
+  formatting), **clock + day**, **health bar**, **place card** when you enter a room/area, **prompt** for the
+  nearest interactable, **toasts** and NPC **speech** bubbles, optional **FPS** counter.
+* **Touch:** left virtual stick (touch the stick itself, or anywhere in the left 45 % of the screen for a floating
+  stick), right side of the screen = look, two fingers on the right = pinch zoom, buttons
+  **Interact · Jump · Run · Camera · Pause**. Every pointer is tracked by id: the stick belongs to the finger that
+  started it, and `pointerup` / `pointercancel` / `lostpointercapture` / window blur / tab hide all release it.
+* **Keyboard:** `WASD` / arrows move, mouse-drag look, `Shift` run, `Space` jump, `E`/`Enter` interact, `V` camera
+  distance, `Esc`/`P` pause.
+* **Pause:** Resume · Save · Settings (quality Auto/Lite/Standard/High, look sensitivity, invert-Y, FPS, sound) ·
+  Quit to title. Changing quality reloads the game with the new preset.
+
+### Save
+
+`localStorage` — `voracity.save.v1` (appearance, cash, health, clock, position, stats, timestamps) and
+`voracity.settings.v1`. Autosave every 45 s, on tab hide/close, after sleeping and on manual save. A new game
+deletes the previous save after confirmation.
+
+### Day / night and performance
+
+* Game clock: 2 real seconds per game minute. The sky, sun, fog, city window lights and street lamps follow the hour
+  (`src/app/sky.ts`); night is < 06:24 or > 18:36.
+* Indoors the ambient light is lifted and warmed; a pool of point lights (Lite 2 / Standard 5 / High 8) is refilled
+  every few frames from the lamps nearest the player.
+* Presets (`PRESETS` in `src/game/main.ts`): pixel ratio, shadow map, draw distance, crowd size, light count.
+  `auto` picks a preset from device memory / cores / GPU string (`autoQuality()` in `src/game/save.ts`).
+
+### Bug-fix pass after APK 1 (controls, creator, performance, validation)
+
+What changed, where, and how it is verified (`npm test` = 71 unit tests; `node scripts/game-verify.mjs` drives the
+real page with emulated touch events under headless Chromium/SwiftShader and writes
+`docs/screenshots/game/verify/verify-standard.json` + screenshots):
+
+| Area | Fix | Verified by |
+|---|---|---|
+| Joystick (`src/game/input.ts`) | the visible stick overlay starts the joystick itself (it sits above the canvas, so canvas `pointerdown` never saw it); one pointer id owns the stick, a second finger on the right orbits / two fingers pinch-zoom; `pointerup`, `pointercancel`, `lostpointercapture`, window `blur` and tab hide all release it; moves from unknown pointers are ignored | `tests/input.test.ts` (happy-dom), `game-verify` touch drag / release / `pointercancel` |
+| Input reset | `Input.clear()` drops keys, pointers, stick, look + zoom deltas, pending edge actions and the run toggle (settings untouched); called on pause **and** resume, cutscenes, focus loss | `tests/input.test.ts`, `game-verify` resume check |
+| Jump (`src/game/player.ts`) | impulse applied in the update that accepts the press (was gated behind a 0.26 s clip timer); no re-impulse while airborne; `vy ≤ 0` guard before landing | `tests/player.test.ts`, `game-verify` ("first update after the press") |
+| Movement direction | translation follows the camera-relative input direction immediately; the body turns towards it at 11 rad/s (4 in the air); deceleration keeps the release heading; diagonals normalised | `tests/player.test.ts` |
+| Appearance races | `Avatar.setAppearance` is a serialised, versioned queue: stale loads are dropped before they attach, failures keep the current model, replaced models are detached and their private skin material disposed | `tests/avatar.test.ts` (synthetic kits with slow/fast loads), `game-verify` rapid m/f switching |
+| Body + face morphs | the pipeline exports 22 glTF morph targets per kit (`shape_weight_lo/hi`, `shape_muscle_lo/hi` on body, hair caps and every outfit; `face_<jaw,chin,nose_width,nose_length,eye_spacing,eye_size,lips,mouth_width,cheeks>_<neg,pos>` on the body) built from the MakeHuman macro/detail targets re-posed with the same rig (`characters/player.ts`, `characters/gltf.ts`, `characters/rig.ts`); the creator's Body / Face tabs drive them; height is a bone-length change (legs, spine, arms ± 6 %) with the model lifted so the feet stay on the floor, not a whole-model scale; sliders are only shown for targets the kit carries | `tests/morphs.test.ts`, `game-verify` morph influence checks, `docs/screenshots/game/verify/creator-*.png` |
+| Rig / deformation | bent-pose tests on shoulder, elbow, wrist, hip, knee, ankle and a finger: chain vertices rotate rigidly, unweighted vertices stay, mid-segment girth ≥ 85 % (no candy-wrapper), weights normalised; garments stay within 2 cm of the skin beneath at the knee and shoulder | `tests/morphs.test.ts` |
+| Culling | crowd, household NPCs and the player keep `frustumCulled = true` with an explicit pose-independent bounding sphere (`src/characters/bounds.ts`) instead of disabling culling; the crowd tests a sphere, not a point | `tests/avatar.test.ts` |
+| Camera | `ChaseCamera.update` and the creator camera allocate nothing per frame | code review |
+| Pause | no simulation, no crowd/NPC/lighting work and no GPU frame while paused (one re-render on resize); resume clears input and restarts the clock | `game-verify` ("paused: loop runs but no GPU frames") |
+| Quality selection (`src/game/save.ts`) | `chooseQuality()` is conservative when memory / GPU are unknown (Lite), uses a GPU-string tier (Adreno / Mali / Apple / desktop), needs WebGL2 for anything above Lite; Lite now also halves crowd simulation rate, uses a smaller crowd (18 agents, 70 m), shorter NPC LOD distances, 220 m prop detail, 1.8 km far plane | `tests/save.test.ts` |
+| Settings / saves | `sanitizeSettings` / `sanitizeSave`: unknown presets → `auto`, numbers clamped, booleans coerced, malformed JSON or wrong version → defaults / `null`, `localStorage` failures caught | `tests/save.test.ts` |
+
+**Benchmark (headless Chromium + SwiftShader software GL, 960 × 540, 45 s per spot, same spots and clock).**
+These compare code paths only; they are not Android frame rates, and the ms-per-frame column varies ±10 % between runs on the shared sandbox CPU (the "after" Lite row is from the final commit, `d688133` code).
+
+| Preset · spot | before (b16189f) calls / tris / ms per frame | after calls / tris / ms per frame |
+|---|---|---|
+| Lite · living room | 460 / 1.21 M / 1406 | 337 / 0.95 M / 1324 |
+| Lite · street outside the gate | 479 / 1.61 M / 1407 | 250 / 1.05 M / 1217 |
+| Standard · living room | 447 / 1.21 M / 4503 | 418 / 1.17 M / 3216 |
+| Standard · street outside the gate | 567 / 1.91 M / 4501 | 529 / 1.89 M / 3462 |
+
+(Software rasterisation is bound by pixels and triangles, which is why Lite's smaller crowd and shorter detail
+range show up mostly as fewer draw calls / triangles; on a GPU the draw-call and update savings matter more.)
+
+**Known limitations that need more assets or modelling work**
+
+* Body-shape range is what the MakeHuman macro targets give (≈ 3 cm at the belly for full weight); the creator
+  extrapolates the heavy end to 1.35 × the target.
+* Face sliders move the MakeHuman head geometry. There is **no lip-sync and no facial blendshape animation**:
+  talking characters get a procedural jaw open/close ("talk flap") on the `Jaw` bone and all idle poses get eye
+  saccades; the rig has no eyelids, so nobody blinks. Visemes/FACS need the Rocketbox blendshape reference
+  (APK 2).
+* Hair is a scalp cap plus procedural strands: the cap follows the body-shape morphs, the strands do not (no
+  visible gap at the shipped slider ranges).
+* The jump still uses the procedural clip; mocap replaces it in APK 2.
+* Automatic quality cannot measure real GPU speed — it is a device-fact heuristic. Runtime adaptation (dropping
+  pixel ratio when frames are slow) is not implemented because frame-time telemetry from real phones is not
+  available yet.
+
+### Audit pass 2 — radar, floors and terrain, stairs, Lite stutter, faces
+
+Scope: the four reported defects (radar position, mansion exit / floor sinking / terrain-collision mismatch, Lite
+stutter on door and gate use, character realism) plus a regression sweep of movement through the house and
+compound. Every item below was reproduced with a tool first and re-checked with the same tool after the fix.
+
+**Tools added for this pass** (all headless Chromium + SwiftShader against the Vite dev server):
+
+| Script | What it does |
+|---|---|
+| `scripts/game-walk.mjs` | drives the player along real routes (bed → front door → gate → street, street → bed, side pedestrian gate loop, house → garden → pool steps and back, stairs → roof terrace), opens doors through the real prompt, and reports every sink / hover / fall / teleport / stuck / mesh-clip event with coordinates (`QUALITY=lite node scripts/game-walk.mjs http://localhost:5173/ out.json`) |
+| `scripts/game-audit.mjs` | draw calls / triangles per layer, door and gate animation cost per frame, ground-vs-geometry probes along the exit routes, collision grid sizes |
+| `scripts/game-inspect.mjs` | for a list of points: blockers, surfaces, terrain and meshes at that spot (`node scripts/game-inspect.mjs "X,Y,Z;…"`) |
+| `scripts/game-verify.mjs` | now also checks the HUD layout at 640×360, 780×360, 844×390 and 1280×720 (radar in the top-left quadrant, nothing overlapping, nothing off-screen) |
+| `tests/collision.test.ts` | unit tests for the collision grid: scoped removal, in-place segment moves, pits, step-up, stair surfaces, landing overlap, side entry onto a flight |
+
+**Defects, root causes, fixes**
+
+| # | Symptom | Root cause | Fix | Verified by |
+|---|---|---|---|---|
+| A | Radar sat bottom-left on phones, covered by the joystick | `#radar-wrap` was anchored `bottom/left` in the touch layout; the stats block and toast were positioned around it | `src/game/game.css`: radar top-left, stats (cash/clock/health) top-right, pause top-centre, toast below the pause button, place card bottom-centre; the joystick keeps the bottom-left corner | `game-verify` HUD layout check at four viewports; `docs/screenshots/game/mobile-living-room.png`, `mobile-stair-foot.png`, `mobile-gate.png` (844×390 @2×, Lite) |
+| B1 | Feet sank into / floated above the compound; the drive climbed 2.9 m and the pool side dropped 2.7 m while the house floor stayed flat | the city terrain field (hills) was *added* to the landmark plateau and the mansion slabs were drawn flat at the old origin; the collision ground used the terrain field, the slabs had no walk surfaces | `src/shared/ground.ts`: plateaus take precedence over the hill field; `generator/landmarks.ts` anchors the JAG terrace height; `src/app/world/terrain.ts` renders exact terrace patches; `src/game/main.ts` derives the mansion origin from the landmark; every compound slab is a collision surface | terrace height-map probe (5 159 points, 0 off the plateau after the fix, was −2.70 / +2.87 m); `game-audit` ground probes along the exit route; walk routes report no sink > 4 cm |
+| B2 | Walking out of the gate: feet 17 cm under the sidewalk, 3 cm under the asphalt | the road mesh is drawn 0.2 m above the terrain, the collision ground used the terrain only | `Ground.walkHeight()` = visual surface (asphalt +0.02, sidewalk +0.15, median, drain) used by `CollisionWorld` | `game-walk` street segment: clearance −0.03 … +0.05 m |
+| B3 | Stairs: stuck at the foot, popped 0.25 m, fell through the F1 opening, walked through the glass rails | treads were full-height columns with 8 cm pads that overlapped the landing; the rail ran from tread 0 and boxed in the foot with a plant pot; the stair hole in the F1 slab did not match the flight; two risers (0.425 m) exceeded the 0.42 m step-up | `src/game/mansion/kit.ts` stair: per-tread surfaces, side and back blockers, `railFrom`; `house.ts`: flights redesigned with a `STAIR` constant shared by holes, rails and landings; `STEP_UP` = 0.45 m shared by collision and player | `tests/collision.test.ts` (stair ground, landing overlap, side entry); `game-walk` bed → street and street → bed 18/18 waypoints, roof route 13/13 |
+| B4 | Penthouse door dropped the player onto the second flight | the terrace door opened over the roof stair hole | door moved to the north wall of the penthouse | `game-walk` roof route |
+| B5 | Talking to a door sometimes opened a different one | interactable ids `door:<n>` were 1-based, the door array 0-based | `src/game/mansion/index.ts` | `game-walk` opens every route door by prompt text |
+| B6 | Sofas, beds, benches, loungers, coffee tables could be walked through after the step-up change | their visible boxes top out below the step-up height, so the capsule stepped "onto" them while no surface existed | `furniture.ts`: invisible full-height colliders (`frame.block`), flower beds get walk-on tops | `game-walk` clip report (remaining clips are leaves and a 10 cm planter kerb) |
+| C | Stutter when a door or the gate moved on Lite | every animation frame called `collision.remove(ref)` which scanned **all 13 243 grid cells**, then re-inserted the segment | `src/game/collision.ts`: blockers remember their cells; `moveSegment()` updates one segment in place; `Door`/`Slider` are one segment each (`dynamic.ts`) | `game-audit`: door 0.41 → 0.015 ms per animation frame, gate 0.29 → 0.005 ms (Lite, SwiftShader) |
+| C2 | Lite still drew the whole 201k-triangle terrain and far props | single terrain mesh, 220 m detail radius | tiled terrain (distance-culled tiles), Lite detail 180 m / far 1.6 km, health bar DOM write only on change | `game-audit` composition table below |
+| D | "Lip-sync" expectations; stiff faces | the pipeline never had visemes or blink shapes; the talk clip did not use the `Jaw` bone that the mouth is already skinned to | `characters/anim.ts`: procedural jaw talk flap on `idle_talk`, eye saccades on `idle` / `sit` / `guard` (baked into `animations.gltf` by `npm run characters`); limits documented above — **not lip-sync** | character viewer close-ups (`characters.html?id=…&view=face&clip=idle_talk`) |
+
+**Lite composition at the wake-up spot (headless, `game-audit`, same clock)**
+
+| Layer | before (47ad2d9) calls / tris | after calls / tris |
+|---|---|---|
+| total | 297 / 917 k | 278 / 749 k |
+| terrain | 1 / 201 k | 29 tiles / 81 k |
+| roads | 19 / 68 k | 17 / 48 k |
+| instanced props | 116 / 339 k | 97 / 323 k |
+| mansion | 70 / 110 k | 58 / 109 k |
+| door / gate animation | 0.41 / 0.29 ms per frame | 0.015 / 0.005 ms per frame |
+
+**Frame benchmark (headless SwiftShader 960 × 540, 30 s per spot, 16 warm-up frames so shader compiles are
+excluded; `node scripts/game-verify.mjs` with `BENCH_ONLY=1`).** ms per frame on software GL is pixel/triangle
+bound and varies ±10 % between runs on the shared sandbox CPU; the honest reading is: triangles down 7–23 %,
+draw calls roughly level (terrain is now 29 culled tiles instead of one mesh), JS time per frame level or lower,
+and the door/gate hitch gone. Real-phone numbers are still not available.
+
+| Preset · spot | previous pass (d688133) calls / tris / ms (JS ms) | this pass calls / tris / ms (JS ms) |
+|---|---|---|
+| Lite · living room | 337 / 0.95 M / 1324 (14.7) | 323 / 0.73 M / 1305 (14.3) |
+| Lite · street outside the gate | 250 / 1.05 M / 1217 (9.4) | 296 / 0.96 M / 1112 (8.2) |
+| Standard · living room | 418 / 1.17 M / 3216 | 413 / 0.98 M / 3335 (24.4) |
+| Standard · street outside the gate | 529 / 1.89 M / 3462 | 552 / 1.76 M / 3752 (22.2) |
+
+**Walk-route results (`game-walk`, Lite, final code):** bed → street 18/18 waypoints, street → bed 18/18, side
+gate loop 13/13, house → garden → pool steps → forecourt 20/20, stairs → roof terrace 13/13; no sink deeper than
+4 cm, no fall, no teleport. Remaining non-blocking mesh clips: plant leaves at shoulder height next to the stair
+foot and a 10 cm kerb on the east-lawn planter.
+
+**What this pass does not claim:** no measurement on a real phone (SwiftShader numbers compare code paths
+only); eyelids/blink and real visemes need assets that do not exist in the repository; a human steering around a
+jamb or a hedge corner is approximated by waypoint routes, so a *new* furniture layout still needs a walk run.
+
+---
+
+## 2. Runtime architecture
+
+```
+index.html (game)           src/game/main.ts  — boot pipeline, state machine, clock, light pool, autosave, window.vora
+city.html  (city viewer)    src/app/…         — Phase 1 world builder (terrain, roads, buildings, props, sky, crowd)
+characters.html (lineup)    src/characters/…  — Phase 2 glTF loading / retarget helpers
+
+src/game/
+  input.ts      touch stick + buttons, keyboard, mouse → one InputFrame per tick
+  player.ts     loads player_f / player_m glTF, applies appearance (skin, hair, outfit nodes), PlayerController
+  camera.ts     ChaseCamera: spring follow, ground clearance, 3-ray occlusion against walls/windows
+  collision.ts  2-D wall segments + floor slabs + pits; groundAt(), rayFraction(), sweep & slide
+  radar.ts      canvas minimap
+  npcs.ts       HOUSEHOLD cast, spot placement, clip cycling, talk
+  hud.ts        HUD writes + screen fade
+  screens.ts    logo / loading / title / create / pause / settings DOM screens
+  save.ts       save + settings schema, autoQuality, labels
+  mansion/      procedural house kit (walls with openings, glazing, slabs with holes, stairs, cylinders, prisms),
+                dynamic parts (doors, sliders, fans, screens), furniture, cars, house.ts (rooms) and compound.ts
+                (walls, gate, drive, forecourt, pool, gazebo, BQ, generator house) → buildMansion()
+```
+
+* The mansion is built in a **local frame** (origin world `(-374.1, 24.3, -411.9)`, X east 0..66, Z south 0..76,
+  Z = 76 is the street side). Rooms, doors and spots are authored in `house.ts` / `compound.ts`; every wall segment
+  registers a collider, every door an interactable, every lamp a candidate point light.
+* The city terrain is clipped (material clipping planes) where the pool is dug, so below-ground features inside the
+  compound need both a lawn hole and a terrain clip rectangle (`mansion.pits`).
+* `window.vora` exposes scene, camera, player, household, sky, clock and save for the screenshot driver and debugging.
+
+---
+
+## 3. Building the APK
+
+The APK is built by **GitHub Actions** (`.github/workflows/android.yml`) on every push and on `v*` tags:
+
+1. `npm ci` → `npm run typecheck` → `npm test`
+2. `npm run characters` (the glTF humans are generated, not committed)
+3. `npm run build` (Vite → `dist/`: game + city viewer + character lineup, ~90 MB incl. 72 character files)
+4. `npx cap sync android` copies `dist/` into the Android project
+5. `./gradlew assembleDebug` → artifact **`vora-city-<sha>-debug.apk`** (Actions → run → Artifacts);
+   tags additionally publish the APK on a GitHub Release.
+
+Android shell (Capacitor 7, `android/`): app id `com.jag.voracity`, name *Vora City*, `sensorLandscape`,
+immersive-sticky full screen, keep-screen-on, display-cutout short-edges, black splash with the JAG / VORA CITY
+wordmark, adaptive launcher icon (`scripts/android/make-icons.py` regenerates icons + splash). Min SDK 23
+(Android 6), target SDK 35. The debug APK is signed with the debug key, so it installs directly from the phone's
+downloads ("install unknown apps").
+
+Local alternative (needs JDK 21 + Android SDK): `npm run build && npx cap sync android && cd android && ./gradlew assembleDebug`.
+
+Screenshots in `docs/screenshots/game/` are real headless renders of the game (`node scripts/game-shot.mjs`,
+env `SHOTS=…`, `QUALITY=…`, `MOBILE=1`).
+
+---
+
+## 4. Road-map (agreed build order)
+
+| Milestone | Scope |
+|---|---|
+| **APK 1 – App + Home** (this build) | app shell, intro, title, creator, the mansion, household, HUD, save, settings, quality presets, APK pipeline |
+| **APK 2 – Alive** | retargeted mocap (Rocketbox, MIT) on everyone, role placement + daily schedules across the city, traffic, animated world (signals, signs, water, lights), intro cinematic |
+| **APK 3 – Ride & earn** | driving (owner's cars + city vehicles), jobs, money, shops |
+| **APK 4 – Wanted** | crimes, wanted level, police chase and arrest, respawn, save slots |
+| **APK 5 – Story** | missions, phone apps, more interiors, audio / radio, polish |
+
+Known limitations in APK 1: procedural (not mocap) animation, painted faces, NPCs do not yet walk between spots,
+no vehicles to drive, no sound. See `docs/REPORT.md` and `docs/CHARACTERS.md` for the earlier phases.

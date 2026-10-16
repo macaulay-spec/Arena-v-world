@@ -1,0 +1,33 @@
+{
+  "quality": "standard",
+  "renderer": "SwiftShader (headless, software GL)",
+  "when": "2026-10-15T19:28:13.769Z",
+  "checks": {},
+  "bench": {
+    "living-room": {
+      "frames": 9,
+      "seconds": 30,
+      "fps": 0.3,
+      "msPerFrame": 3335,
+      "cpuMsPerFrame": 24.4,
+      "calls": 413,
+      "tris": 978389,
+      "programs": 59,
+      "geometries": 1065,
+      "textures": 1913
+    },
+    "street-outside": {
+      "frames": 8,
+      "seconds": 30,
+      "fps": 0.27,
+      "msPerFrame": 3752,
+      "cpuMsPerFrame": 22.2,
+      "calls": 552,
+      "tris": 1755860,
+      "programs": 65,
+      "geometries": 1123,
+      "textures": 1935
+    }
+  },
+  "errors": []
+}

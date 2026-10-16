@@ -1,0 +1,71 @@
+{
+  "when": "2026-10-14T17:55:59.129Z",
+  "info": {
+    "buildings": 1263,
+    "edges": 721,
+    "props": 12981
+  },
+  "views": [
+    {
+      "view": "overview-central",
+      "file": "docs/screenshots/overview-central.png",
+      "stats": "0 fps · 559 draw calls · 1.67 M tris"
+    },
+    {
+      "view": "unity-square",
+      "file": "docs/screenshots/unity-square.png",
+      "stats": "0 fps · 454 draw calls · 1.60 M tris"
+    },
+    {
+      "view": "meridian-tower",
+      "file": "docs/screenshots/meridian-tower.png",
+      "stats": "0 fps · 467 draw calls · 1.71 M tris"
+    },
+    {
+      "view": "grand-market",
+      "file": "docs/screenshots/grand-market.png",
+      "stats": "0 fps · 484 draw calls · 1.59 M tris"
+    },
+    {
+      "view": "old-town-street",
+      "file": "docs/screenshots/old-town-street.png",
+      "stats": "0 fps · 493 draw calls · 1.70 M tris"
+    },
+    {
+      "view": "north-heights",
+      "file": "docs/screenshots/north-heights.png",
+      "stats": "0 fps · 108 draw calls · 0.54 M tris"
+    },
+    {
+      "view": "unity-bridge",
+      "file": "docs/screenshots/unity-bridge.png",
+      "stats": "0 fps · 482 draw calls · 1.19 M tris"
+    },
+    {
+      "view": "industrial",
+      "file": "docs/screenshots/industrial.png",
+      "stats": "0 fps · 198 draw calls · 0.55 M tris"
+    },
+    {
+      "view": "green-estates",
+      "file": "docs/screenshots/green-estates.png",
+      "stats": "1 fps · 342 draw calls · 1.03 M tris"
+    },
+    {
+      "view": "stadium",
+      "file": "docs/screenshots/stadium.png",
+      "stats": "0 fps · 325 draw calls · 1.05 M tris"
+    },
+    {
+      "view": "night-central",
+      "file": "docs/screenshots/night-central.png",
+      "stats": "0 fps · 583 draw calls · 1.88 M tris"
+    },
+    {
+      "view": "walk-market-quarter",
+      "file": "docs/screenshots/walk-market-quarter.png",
+      "stats": "0 fps · 369 draw calls · 1.45 M tris"
+    }
+  ],
+  "errors": []
+}

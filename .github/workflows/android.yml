@@ -1,0 +1,121 @@
+# VORA CITY — builds the web game and wraps it into a debug APK with Capacitor.
+# Every push produces an installable artifact; tags `v*` also attach the APK to a GitHub Release.
+name: Android APK
+
+# Legacy three.js/Capacitor build (APK 1). Kept until the Godot S0 build passes on the user's phone;
+# only runs when the web runtime itself changes.
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+    paths:
+      - 'src/**'
+      - 'android/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - 'vite.config.*'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck + tests
+        run: |
+          npm run typecheck
+          npm test
+
+      - name: Generate characters (gitignored assets)
+        run: npm run characters
+
+      - name: Build web
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Accept Android licenses
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+
+      - name: Assemble debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename
+        run: |
+          mkdir -p out
+          cp android/app/build/outputs/apk/debug/app-debug.apk "out/vora-city-${GITHUB_SHA::7}-debug.apk"
+          ls -la out
+
+      # Facts about the APK, in the job summary and as annotations (readable through the API without downloading).
+      - name: APK summary
+        run: |
+          APK=$(ls out/*.apk | head -1)
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt | sort -V | tail -1)
+          SIZE=$(stat -c %s "$APK")
+          BADGE=$("$AAPT" dump badging "$APK")
+          PKG=$(echo "$BADGE" | grep -oP "^package: name='\K[^']+")
+          VER=$(echo "$BADGE" | grep -oP "versionName='\K[^']+")
+          SDK=$(echo "$BADGE" | grep -oP "^sdkVersion:'\K[^']+")
+          TSDK=$(echo "$BADGE" | grep -oP "^targetSdkVersion:'\K[^']+")
+          LABEL=$(echo "$BADGE" | grep -oP "^application-label:'\K[^']+")
+          ORIENT=$("$AAPT" dump xmltree "$APK" AndroidManifest.xml | grep -oP "screenOrientation.*=\(type 0x10\)0x\K[0-9a-f]+" | head -1)
+          CHARS=$(unzip -l "$APK" | grep -c "assets/public/assets/characters/.*\.gltf$" || true)
+          HAS_CITY=$(unzip -l "$APK" | grep -c "assets/public/assets/city.*\.json" || true)
+          HAS_GAME=$(unzip -l "$APK" | grep -c "assets/public/index.html" || true)
+          {
+            echo "## VORA CITY debug APK"
+            echo ""
+            echo "| | |"; echo "|---|---|"
+            echo "| file | \`$(basename "$APK")\` |"
+            echo "| size | $((SIZE/1024/1024)) MB |"
+            echo "| package | $PKG $VER (minSdk $SDK, targetSdk $TSDK) |"
+            echo "| label | $LABEL |"
+            echo "| screenOrientation | 0x$ORIENT (6 = sensorLandscape) |"
+            echo "| game page / city data / character files | $HAS_GAME / $HAS_CITY / $CHARS |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::notice title=APK::$(basename "$APK") $((SIZE/1024/1024)) MB, $PKG $VER, minSdk $SDK targetSdk $TSDK, label '$LABEL', orientation 0x$ORIENT, index.html=$HAS_GAME city.json=$HAS_CITY characters=$CHARS"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: vora-city-debug-apk
+          path: out/*.apk
+          retention-days: 30
+
+      - name: Release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: out/*.apk
+          generate_release_notes: true

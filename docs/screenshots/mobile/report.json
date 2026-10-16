@@ -1,0 +1,21 @@
+{
+  "when": "2026-10-14T17:45:24.999Z",
+  "info": {
+    "buildings": 1263,
+    "edges": 721,
+    "props": 12981
+  },
+  "views": [
+    {
+      "view": "unity-square",
+      "file": "docs/screenshots/mobile/unity-square.png",
+      "stats": "2 fps · 210 draw calls · 0.90 M tris"
+    },
+    {
+      "view": "night-central",
+      "file": "docs/screenshots/mobile/night-central.png",
+      "stats": "1 fps · 262 draw calls · 0.96 M tris"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,224 @@
+name: Godot Android APK
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "godot/**"
+      - "assets/manifest/**"
+      - "tools/fetch_assets.py"
+      - "tools/export_chunk.ts"
+      - ".github/workflows/godot-android.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: godot-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: "4.7.2"
+  GODOT_RELEASE: "4.7.2-stable"
+  ROCKETBOX_SRC: /home/runner/rocketbox
+
+jobs:
+  build:
+    name: Import · test · export APK · screenshots
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------- Godot editor + Android templates
+      - name: Cache Godot
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/godot-bin
+            /home/runner/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_RELEASE }}-android-v2
+
+      - name: Download Godot + Android export templates
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          mkdir -p /home/runner/godot-bin /home/runner/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          cd /home/runner/godot-bin
+          curl -sSL -o godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip"
+          unzip -q godot.zip && rm godot.zip && mv Godot_v${GODOT_RELEASE}_linux.x86_64 godot && chmod +x godot
+          curl -sSL -o templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz"
+          unzip -q -j templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d /home/runner/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+          rm templates.tpz
+          ls -la /home/runner/.local/share/godot/export_templates/${GODOT_VERSION}.stable/
+
+      - name: Godot version
+        run: /home/runner/godot-bin/godot --headless --version
+
+      # ---------------------------------------------------------------- external assets (never committed)
+      - name: Cache prepared assets
+        id: cache-assets
+        uses: actions/cache@v4
+        with:
+          path: godot/assets/ext
+          key: ext-assets-${{ hashFiles('assets/manifest/rocketbox.json', 'tools/fetch_assets.py') }}-v2
+
+      - name: Fetch Rocketbox avatars + mocap (sparse clone, downscaled)
+        if: steps.cache-assets.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          python3 -m pip install -q pillow
+          python3 tools/fetch_assets.py --src "$ROCKETBOX_SRC"
+          du -sh godot/assets/ext/rocketbox
+
+      - name: Fetch Kenney Car Kit (CC0)
+        if: steps.cache-assets.outputs.cache-hit != 'true'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          url=$(curl -sL https://kenney.nl/assets/car-kit | grep -o 'https://kenney.nl/media/pages/assets/car-kit/[^"]*\.zip' | head -1 || true)
+          if [ -z "$url" ]; then echo "::warning title=cars::Kenney Car Kit link not found; parked cars skipped"; exit 0; fi
+          mkdir -p /tmp/carkit && curl -sL -o /tmp/carkit/kit.zip "$url" && cd /tmp/carkit && unzip -q kit.zip
+          dst=$GITHUB_WORKSPACE/godot/assets/ext/kenney/car-kit; mkdir -p "$dst"
+          glb_dir=$(find . -type d -iname "GLB format" | head -1)
+          cp "$glb_dir"/*.glb "$dst"/
+          [ -d "$glb_dir/Textures" ] && cp -r "$glb_dir/Textures" "$dst"/ || true
+          cp License.txt "$dst"/ 2>/dev/null || true
+          echo "::notice title=cars::Kenney Car Kit: $(ls "$dst"/*.glb | wc -l) models"
+
+      # ---------------------------------------------------------------- build info, import, bake, tests
+      - name: Build info
+        run: |
+          echo "{\"commit\": \"${GITHUB_SHA}\", \"date\": \"$(date -u +%Y-%m-%dT%H:%MZ)\", \"slice\": \"S0\", \"run\": \"${GITHUB_RUN_ID}\"}" > godot/build_info.json
+          cat godot/build_info.json
+
+      - name: Import project
+        run: |
+          set -euo pipefail
+          cd godot
+          /home/runner/godot-bin/godot --headless --import 2>&1 | grep -iv "^\s*$" | grep -i "error" | grep -v "colormap" || true
+          /home/runner/godot-bin/godot --headless --script tools/bake_clips.gd 2>&1 | grep -v "Original size" | tail -5
+          # second import pass so the freshly baked library is registered
+          /home/runner/godot-bin/godot --headless --import > /dev/null 2>&1 || true
+
+      - name: Headless world test (budgets, NPCs, player)
+        run: |
+          set -euo pipefail
+          cd godot
+          /home/runner/godot-bin/godot --headless res://tests/test_world.tscn 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tee /tmp/test.log
+          grep -q "TEST OK" /tmp/test.log
+
+      - name: Headless profile and save round-trip test
+        run: |
+          set -euo pipefail
+          cd godot
+          /home/runner/godot-bin/godot --headless res://tests/test_save.tscn 2>&1 | tee /tmp/save-test.log
+          grep -q "SAVE TEST OK" /tmp/save-test.log
+
+      # ---------------------------------------------------------------- Android export
+      - name: Android debug keystore + editor settings
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -v -keystore /home/runner/debug.keystore -storepass android -keypass android -alias androiddebugkey -dname "CN=Android Debug,O=JAG,C=NG" -keyalg RSA -keysize 2048 -validity 10000 > /dev/null 2>&1
+          mkdir -p /home/runner/.config/godot
+          JAVA="${JAVA_HOME_17_X64:-$JAVA_HOME}"
+          for f in editor_settings-4.tres editor_settings-4.7.tres; do
+            cat > /home/runner/.config/godot/$f <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "${JAVA}"
+          export/android/android_sdk_path = "${ANDROID_HOME}"
+          export/android/debug_keystore = "/home/runner/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+          done
+          echo "java=$JAVA sdk=$ANDROID_HOME"; ls "$ANDROID_HOME/build-tools" | tail -2
+
+      - name: Export APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          short=${GITHUB_SHA::7}
+          cd godot
+          /home/runner/godot-bin/godot --headless --export-debug "Android" "../build/vora-city-${short}-s0-debug.apk" 2>&1 | grep -v "leaked\|still in use" | tail -20
+          cd ..
+          ls -la build/
+          test -s "build/vora-city-${short}-s0-debug.apk"
+          echo "APK=vora-city-${short}-s0-debug.apk" >> $GITHUB_ENV
+          echo "::notice title=APK::vora-city-${short}-s0-debug.apk $(du -h build/vora-city-${short}-s0-debug.apk | cut -f1) — download from this run's Artifacts"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.APK }}
+          path: build/*.apk
+          retention-days: 30
+
+      # ---------------------------------------------------------------- screenshots (software GL) → evidence branch
+      - name: Screenshots under Xvfb (llvmpipe) — Lite (gated) + Standard (reported)
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
+          mkdir -p /tmp/shots
+          cd godot
+          export LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe
+          for q in lite standard; do
+            timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --shots=/tmp/shots --quality=$q 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tail -12 || true
+          done
+          timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --title-shot=/tmp/shots 2>&1 | grep "title shot" || true
+          timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --creator-shot=/tmp/shots 2>&1 | grep "creator shot" || true
+          ls -la /tmp/shots
+
+      - name: Render budget gate (Lite preset = the 2 GB phone target)
+        run: |
+          python3 - <<'PY'
+          import json,os
+          for q in ("lite","standard"):
+              p=f'/tmp/shots/report_{q}.json'
+              if not os.path.exists(p):
+                  print(f"::warning title=shots::no report for {q}"); continue
+              r=json.load(open(p))
+              line=f"{q}: worst draw calls {r['worst_draw_calls']}, worst primitives {r['worst_primitives']}, budget_ok {r['budget_ok']}"
+              print(line); print(f"::notice title=render budget {q}::{line}")
+              for s in r["shots"]: print(f"  {s['name']:28s} calls {s['draw_calls']:4d} prims {s['primitives']:7d} objects {s['objects']:4d}")
+              if q=="lite" and not r["budget_ok"]:
+                  print("::error title=render budget::Lite preset over budget (≤120 draw calls, ≤150k primitives) — fail-fast rule")
+                  raise SystemExit(1)
+          PY
+
+      - name: Push evidence branch
+        if: always()
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/shots
+          [ -n "$(ls -A /tmp/shots 2>/dev/null)" ] || [ -s /tmp/test.log ] || { echo "no screenshots or test log"; exit 0; }
+          git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/evrepo
+          cd /tmp/evrepo
+          git config user.name "ci-evidence"; git config user.email "ci-evidence@users.noreply.github.com"
+          git checkout -q --orphan ci/evidence
+          git rm -rfq --cached . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          mkdir -p shots
+          find /tmp/shots -maxdepth 1 -type f -exec cp {} shots/ \;
+          cp /tmp/test.log test.log || true
+          echo "CI evidence for ${GITHUB_SHA} (run ${GITHUB_RUN_ID}): screenshots and/or headless logs. Disposable branch, force-pushed by CI." > README.md
+          git add -A && git commit -qm "evidence ${GITHUB_SHA::7}" && git push -f origin ci/evidence
+          echo "::notice title=evidence::pushed ci/evidence ($(ls shots | wc -l) files)"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.sha }}
+          path: /tmp/shots
+          if-no-files-found: ignore

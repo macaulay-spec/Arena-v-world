@@ -1,0 +1,51 @@
+{
+  "when": "2026-10-15T01:12:16.282Z",
+  "shots": [
+    {
+      "shot": "lineup-street",
+      "file": "docs/screenshots/characters/lineup-street.png",
+      "stats": "1 fps · 90 draw calls · 271 k tris"
+    },
+    {
+      "shot": "lineup-market",
+      "file": "docs/screenshots/characters/lineup-market.png",
+      "stats": "1 fps · 92 draw calls · 291 k tris"
+    },
+    {
+      "shot": "lineup-props",
+      "file": "docs/screenshots/characters/lineup-props.png",
+      "stats": "1 fps · 89 draw calls · 275 k tris"
+    },
+    {
+      "shot": "lineup-mixed",
+      "file": "docs/screenshots/characters/lineup-mixed.png",
+      "stats": "1 fps · 81 draw calls · 270 k tris"
+    },
+    {
+      "shot": "lineup-uniforms",
+      "file": "docs/screenshots/characters/lineup-uniforms.png",
+      "stats": "1 fps · 87 draw calls · 268 k tris"
+    },
+    {
+      "shot": "lineup-children-elders",
+      "file": "docs/screenshots/characters/lineup-children-elders.png",
+      "stats": "1 fps · 71 draw calls · 246 k tris"
+    },
+    {
+      "shot": "walk-cycle",
+      "file": "docs/screenshots/characters/walk-cycle.png",
+      "stats": "1 fps · 69 draw calls · 216 k tris"
+    }
+  ],
+  "errors": [],
+  "crowd": [
+    {
+      "shot": "crowd-assembly-street",
+      "stats": "998 draw calls · 2.14 M tris · 56 people (high preset)"
+    },
+    {
+      "shot": "crowd-central-walk",
+      "stats": "796 draw calls · 2.05 M tris · 28 people (high preset)"
+    }
+  ]
+}

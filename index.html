@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>VORA CITY</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23111'/%3E%3Ctext x='32' y='43' font-family='Impact,Arial Black,sans-serif' font-size='30' text-anchor='middle' fill='%23f2c230'%3EJAG%3C/text%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/src/game/game.css" />
+</head>
+<body>
+  <canvas id="view"></canvas>
+
+  <!-- ─── HUD ─── -->
+  <div id="hud" class="hidden">
+    <div id="radar-wrap"><canvas id="radar" width="176" height="176"></canvas></div>
+    <div id="stats">
+      <div id="cash">₦0</div>
+      <div id="clock-wrap"><span id="clock">07:12</span><span id="day">Day 1</span></div>
+      <div id="health"><div id="health-bar"></div></div>
+    </div>
+    <div id="place-card" class="hidden"><div id="place"></div><div id="place-sub"></div></div>
+    <div id="prompt" class="hidden"><span class="key">E</span><span id="prompt-text"></span></div>
+    <div id="toast" class="hidden"></div>
+    <div id="speech" class="hidden"><div id="speech-who"></div><div id="speech-text"></div></div>
+    <div id="fps" class="hidden"></div>
+    <!-- touch controls -->
+    <div id="touch">
+      <div id="stick"><div id="knob"></div></div>
+      <button id="btn-pause" class="tbtn small" aria-label="Pause">II</button>
+      <button id="btn-camera" class="tbtn small" aria-label="Camera">◎</button>
+      <button id="btn-interact" class="tbtn" aria-label="Interact">E</button>
+      <button id="btn-jump" class="tbtn" aria-label="Jump">⤒</button>
+      <button id="btn-run" class="tbtn" aria-label="Run">RUN</button>
+    </div>
+  </div>
+
+  <!-- ─── screens ─── -->
+  <div id="screen-logo" class="screen">
+    <div class="logo"><span class="j">J</span><span class="a">A</span><span class="g">G</span></div>
+    <div class="logo-sub">JAG STUDIOS PRESENTS</div>
+  </div>
+
+  <div id="screen-loading" class="screen hidden">
+    <div class="load-box">
+      <div class="wordmark small">VORA <em>CITY</em></div>
+      <div class="bar"><div id="load-bar"></div></div>
+      <div id="load-text">Loading…</div>
+      <div id="load-tip" class="tip">Tip: tap the camera button to switch between near, far and front views.</div>
+    </div>
+  </div>
+
+  <div id="screen-title" class="screen hidden">
+    <div class="title-top">
+      <div class="wordmark">VORA <em>CITY</em></div>
+      <div class="tagline">North Heights · JAG House · the city is yours</div>
+    </div>
+    <div id="tap-start" class="tap">TAP TO START</div>
+    <div id="title-menu" class="menu hidden">
+      <button id="btn-continue" class="mbtn primary">Continue</button>
+      <button id="btn-new" class="mbtn">New game</button>
+      <button id="btn-settings" class="mbtn">Settings</button>
+      <div class="build">APK 1 · App + Home · <span id="build-quality"></span></div>
+    </div>
+  </div>
+
+  <div id="screen-create" class="screen side hidden">
+    <div class="panel create">
+      <h2>Who are you?</h2>
+      <div class="seg tabs" id="c-tab"><button data-v="look" class="on">Look</button><button data-v="body">Body</button><button data-v="face">Face</button></div>
+      <div class="tab" id="c-tab-look">
+        <label>Name <input id="c-name" maxlength="14" autocomplete="off" spellcheck="false" /></label>
+        <div class="seg" id="c-sex"><button data-v="m" class="on">Man</button><button data-v="f">Woman</button></div>
+        <label>Skin <input id="c-tone" type="range" min="0" max="5" step="1" /></label>
+        <div class="pick"><span>Hair</span><button id="c-hair-prev">‹</button><span id="c-hair">—</span><button id="c-hair-next">›</button></div>
+        <div class="pick"><span>Outfit</span><button id="c-outfit-prev">‹</button><span id="c-outfit">—</span><button id="c-outfit-next">›</button></div>
+        <label>Height <input id="c-height" type="range" min="0" max="1" step="0.05" /></label>
+      </div>
+      <div class="tab hidden" id="c-tab-body">
+        <label>Build <input id="c-build" type="range" min="0" max="1" step="0.05" /></label>
+        <label>Muscle <input id="c-muscle" type="range" min="0" max="1" step="0.05" /></label>
+        <div class="note">Slim to heavy, soft to toned. Clothes follow the body.</div>
+      </div>
+      <div class="tab hidden sliders" id="c-tab-face"></div>
+      <div class="row"><button id="c-random" class="mbtn">Random</button><button id="c-done" class="mbtn primary">Wake up</button></div>
+    </div>
+  </div>
+
+  <div id="screen-pause" class="screen dim hidden">
+    <div class="panel">
+      <h2>Paused</h2>
+      <div id="pause-info" class="info"></div>
+      <button id="btn-resume" class="mbtn primary">Resume</button>
+      <button id="btn-save" class="mbtn">Save</button>
+      <button id="btn-pause-settings" class="mbtn">Settings</button>
+      <button id="btn-quit" class="mbtn danger">Save & quit to title</button>
+    </div>
+  </div>
+
+  <div id="screen-settings" class="screen dim hidden">
+    <div class="panel">
+      <h2>Settings</h2>
+      <div class="pick"><span>Graphics</span><div class="seg" id="s-quality"><button data-v="auto">Auto</button><button data-v="lite">Lite</button><button data-v="standard">Standard</button><button data-v="high">High</button></div></div>
+      <label>Camera sensitivity <input id="s-sens" type="range" min="0.4" max="2" step="0.1" /></label>
+      <label class="chk"><input id="s-invert" type="checkbox" /> Invert camera Y</label>
+      <label class="chk"><input id="s-fps" type="checkbox" /> Show FPS</label>
+      <div class="note" id="s-note"></div>
+      <button id="btn-settings-back" class="mbtn primary">Back</button>
+      <button id="btn-reset" class="mbtn danger">Delete save</button>
+    </div>
+  </div>
+
+  <div id="fade"></div>
+  <div id="rotate"><div>↻</div><p>Rotate your phone to landscape</p></div>
+
+  <script type="module" src="/src/game/main.ts"></script>
+</body>
+</html>

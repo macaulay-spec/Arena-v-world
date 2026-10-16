@@ -1,0 +1,3897 @@
+{
+ "generated": "2026-10-15",
+ "seed": 20260419,
+ "animations": "animations.gltf",
+ "clips": [
+  "idle",
+  "idle_talk",
+  "walk",
+  "walk_carry",
+  "run",
+  "sit",
+  "phone",
+  "wave",
+  "sell",
+  "jump",
+  "sweep",
+  "guard",
+  "work",
+  "lie"
+ ],
+ "characters": [
+  {
+   "id": "body_female",
+   "file": "body_female.gltf",
+   "name": "Body sheet · female",
+   "height": 1.663,
+   "tris": 29002,
+   "lodTris": [
+    29002,
+    12080,
+    4496
+   ],
+   "bytes": 1139860,
+   "sex": "f",
+   "age": 27,
+   "tags": [
+    "body"
+   ],
+   "role": "reference",
+   "props": [],
+   "districtNames": [],
+   "skinTone": "#5A3A28",
+   "hair": "coils_fade",
+   "outfit": [
+    {
+     "garment": "briefs",
+     "fabric": "cotton",
+     "colour": "#F2F2F2"
+    },
+    {
+     "garment": "tank",
+     "fabric": "cotton",
+     "colour": "#F2F2F2"
+    }
+   ]
+  },
+  {
+   "id": "body_male",
+   "file": "body_male.gltf",
+   "name": "Body sheet · male",
+   "height": 1.885,
+   "tris": 29240,
+   "lodTris": [
+    29240,
+    12224,
+    4557
+   ],
+   "bytes": 1135028,
+   "sex": "m",
+   "age": 34,
+   "tags": [
+    "body"
+   ],
+   "role": "reference",
+   "props": [],
+   "districtNames": [],
+   "skinTone": "#3C2319",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "briefs",
+     "fabric": "cotton",
+     "colour": "#2B2B2B"
+    }
+   ]
+  },
+  {
+   "id": "chr_office_worker_1",
+   "file": "chr_office_worker_1.gltf",
+   "name": "Fatima Olawale",
+   "height": 1.518,
+   "tris": 24940,
+   "lodTris": [
+    24940,
+    10353,
+    3846
+   ],
+   "bytes": 983568,
+   "sex": "f",
+   "age": 41,
+   "tags": [
+    "street",
+    "office",
+    "female"
+   ],
+   "role": "Office worker",
+   "district": "central",
+   "districts": [
+    "central",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "office_worker",
+   "districtNames": [
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "cornrows",
+   "outfit": [
+    {
+     "garment": "blouse",
+     "fabric": "cotton",
+     "colour": "#F5E6C8"
+    },
+    {
+     "garment": "skirt_knee",
+     "fabric": "cotton",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "heels",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_office_worker_2",
+   "file": "chr_office_worker_2.gltf",
+   "name": "Obi Fashola",
+   "height": 1.711,
+   "tris": 24408,
+   "lodTris": [
+    24408,
+    10081,
+    3736
+   ],
+   "bytes": 965764,
+   "sex": "m",
+   "age": 42,
+   "tags": [
+    "street",
+    "office",
+    "male"
+   ],
+   "role": "Office worker",
+   "district": "central",
+   "districts": [
+    "central",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "laptop_bag"
+   ],
+   "roleId": "office_worker",
+   "districtNames": [
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "twists",
+   "outfit": [
+    {
+     "garment": "shirt_long",
+     "fabric": "cotton",
+     "colour": "#F8BBD0"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#424242"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_office_worker_3",
+   "file": "chr_office_worker_3.gltf",
+   "name": "Folake Mohammed",
+   "height": 1.584,
+   "tris": 24860,
+   "lodTris": [
+    24860,
+    10318,
+    3833
+   ],
+   "bytes": 980204,
+   "sex": "f",
+   "age": 43,
+   "tags": [
+    "street",
+    "office",
+    "female"
+   ],
+   "role": "Office worker",
+   "district": "central",
+   "districts": [
+    "central",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "office_worker",
+   "districtNames": [
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "afro",
+   "outfit": [
+    {
+     "garment": "blouse",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "skirt_knee",
+     "fabric": "cotton",
+     "colour": "#263238"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_banker_1",
+   "file": "chr_banker_1.gltf",
+   "name": "Ekene Fashola",
+   "height": 1.768,
+   "tris": 27242,
+   "lodTris": [
+    27242,
+    11212,
+    4164
+   ],
+   "bytes": 1075588,
+   "sex": "m",
+   "age": 46,
+   "tags": [
+    "street",
+    "office",
+    "male"
+   ],
+   "role": "Banker",
+   "district": "central",
+   "districts": [
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [
+    "briefcase"
+   ],
+   "roleId": "banker",
+   "districtNames": [
+    "Central District"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "shirt_long",
+     "fabric": "cotton",
+     "colour": "#9FC5E8"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "polyester",
+     "colour": "#263238"
+    },
+    {
+     "garment": "jacket",
+     "fabric": "polyester",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_tech_worker_1",
+   "file": "chr_tech_worker_1.gltf",
+   "name": "Emeka Okafor",
+   "height": 1.702,
+   "tris": 24688,
+   "lodTris": [
+    24688,
+    10223,
+    3789
+   ],
+   "bytes": 972960,
+   "sex": "m",
+   "age": 30,
+   "tags": [
+    "street",
+    "male"
+   ],
+   "role": "Tech worker",
+   "district": "central",
+   "districts": [
+    "central",
+    "north"
+   ],
+   "idle": [
+    "phone",
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [
+    "backpack"
+   ],
+   "roleId": "tech_worker",
+   "districtNames": [
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "twists",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#6A1B9A"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#3A5A8C"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_security_guard_1",
+   "file": "chr_security_guard_1.gltf",
+   "name": "Umar Obi",
+   "height": 1.756,
+   "tris": 25386,
+   "lodTris": [
+    25386,
+    10476,
+    3875
+   ],
+   "bytes": 992188,
+   "sex": "m",
+   "age": 42,
+   "tags": [
+    "uniform",
+    "male"
+   ],
+   "role": "Security guard",
+   "district": "central",
+   "districts": [
+    "central",
+    "north",
+    "industrial"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "security_guard",
+   "districtNames": [
+    "Central District",
+    "North Heights",
+    "Industrial"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "low_cut",
+   "headwear": "beret",
+   "outfit": [
+    {
+     "garment": "uniform_shirt",
+     "fabric": "cotton",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_security_guard_2",
+   "file": "chr_security_guard_2.gltf",
+   "name": "Segun Fashola",
+   "height": 1.687,
+   "tris": 25392,
+   "lodTris": [
+    25392,
+    10481,
+    3877
+   ],
+   "bytes": 992440,
+   "sex": "m",
+   "age": 43,
+   "tags": [
+    "uniform",
+    "male"
+   ],
+   "role": "Security guard",
+   "district": "central",
+   "districts": [
+    "central",
+    "north",
+    "industrial"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "security_guard",
+   "districtNames": [
+    "Central District",
+    "North Heights",
+    "Industrial"
+   ],
+   "skinTone": "#5E3B2A",
+   "hair": "low_cut",
+   "headwear": "beret",
+   "outfit": [
+    {
+     "garment": "uniform_shirt",
+     "fabric": "cotton",
+     "colour": "#1F2A44"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#1F2A44"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_traffic_officer_1",
+   "file": "chr_traffic_officer_1.gltf",
+   "name": "Lekan Balogun",
+   "height": 1.816,
+   "tris": 27530,
+   "lodTris": [
+    27530,
+    11330,
+    4194
+   ],
+   "bytes": 1075672,
+   "sex": "m",
+   "age": 43,
+   "tags": [
+    "uniform",
+    "male"
+   ],
+   "role": "VTMA traffic officer",
+   "district": "central",
+   "districts": [
+    "central",
+    "market"
+   ],
+   "idle": [
+    "wave",
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "traffic_officer",
+   "districtNames": [
+    "Central District",
+    "Market Quarter"
+   ],
+   "skinTone": "#5E3B2A",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "uniform_shirt",
+     "fabric": "cotton",
+     "colour": "#F2B705"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#7B1B2A"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_police_1",
+   "file": "chr_police_1.gltf",
+   "name": "Femi Okonkwo",
+   "height": 1.696,
+   "tris": 25338,
+   "lodTris": [
+    25338,
+    10459,
+    3870
+   ],
+   "bytes": 990340,
+   "sex": "m",
+   "age": 49,
+   "tags": [
+    "uniform",
+    "male"
+   ],
+   "role": "Police officer",
+   "district": "central",
+   "districts": [
+    "central",
+    "oldtown"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "police",
+   "districtNames": [
+    "Central District",
+    "Old Town"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "low_cut",
+   "headwear": "beret",
+   "outfit": [
+    {
+     "garment": "uniform_shirt",
+     "fabric": "cotton",
+     "colour": "#111111"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#111111"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_market_woman_1",
+   "file": "chr_market_woman_1.gltf",
+   "name": "Aisha Abubakar",
+   "height": 1.561,
+   "tris": 30626,
+   "lodTris": [
+    30626,
+    12629,
+    4699
+   ],
+   "bytes": 1260620,
+   "sex": "f",
+   "age": 42,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Market woman",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown"
+   ],
+   "idle": [
+    "sell",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_tray_tomatoes"
+   ],
+   "roleId": "market_woman",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "braids",
+   "headwear": "gele",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_5"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#8D6E63"
+    }
+   ]
+  },
+  {
+   "id": "chr_market_woman_2",
+   "file": "chr_market_woman_2.gltf",
+   "name": "Ifeoma Bello",
+   "height": 1.568,
+   "tris": 28614,
+   "lodTris": [
+    28614,
+    11829,
+    4398
+   ],
+   "bytes": 1167964,
+   "sex": "f",
+   "age": 43,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Market woman",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown"
+   ],
+   "idle": [
+    "sell",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_basin_sachets"
+   ],
+   "roleId": "market_woman",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "bun",
+   "headwear": "gele",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_2"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#8D6E63"
+    }
+   ]
+  },
+  {
+   "id": "chr_market_woman_3",
+   "file": "chr_market_woman_3.gltf",
+   "name": "Jumoke Olawale",
+   "height": 1.575,
+   "tris": 28378,
+   "lodTris": [
+    28378,
+    11731,
+    4361
+   ],
+   "bytes": 1154904,
+   "sex": "f",
+   "age": 44,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Market woman",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown"
+   ],
+   "idle": [
+    "sell",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_basket_yams"
+   ],
+   "roleId": "market_woman",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town"
+   ],
+   "skinTone": "#5E3B2A",
+   "hair": "twists",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_7"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_market_woman_4",
+   "file": "chr_market_woman_4.gltf",
+   "name": "Uche Fashola",
+   "height": 1.582,
+   "tris": 30466,
+   "lodTris": [
+    30466,
+    12566,
+    4675
+   ],
+   "bytes": 1252872,
+   "sex": "f",
+   "age": 46,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Market woman",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown"
+   ],
+   "idle": [
+    "sell",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
+   "roleId": "market_woman",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "coils_fade",
+   "headwear": "gele",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_4"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_hawker_1",
+   "file": "chr_hawker_1.gltf",
+   "name": "Segun Olawale",
+   "height": 1.774,
+   "tris": 30568,
+   "lodTris": [
+    30568,
+    12616,
+    4694
+   ],
+   "bytes": 1249936,
+   "sex": "m",
+   "age": 39,
+   "tags": [
+    "market",
+    "street",
+    "male"
+   ],
+   "role": "Street hawker",
+   "district": "market",
+   "districts": [
+    "market",
+    "central"
+   ],
+   "idle": [
+    "sell",
+    "idle"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
+   "roleId": "hawker",
+   "districtNames": [
+    "Market Quarter",
+    "Central District"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "low_cut",
+   "headwear": "none",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#1B1B1B"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#1F2F4F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_hawker_2",
+   "file": "chr_hawker_2.gltf",
+   "name": "Nneka Fashola",
+   "height": 1.582,
+   "tris": 30538,
+   "lodTris": [
+    30538,
+    12612,
+    4695
+   ],
+   "bytes": 1251012,
+   "sex": "f",
+   "age": 40,
+   "tags": [
+    "market",
+    "street",
+    "female"
+   ],
+   "role": "Street hawker",
+   "district": "market",
+   "districts": [
+    "market",
+    "central"
+   ],
+   "idle": [
+    "sell",
+    "idle"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_tray_oranges"
+   ],
+   "roleId": "hawker",
+   "districtNames": [
+    "Market Quarter",
+    "Central District"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "blouse",
+     "fabric": "ankara_5"
+    },
+    {
+     "garment": "wrapper",
+     "fabric": "ankara_3"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_hawker_3",
+   "file": "chr_hawker_3.gltf",
+   "name": "Dayo Mohammed",
+   "height": 1.513,
+   "tris": 30558,
+   "lodTris": [
+    30558,
+    12611,
+    4691
+   ],
+   "bytes": 1244576,
+   "sex": "m",
+   "age": 17,
+   "tags": [
+    "market",
+    "street",
+    "male"
+   ],
+   "role": "Street hawker",
+   "district": "market",
+   "districts": [
+    "market",
+    "central"
+   ],
+   "idle": [
+    "sell",
+    "idle"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_tray_bread"
+   ],
+   "roleId": "hawker",
+   "districtNames": [
+    "Market Quarter",
+    "Central District"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "low_cut",
+   "headwear": "none",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#1565C0"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#2C4870"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_trader_1",
+   "file": "chr_trader_1.gltf",
+   "name": "Bashir Umaru",
+   "height": 1.699,
+   "tris": 24502,
+   "lodTris": [
+    24502,
+    10105,
+    3735
+   ],
+   "bytes": 966556,
+   "sex": "m",
+   "age": 50,
+   "tags": [
+    "market",
+    "male"
+   ],
+   "role": "Trader",
+   "district": "market",
+   "districts": [
+    "market"
+   ],
+   "idle": [
+    "idle_talk",
+    "sell",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "trader",
+   "districtNames": [
+    "Market Quarter"
+   ],
+   "skinTone": "#784B32",
+   "hair": "coils_fade",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "senator",
+     "fabric": "ankara_7"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#A5D6A7"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_trader_2",
+   "file": "chr_trader_2.gltf",
+   "name": "Osaze Madu",
+   "height": 1.675,
+   "tris": 28174,
+   "lodTris": [
+    28174,
+    11657,
+    4327
+   ],
+   "bytes": 1136672,
+   "sex": "m",
+   "age": 52,
+   "tags": [
+    "market",
+    "male"
+   ],
+   "role": "Trader",
+   "district": "market",
+   "districts": [
+    "market"
+   ],
+   "idle": [
+    "idle_talk",
+    "sell",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "trader",
+   "districtNames": [
+    "Market Quarter"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "low_cut",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "stripes",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_porter_1",
+   "file": "chr_porter_1.gltf",
+   "name": "Ekene Madu",
+   "height": 1.566,
+   "tris": 28378,
+   "lodTris": [
+    28378,
+    11781,
+    4379
+   ],
+   "bytes": 1131952,
+   "sex": "m",
+   "age": 19,
+   "tags": [
+    "market",
+    "male"
+   ],
+   "role": "Porter",
+   "district": "market",
+   "districts": [
+    "market",
+    "industrial"
+   ],
+   "idle": [
+    "idle"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
+   "roleId": "porter",
+   "districtNames": [
+    "Market Quarter",
+    "Industrial"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "tank",
+     "fabric": "cotton",
+     "colour": "#FFFFFF"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "cotton",
+     "colour": "#424242"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_porter_2",
+   "file": "chr_porter_2.gltf",
+   "name": "Lekan Danjuma",
+   "height": 1.601,
+   "tris": 28318,
+   "lodTris": [
+    28318,
+    11757,
+    4369
+   ],
+   "bytes": 1129760,
+   "sex": "m",
+   "age": 20,
+   "tags": [
+    "market",
+    "male"
+   ],
+   "role": "Porter",
+   "district": "market",
+   "districts": [
+    "market",
+    "industrial"
+   ],
+   "idle": [
+    "idle"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
+   "roleId": "porter",
+   "districtNames": [
+    "Market Quarter",
+    "Industrial"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "tank",
+     "fabric": "cotton",
+     "colour": "#6A1B9A"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "cotton",
+     "colour": "#263238"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#C62828"
+    }
+   ]
+  },
+  {
+   "id": "chr_food_seller_1",
+   "file": "chr_food_seller_1.gltf",
+   "name": "Titilayo Danjuma",
+   "height": 1.58,
+   "tris": 27182,
+   "lodTris": [
+    27182,
+    11270,
+    4187
+   ],
+   "bytes": 1100488,
+   "sex": "f",
+   "age": 34,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Food seller",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "sell",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "bowl"
+   ],
+   "roleId": "food_seller",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#784B32",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "ankara_4"
+    },
+    {
+     "garment": "wrapper",
+     "fabric": "ankara_6"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#C62828"
+    }
+   ]
+  },
+  {
+   "id": "chr_food_seller_2",
+   "file": "chr_food_seller_2.gltf",
+   "name": "Chiamaka Abubakar",
+   "height": 1.61,
+   "tris": 27166,
+   "lodTris": [
+    27166,
+    11258,
+    4186
+   ],
+   "bytes": 1100236,
+   "sex": "f",
+   "age": 35,
+   "tags": [
+    "market",
+    "female"
+   ],
+   "role": "Food seller",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "sell",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "bowl"
+   ],
+   "roleId": "food_seller",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "ankara_1"
+    },
+    {
+     "garment": "wrapper",
+     "fabric": "ankara_3"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#2E7D32"
+    }
+   ]
+  },
+  {
+   "id": "chr_okada_rider_1",
+   "file": "chr_okada_rider_1.gltf",
+   "name": "Wale Adebayo",
+   "height": 1.729,
+   "tris": 27890,
+   "lodTris": [
+    27890,
+    11537,
+    4280
+   ],
+   "bytes": 1116544,
+   "sex": "m",
+   "age": 23,
+   "tags": [
+    "street",
+    "transport",
+    "male"
+   ],
+   "role": "Okada rider",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "okada_rider",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "polo",
+     "fabric": "jersey_green"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#1F2F4F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_okada_rider_2",
+   "file": "chr_okada_rider_2.gltf",
+   "name": "Kunle Adeyemi",
+   "height": 1.796,
+   "tris": 25240,
+   "lodTris": [
+    25240,
+    10424,
+    3855
+   ],
+   "bytes": 991872,
+   "sex": "m",
+   "age": 24,
+   "tags": [
+    "street",
+    "transport",
+    "male"
+   ],
+   "role": "Okada rider",
+   "district": "market",
+   "districts": [
+    "market",
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "okada_rider",
+   "districtNames": [
+    "Market Quarter",
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "jersey",
+     "fabric": "jersey_green"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#3A5A8C"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#C62828"
+    }
+   ]
+  },
+  {
+   "id": "chr_bus_conductor_1",
+   "file": "chr_bus_conductor_1.gltf",
+   "name": "Segun Afolabi",
+   "height": 1.799,
+   "tris": 27318,
+   "lodTris": [
+    27318,
+    11309,
+    4196
+   ],
+   "bytes": 1094148,
+   "sex": "m",
+   "age": 32,
+   "tags": [
+    "street",
+    "transport",
+    "male"
+   ],
+   "role": "Danfo conductor",
+   "district": "market",
+   "districts": [
+    "market",
+    "central"
+   ],
+   "idle": [
+    "wave",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "bus_conductor",
+   "districtNames": [
+    "Market Quarter",
+    "Central District"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "polo",
+     "fabric": "cotton",
+     "colour": "#607D8B"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#1F2F4F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_shopper_1",
+   "file": "chr_shopper_1.gltf",
+   "name": "Funmilayo Anyanwu",
+   "height": 1.52,
+   "tris": 24752,
+   "lodTris": [
+    24752,
+    10242,
+    3795
+   ],
+   "bytes": 973748,
+   "sex": "f",
+   "age": 25,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Shopper",
+   "district": "market",
+   "districts": [
+    "market",
+    "central",
+    "green"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
+   "roleId": "shopper",
+   "districtNames": [
+    "Market Quarter",
+    "Central District",
+    "Green Estates"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "coils_fade",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "ankara_4"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#2C4870"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_shopper_2",
+   "file": "chr_shopper_2.gltf",
+   "name": "Lekan Okoro",
+   "height": 1.692,
+   "tris": 27366,
+   "lodTris": [
+    27366,
+    11337,
+    4212
+   ],
+   "bytes": 1099816,
+   "sex": "m",
+   "age": 27,
+   "tags": [
+    "street",
+    "male"
+   ],
+   "role": "Shopper",
+   "district": "market",
+   "districts": [
+    "market",
+    "central",
+    "green"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
+   "roleId": "shopper",
+   "districtNames": [
+    "Market Quarter",
+    "Central District",
+    "Green Estates"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "coils_fade",
+   "outfit": [
+    {
+     "garment": "polo",
+     "fabric": "cotton",
+     "colour": "#00897B"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#5C7BA8"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_shopper_3",
+   "file": "chr_shopper_3.gltf",
+   "name": "Titilayo Yakubu",
+   "height": 1.554,
+   "tris": 24412,
+   "lodTris": [
+    24412,
+    10112,
+    3748
+   ],
+   "bytes": 964404,
+   "sex": "f",
+   "age": 28,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Shopper",
+   "district": "market",
+   "districts": [
+    "market",
+    "central",
+    "green"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "ghana_bag"
+   ],
+   "roleId": "shopper",
+   "districtNames": [
+    "Market Quarter",
+    "Central District",
+    "Green Estates"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "cornrows",
+   "outfit": [
+    {
+     "garment": "polo",
+     "fabric": "ankara_1"
+    },
+    {
+     "garment": "skirt_long",
+     "fabric": "cotton",
+     "colour": "#1B1B1B"
+    },
+    {
+     "garment": "heels",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_elite_woman_1",
+   "file": "chr_elite_woman_1.gltf",
+   "name": "Ngozi Ogunleye",
+   "height": 1.583,
+   "tris": 27596,
+   "lodTris": [
+    27596,
+    11468,
+    4274
+   ],
+   "bytes": 1114704,
+   "sex": "f",
+   "age": 40,
+   "tags": [
+    "street",
+    "traditional",
+    "female"
+   ],
+   "role": "Society lady",
+   "district": "north",
+   "districts": [
+    "north",
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "elite_woman",
+   "districtNames": [
+    "North Heights",
+    "Central District"
+   ],
+   "skinTone": "#784B32",
+   "hair": "bun",
+   "headwear": "gele",
+   "outfit": [
+    {
+     "garment": "gown",
+     "fabric": "ankara_5"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#8D6E63"
+    }
+   ]
+  },
+  {
+   "id": "chr_elite_woman_2",
+   "file": "chr_elite_woman_2.gltf",
+   "name": "Ijeoma Lawal",
+   "height": 1.593,
+   "tris": 27452,
+   "lodTris": [
+    27452,
+    11378,
+    4232
+   ],
+   "bytes": 1111936,
+   "sex": "f",
+   "age": 41,
+   "tags": [
+    "street",
+    "traditional",
+    "female"
+   ],
+   "role": "Society lady",
+   "district": "north",
+   "districts": [
+    "north",
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "elite_woman",
+   "districtNames": [
+    "North Heights",
+    "Central District"
+   ],
+   "skinTone": "#784B32",
+   "hair": "bun",
+   "headwear": "gele",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "lace",
+     "colour": "#F2B705"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_elite_man_1",
+   "file": "chr_elite_man_1.gltf",
+   "name": "Ayo Madu",
+   "height": 1.702,
+   "tris": 28496,
+   "lodTris": [
+    28496,
+    11701,
+    4332
+   ],
+   "bytes": 1122120,
+   "sex": "m",
+   "age": 53,
+   "tags": [
+    "street",
+    "traditional",
+    "male"
+   ],
+   "role": "Chief",
+   "district": "north",
+   "districts": [
+    "north",
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "idle",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "elite_man",
+   "districtNames": [
+    "North Heights",
+    "Old Town"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "coils",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "agbada",
+     "fabric": "polyester",
+     "colour": "#5B2A86"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#5B2A86"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_elite_man_2",
+   "file": "chr_elite_man_2.gltf",
+   "name": "Chukwuma Okonkwo",
+   "height": 1.741,
+   "tris": 28492,
+   "lodTris": [
+    28492,
+    11701,
+    4331
+   ],
+   "bytes": 1122308,
+   "sex": "m",
+   "age": 54,
+   "tags": [
+    "street",
+    "traditional",
+    "male"
+   ],
+   "role": "Chief",
+   "district": "north",
+   "districts": [
+    "north",
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "idle",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "elite_man",
+   "districtNames": [
+    "North Heights",
+    "Old Town"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "twists",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "agbada",
+     "fabric": "ankara_7"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#A5D6A7"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_jogger_1",
+   "file": "chr_jogger_1.gltf",
+   "name": "Osaze Abubakar",
+   "height": 1.698,
+   "tris": 25408,
+   "lodTris": [
+    25408,
+    10537,
+    3905
+   ],
+   "bytes": 995148,
+   "sex": "m",
+   "age": 45,
+   "tags": [
+    "street",
+    "male"
+   ],
+   "role": "Jogger",
+   "district": "north",
+   "districts": [
+    "north",
+    "green"
+   ],
+   "idle": [
+    "idle"
+   ],
+   "moving": "run",
+   "props": [],
+   "roleId": "jogger",
+   "districtNames": [
+    "North Heights",
+    "Green Estates"
+   ],
+   "skinTone": "#5E3B2A",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "tank",
+     "fabric": "polyester",
+     "colour": "#FFFFFF"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "polyester",
+     "colour": "#C8B08A"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_schoolchild_1",
+   "file": "chr_schoolchild_1.gltf",
+   "name": "Adaeze Chukwu",
+   "height": 1.293,
+   "tris": 24672,
+   "lodTris": [
+    24672,
+    10245,
+    3804
+   ],
+   "bytes": 973652,
+   "sex": "f",
+   "age": 11,
+   "tags": [
+    "child",
+    "female"
+   ],
+   "role": "School pupil",
+   "district": "green",
+   "districts": [
+    "green",
+    "oldtown",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
+   "roleId": "schoolchild",
+   "districtNames": [
+    "Green Estates",
+    "Old Town",
+    "North Heights"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "coils",
+   "outfit": [
+    {
+     "garment": "school_shirt",
+     "fabric": "cotton",
+     "colour": "#C8E6C9"
+    },
+    {
+     "garment": "school_skirt",
+     "fabric": "cotton",
+     "colour": "#7B1B2A"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_schoolchild_2",
+   "file": "chr_schoolchild_2.gltf",
+   "name": "Umar Eze",
+   "height": 1.34,
+   "tris": 28346,
+   "lodTris": [
+    28346,
+    11782,
+    4384
+   ],
+   "bytes": 1137832,
+   "sex": "m",
+   "age": 11,
+   "tags": [
+    "child",
+    "male"
+   ],
+   "role": "School pupil",
+   "district": "green",
+   "districts": [
+    "green",
+    "oldtown",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
+   "roleId": "schoolchild",
+   "districtNames": [
+    "Green Estates",
+    "Old Town",
+    "North Heights"
+   ],
+   "skinTone": "#784B32",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "school_shirt",
+     "fabric": "cotton",
+     "colour": "#9FC5E8"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "cotton",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_schoolchild_3",
+   "file": "chr_schoolchild_3.gltf",
+   "name": "Morenike Sule",
+   "height": 1.209,
+   "tris": 24932,
+   "lodTris": [
+    24932,
+    10352,
+    3845
+   ],
+   "bytes": 984092,
+   "sex": "f",
+   "age": 11,
+   "tags": [
+    "child",
+    "female"
+   ],
+   "role": "School pupil",
+   "district": "green",
+   "districts": [
+    "green",
+    "oldtown",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "school_bag"
+   ],
+   "roleId": "schoolchild",
+   "districtNames": [
+    "Green Estates",
+    "Old Town",
+    "North Heights"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "braids",
+   "outfit": [
+    {
+     "garment": "school_shirt",
+     "fabric": "cotton",
+     "colour": "#C8E6C9"
+    },
+    {
+     "garment": "school_skirt",
+     "fabric": "cotton",
+     "colour": "#0D1B2A"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_kid_1",
+   "file": "chr_kid_1.gltf",
+   "name": "Ronke Ogunleye",
+   "height": 1.193,
+   "tris": 28324,
+   "lodTris": [
+    28324,
+    11781,
+    4381
+   ],
+   "bytes": 1114724,
+   "sex": "f",
+   "age": 6,
+   "tags": [
+    "child",
+    "female"
+   ],
+   "role": "Child",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green",
+    "market"
+   ],
+   "idle": [
+    "idle",
+    "wave"
+   ],
+   "moving": "run",
+   "props": [],
+   "roleId": "kid",
+   "districtNames": [
+    "Old Town",
+    "Green Estates",
+    "Market Quarter"
+   ],
+   "skinTone": "#784B32",
+   "hair": "coils",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#FFEB3B"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "denim",
+     "colour": "#3A5A8C"
+    }
+   ]
+  },
+  {
+   "id": "chr_kid_2",
+   "file": "chr_kid_2.gltf",
+   "name": "Ikenna Lawal",
+   "height": 1.347,
+   "tris": 28328,
+   "lodTris": [
+    28328,
+    11778,
+    4380
+   ],
+   "bytes": 1114052,
+   "sex": "m",
+   "age": 6,
+   "tags": [
+    "child",
+    "male"
+   ],
+   "role": "Child",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green",
+    "market"
+   ],
+   "idle": [
+    "idle",
+    "wave"
+   ],
+   "moving": "run",
+   "props": [],
+   "roleId": "kid",
+   "districtNames": [
+    "Old Town",
+    "Green Estates",
+    "Market Quarter"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#6A1B9A"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "denim",
+     "colour": "#5C7BA8"
+    }
+   ]
+  },
+  {
+   "id": "chr_elder_man_1",
+   "file": "chr_elder_man_1.gltf",
+   "name": "Tunde Adebayo",
+   "height": 1.795,
+   "tris": 28472,
+   "lodTris": [
+    28472,
+    11709,
+    4345
+   ],
+   "bytes": 1124884,
+   "sex": "m",
+   "age": 69,
+   "tags": [
+    "elder",
+    "traditional",
+    "male"
+   ],
+   "role": "Elder",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "walking_stick"
+   ],
+   "roleId": "elder_man",
+   "districtNames": [
+    "Old Town",
+    "Green Estates"
+   ],
+   "skinTone": "#784B32",
+   "hair": "grey_short",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "agbada",
+     "fabric": "ankara_7"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#F2F2F2"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_elder_man_2",
+   "file": "chr_elder_man_2.gltf",
+   "name": "Umar Adeyemi",
+   "height": 1.741,
+   "tris": 27672,
+   "lodTris": [
+    27672,
+    11455,
+    4260
+   ],
+   "bytes": 1114420,
+   "sex": "m",
+   "age": 70,
+   "tags": [
+    "elder",
+    "traditional",
+    "male"
+   ],
+   "role": "Elder",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "walking_stick"
+   ],
+   "roleId": "elder_man",
+   "districtNames": [
+    "Old Town",
+    "Green Estates"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "grey_short",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "senator",
+     "fabric": "adire"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#F2F2F2"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_elder_woman_1",
+   "file": "chr_elder_woman_1.gltf",
+   "name": "Amina Adeyemi",
+   "height": 1.522,
+   "tris": 27276,
+   "lodTris": [
+    27276,
+    11287,
+    4184
+   ],
+   "bytes": 1099404,
+   "sex": "f",
+   "age": 62,
+   "tags": [
+    "elder",
+    "traditional",
+    "female"
+   ],
+   "role": "Mama",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "market"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "elder_woman",
+   "districtNames": [
+    "Old Town",
+    "Market Quarter"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "grey_short",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_0"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#8D6E63"
+    }
+   ]
+  },
+  {
+   "id": "chr_elder_woman_2",
+   "file": "chr_elder_woman_2.gltf",
+   "name": "Funmilayo Madu",
+   "height": 1.573,
+   "tris": 27490,
+   "lodTris": [
+    27490,
+    11373,
+    4217
+   ],
+   "bytes": 1111312,
+   "sex": "f",
+   "age": 63,
+   "tags": [
+    "elder",
+    "traditional",
+    "female"
+   ],
+   "role": "Mama",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "market"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "elder_woman",
+   "districtNames": [
+    "Old Town",
+    "Market Quarter"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "grey_short",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "iro_buba",
+     "fabric": "ankara_5"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_imam_1",
+   "file": "chr_imam_1.gltf",
+   "name": "Wale Mohammed",
+   "height": 1.693,
+   "tris": 27544,
+   "lodTris": [
+    27544,
+    11380,
+    4220
+   ],
+   "bytes": 1108172,
+   "sex": "m",
+   "age": 42,
+   "tags": [
+    "traditional",
+    "male"
+   ],
+   "role": "Imam",
+   "district": "oldtown",
+   "districts": [
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "imam",
+   "districtNames": [
+    "Old Town"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "kaftan",
+     "fabric": "polyester",
+     "colour": "#F2F2F2"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#F2F2F2"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_artisan_1",
+   "file": "chr_artisan_1.gltf",
+   "name": "Abdul Mohammed",
+   "height": 1.67,
+   "tris": 28162,
+   "lodTris": [
+    28162,
+    11669,
+    4342
+   ],
+   "bytes": 1136444,
+   "sex": "m",
+   "age": 48,
+   "tags": [
+    "street",
+    "work",
+    "male"
+   ],
+   "role": "Artisan",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "tool_bag"
+   ],
+   "roleId": "artisan",
+   "districtNames": [
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "twists",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "checks",
+     "colour": "#9FC5E8"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_artisan_2",
+   "file": "chr_artisan_2.gltf",
+   "name": "Musa Chukwu",
+   "height": 1.722,
+   "tris": 28176,
+   "lodTris": [
+    28176,
+    11676,
+    4348
+   ],
+   "bytes": 1136900,
+   "sex": "m",
+   "age": 49,
+   "tags": [
+    "street",
+    "work",
+    "male"
+   ],
+   "role": "Artisan",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "industrial"
+   ],
+   "idle": [
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "tool_bag"
+   ],
+   "roleId": "artisan",
+   "districtNames": [
+    "Old Town",
+    "Industrial"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "twists",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "checks",
+     "colour": "#2B2B2B"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#7A7A7A"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#C62828"
+    }
+   ]
+  },
+  {
+   "id": "chr_mother_1",
+   "file": "chr_mother_1.gltf",
+   "name": "Funmilayo Okonkwo",
+   "height": 1.568,
+   "tris": 29230,
+   "lodTris": [
+    29230,
+    12065,
+    4478
+   ],
+   "bytes": 1182540,
+   "sex": "f",
+   "age": 24,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Mother with baby",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green",
+    "market"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "baby_wrap"
+   ],
+   "roleId": "mother",
+   "districtNames": [
+    "Old Town",
+    "Green Estates",
+    "Market Quarter"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "ankara_5"
+    },
+    {
+     "garment": "wrapper",
+     "fabric": "ankara_6"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#2E7D32"
+    }
+   ]
+  },
+  {
+   "id": "chr_mother_2",
+   "file": "chr_mother_2.gltf",
+   "name": "Chidinma Abubakar",
+   "height": 1.63,
+   "tris": 29240,
+   "lodTris": [
+    29240,
+    12069,
+    4479
+   ],
+   "bytes": 1182820,
+   "sex": "f",
+   "age": 25,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Mother with baby",
+   "district": "oldtown",
+   "districts": [
+    "oldtown",
+    "green",
+    "market"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "baby_wrap"
+   ],
+   "roleId": "mother",
+   "districtNames": [
+    "Old Town",
+    "Green Estates",
+    "Market Quarter"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "ankara_1"
+    },
+    {
+     "garment": "wrapper",
+     "fabric": "ankara_2"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_student_1",
+   "file": "chr_student_1.gltf",
+   "name": "Ronke Eze",
+   "height": 1.496,
+   "tris": 25140,
+   "lodTris": [
+    25140,
+    10411,
+    3863
+   ],
+   "bytes": 992328,
+   "sex": "f",
+   "age": 21,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Student",
+   "district": "central",
+   "districts": [
+    "central",
+    "green",
+    "oldtown"
+   ],
+   "idle": [
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "backpack"
+   ],
+   "roleId": "student",
+   "districtNames": [
+    "Central District",
+    "Green Estates",
+    "Old Town"
+   ],
+   "skinTone": "#784B32",
+   "hair": "bun",
+   "outfit": [
+    {
+     "garment": "polo",
+     "fabric": "cotton",
+     "colour": "#6A1B9A"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#2C4870"
+    },
+    {
+     "garment": "heels",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_student_2",
+   "file": "chr_student_2.gltf",
+   "name": "Femi Oyelaran",
+   "height": 1.675,
+   "tris": 24604,
+   "lodTris": [
+    24604,
+    10193,
+    3780
+   ],
+   "bytes": 969500,
+   "sex": "m",
+   "age": 21,
+   "tags": [
+    "street",
+    "male"
+   ],
+   "role": "Student",
+   "district": "central",
+   "districts": [
+    "central",
+    "green",
+    "oldtown"
+   ],
+   "idle": [
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "backpack"
+   ],
+   "roleId": "student",
+   "districtNames": [
+    "Central District",
+    "Green Estates",
+    "Old Town"
+   ],
+   "skinTone": "#784B32",
+   "hair": "coils",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#1B1B1B"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#1F2F4F"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#5D4037"
+    }
+   ]
+  },
+  {
+   "id": "chr_factory_worker_1",
+   "file": "chr_factory_worker_1.gltf",
+   "name": "Chukwuma Oyelaran",
+   "height": 1.752,
+   "tris": 27994,
+   "lodTris": [
+    27994,
+    11515,
+    4263
+   ],
+   "bytes": 1094340,
+   "sex": "m",
+   "age": 43,
+   "tags": [
+    "uniform",
+    "work",
+    "male"
+   ],
+   "role": "Factory worker",
+   "district": "industrial",
+   "districts": [
+    "industrial"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "factory_worker",
+   "districtNames": [
+    "Industrial"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "low_cut",
+   "headwear": "hardhat",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_factory_worker_2",
+   "file": "chr_factory_worker_2.gltf",
+   "name": "Kemi Abubakar",
+   "height": 1.599,
+   "tris": 28076,
+   "lodTris": [
+    28076,
+    11557,
+    4281
+   ],
+   "bytes": 1096892,
+   "sex": "f",
+   "age": 44,
+   "tags": [
+    "uniform",
+    "work",
+    "female"
+   ],
+   "role": "Factory worker",
+   "district": "industrial",
+   "districts": [
+    "industrial"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "factory_worker",
+   "districtNames": [
+    "Industrial"
+   ],
+   "skinTone": "#784B32",
+   "hair": "cornrows",
+   "headwear": "hardhat",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_factory_worker_3",
+   "file": "chr_factory_worker_3.gltf",
+   "name": "Tunde Okafor",
+   "height": 1.69,
+   "tris": 27990,
+   "lodTris": [
+    27990,
+    11516,
+    4263
+   ],
+   "bytes": 1094700,
+   "sex": "m",
+   "age": 45,
+   "tags": [
+    "uniform",
+    "work",
+    "male"
+   ],
+   "role": "Factory worker",
+   "district": "industrial",
+   "districts": [
+    "industrial"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "factory_worker",
+   "districtNames": [
+    "Industrial"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "low_cut",
+   "headwear": "hardhat",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "cotton",
+     "colour": "#5D4037"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_construction_worker_1",
+   "file": "chr_construction_worker_1.gltf",
+   "name": "Abdul Bello",
+   "height": 1.72,
+   "tris": 27800,
+   "lodTris": [
+    27800,
+    11440,
+    4233
+   ],
+   "bytes": 1084744,
+   "sex": "m",
+   "age": 42,
+   "tags": [
+    "uniform",
+    "work",
+    "male"
+   ],
+   "role": "Construction worker",
+   "district": "industrial",
+   "districts": [
+    "industrial",
+    "central",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
+   "roleId": "construction_worker",
+   "districtNames": [
+    "Industrial",
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "low_cut",
+   "headwear": "hardhat",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#C62828"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#1F2F4F"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_construction_worker_2",
+   "file": "chr_construction_worker_2.gltf",
+   "name": "Musa Olawale",
+   "height": 1.757,
+   "tris": 27786,
+   "lodTris": [
+    27786,
+    11437,
+    4232
+   ],
+   "bytes": 1084120,
+   "sex": "m",
+   "age": 43,
+   "tags": [
+    "uniform",
+    "work",
+    "male"
+   ],
+   "role": "Construction worker",
+   "district": "industrial",
+   "districts": [
+    "industrial",
+    "central",
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [
+    "head_sack"
+   ],
+   "roleId": "construction_worker",
+   "districtNames": [
+    "Industrial",
+    "Central District",
+    "North Heights"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "low_cut",
+   "headwear": "hardhat",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#EF6C00"
+    },
+    {
+     "garment": "jeans",
+     "fabric": "denim",
+     "colour": "#2C4870"
+    },
+    {
+     "garment": "hivis",
+     "fabric": "hivis"
+    },
+    {
+     "garment": "boots",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_truck_driver_1",
+   "file": "chr_truck_driver_1.gltf",
+   "name": "Kelechi Bankole",
+   "height": 1.717,
+   "tris": 25782,
+   "lodTris": [
+    25782,
+    10642,
+    3937
+   ],
+   "bytes": 1019184,
+   "sex": "m",
+   "age": 46,
+   "tags": [
+    "transport",
+    "male"
+   ],
+   "role": "Truck driver",
+   "district": "industrial",
+   "districts": [
+    "industrial"
+   ],
+   "idle": [
+    "sit",
+    "idle_talk",
+    "phone"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "truck_driver",
+   "districtNames": [
+    "Industrial"
+   ],
+   "skinTone": "#5E3B2A",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "stripes",
+     "colour": "#F5E6C8"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#3E2723"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_mechanic_1",
+   "file": "chr_mechanic_1.gltf",
+   "name": "Seyi Obi",
+   "height": 1.749,
+   "tris": 27108,
+   "lodTris": [
+    27108,
+    11213,
+    4171
+   ],
+   "bytes": 1093756,
+   "sex": "m",
+   "age": 40,
+   "tags": [
+    "work",
+    "male"
+   ],
+   "role": "Mechanic",
+   "district": "industrial",
+   "districts": [
+    "industrial",
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "jerrycan"
+   ],
+   "roleId": "mechanic",
+   "districtNames": [
+    "Industrial",
+    "Old Town"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "shirt_long",
+     "fabric": "cotton",
+     "colour": "#4E342E"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#37474F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_mechanic_2",
+   "file": "chr_mechanic_2.gltf",
+   "name": "Rotimi Fashola",
+   "height": 1.759,
+   "tris": 27140,
+   "lodTris": [
+    27140,
+    11231,
+    4175
+   ],
+   "bytes": 1095848,
+   "sex": "m",
+   "age": 42,
+   "tags": [
+    "work",
+    "male"
+   ],
+   "role": "Mechanic",
+   "district": "industrial",
+   "districts": [
+    "industrial",
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [
+    "jerrycan"
+   ],
+   "roleId": "mechanic",
+   "districtNames": [
+    "Industrial",
+    "Old Town"
+   ],
+   "skinTone": "#5A3A28",
+   "hair": "low_cut",
+   "outfit": [
+    {
+     "garment": "shirt_long",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_fisherman_1",
+   "file": "chr_fisherman_1.gltf",
+   "name": "Kunle Danjuma",
+   "height": 1.751,
+   "tris": 29380,
+   "lodTris": [
+    29380,
+    12225,
+    4555
+   ],
+   "bytes": 1158148,
+   "sex": "m",
+   "age": 41,
+   "tags": [
+    "work",
+    "harbour",
+    "male"
+   ],
+   "role": "Fisherman",
+   "district": "industrial",
+   "districts": [
+    "industrial"
+   ],
+   "idle": [
+    "sit",
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [
+    "bucket"
+   ],
+   "roleId": "fisherman",
+   "districtNames": [
+    "Industrial"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "tank",
+     "fabric": "cotton",
+     "colour": "#C62828"
+    },
+    {
+     "garment": "shorts",
+     "fabric": "cotton",
+     "colour": "#C8B08A"
+    }
+   ]
+  },
+  {
+   "id": "chr_resident_1",
+   "file": "chr_resident_1.gltf",
+   "name": "Zainab Umaru",
+   "height": 1.538,
+   "tris": 27994,
+   "lodTris": [
+    27994,
+    11584,
+    4309
+   ],
+   "bytes": 1131564,
+   "sex": "f",
+   "age": 28,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Resident",
+   "district": "green",
+   "districts": [
+    "green",
+    "north",
+    "oldtown"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "resident",
+   "districtNames": [
+    "Green Estates",
+    "North Heights",
+    "Old Town"
+   ],
+   "skinTone": "#784B32",
+   "hair": "none",
+   "headwear": "hijab",
+   "outfit": [
+    {
+     "garment": "abaya",
+     "fabric": "polyester",
+     "colour": "#111111"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_resident_2",
+   "file": "chr_resident_2.gltf",
+   "name": "Osaze Suleiman",
+   "height": 1.783,
+   "tris": 27222,
+   "lodTris": [
+    27222,
+    11273,
+    4177
+   ],
+   "bytes": 1089124,
+   "sex": "m",
+   "age": 29,
+   "tags": [
+    "street",
+    "male"
+   ],
+   "role": "Resident",
+   "district": "green",
+   "districts": [
+    "green",
+    "north",
+    "oldtown"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "resident",
+   "districtNames": [
+    "Green Estates",
+    "North Heights",
+    "Old Town"
+   ],
+   "skinTone": "#3C2319",
+   "hair": "coils_fade",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#F2C14E"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#3E2723"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#1565C0"
+    }
+   ]
+  },
+  {
+   "id": "chr_resident_3",
+   "file": "chr_resident_3.gltf",
+   "name": "Abeni Okonkwo",
+   "height": 1.624,
+   "tris": 24732,
+   "lodTris": [
+    24732,
+    10258,
+    3800
+   ],
+   "bytes": 970880,
+   "sex": "f",
+   "age": 31,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Resident",
+   "district": "green",
+   "districts": [
+    "green",
+    "north",
+    "oldtown"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "resident",
+   "districtNames": [
+    "Green Estates",
+    "North Heights",
+    "Old Town"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "coils_fade",
+   "outfit": [
+    {
+     "garment": "dress",
+     "fabric": "ankara_7"
+    },
+    {
+     "garment": "sneakers",
+     "fabric": "leather",
+     "colour": "#8D6E63"
+    }
+   ]
+  },
+  {
+   "id": "chr_nurse_1",
+   "file": "chr_nurse_1.gltf",
+   "name": "Titilayo Obi",
+   "height": 1.607,
+   "tris": 25020,
+   "lodTris": [
+    25020,
+    10363,
+    3837
+   ],
+   "bytes": 984068,
+   "sex": "f",
+   "age": 25,
+   "tags": [
+    "uniform",
+    "female"
+   ],
+   "role": "Nurse",
+   "district": "green",
+   "districts": [
+    "green",
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "nurse",
+   "districtNames": [
+    "Green Estates",
+    "Central District"
+   ],
+   "skinTone": "#2E1A12",
+   "hair": "bun",
+   "outfit": [
+    {
+     "garment": "uniform_shirt",
+     "fabric": "cotton",
+     "colour": "#9FC5E8"
+    },
+    {
+     "garment": "skirt_knee",
+     "fabric": "cotton",
+     "colour": "#2E4A7D"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#F5F5F5"
+    }
+   ]
+  },
+  {
+   "id": "chr_teacher_1",
+   "file": "chr_teacher_1.gltf",
+   "name": "Temitope Danjuma",
+   "height": 1.634,
+   "tris": 24448,
+   "lodTris": [
+    24448,
+    10133,
+    3762
+   ],
+   "bytes": 965152,
+   "sex": "f",
+   "age": 38,
+   "tags": [
+    "street",
+    "female"
+   ],
+   "role": "Teacher",
+   "district": "green",
+   "districts": [
+    "green",
+    "oldtown"
+   ],
+   "idle": [
+    "idle_talk",
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [
+    "handbag"
+   ],
+   "roleId": "teacher",
+   "districtNames": [
+    "Green Estates",
+    "Old Town"
+   ],
+   "skinTone": "#4A2C1E",
+   "hair": "braids",
+   "outfit": [
+    {
+     "garment": "blouse",
+     "fabric": "ankara_1"
+    },
+    {
+     "garment": "skirt_long",
+     "fabric": "cotton",
+     "colour": "#1B1B1B"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_housekeeper_1",
+   "file": "chr_housekeeper_1.gltf",
+   "name": "Amina Umaru",
+   "height": 1.578,
+   "tris": 27066,
+   "lodTris": [
+    27066,
+    11199,
+    4151
+   ],
+   "bytes": 1092300,
+   "sex": "f",
+   "age": 35,
+   "tags": [
+    "home",
+    "work",
+    "female"
+   ],
+   "role": "Housekeeper",
+   "district": "north",
+   "districts": [
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk"
+   ],
+   "moving": "walk_carry",
+   "props": [],
+   "roleId": "housekeeper",
+   "districtNames": [
+    "North Heights"
+   ],
+   "skinTone": "#784B32",
+   "hair": "cornrows",
+   "headwear": "scarf",
+   "outfit": [
+    {
+     "garment": "buba",
+     "fabric": "cotton",
+     "colour": "#F5EFE6"
+    },
+    {
+     "garment": "skirt_long",
+     "fabric": "cotton",
+     "colour": "#3E2F2F"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#2B2B2B"
+    }
+   ]
+  },
+  {
+   "id": "chr_driver_1",
+   "file": "chr_driver_1.gltf",
+   "name": "Garba Garuba",
+   "height": 1.767,
+   "tris": 25830,
+   "lodTris": [
+    25830,
+    10658,
+    3943
+   ],
+   "bytes": 1020292,
+   "sex": "m",
+   "age": 34,
+   "tags": [
+    "home",
+    "work",
+    "male"
+   ],
+   "role": "Driver",
+   "district": "north",
+   "districts": [
+    "north",
+    "central"
+   ],
+   "idle": [
+    "idle",
+    "phone",
+    "idle_talk"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "driver",
+   "districtNames": [
+    "North Heights",
+    "Central District"
+   ],
+   "skinTone": "#8A5A3C",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "shirt_short",
+     "fabric": "cotton",
+     "colour": "#E3ECF5"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "polyester",
+     "colour": "#1F2933"
+    },
+    {
+     "garment": "shoes",
+     "fabric": "leather",
+     "colour": "#1B1B1B"
+    }
+   ]
+  },
+  {
+   "id": "chr_gateman_1",
+   "file": "chr_gateman_1.gltf",
+   "name": "Seyi Garuba",
+   "height": 1.785,
+   "tris": 27672,
+   "lodTris": [
+    27672,
+    11434,
+    4239
+   ],
+   "bytes": 1115772,
+   "sex": "m",
+   "age": 50,
+   "tags": [
+    "home",
+    "uniform",
+    "male"
+   ],
+   "role": "Gateman",
+   "district": "north",
+   "districts": [
+    "north"
+   ],
+   "idle": [
+    "idle",
+    "idle_talk",
+    "sit"
+   ],
+   "moving": "walk",
+   "props": [],
+   "roleId": "gateman",
+   "districtNames": [
+    "North Heights"
+   ],
+   "skinTone": "#784B32",
+   "hair": "low_cut",
+   "headwear": "fila",
+   "outfit": [
+    {
+     "garment": "kaftan",
+     "fabric": "polyester",
+     "colour": "#374151"
+    },
+    {
+     "garment": "sokoto",
+     "fabric": "polyester",
+     "colour": "#374151"
+    },
+    {
+     "garment": "sandals",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  },
+  {
+   "id": "chr_gardener_1",
+   "file": "chr_gardener_1.gltf",
+   "name": "Kunle Bankole",
+   "height": 1.796,
+   "tris": 28078,
+   "lodTris": [
+    28078,
+    11632,
+    4322
+   ],
+   "bytes": 1127736,
+   "sex": "m",
+   "age": 36,
+   "tags": [
+    "work",
+    "male"
+   ],
+   "role": "Gardener",
+   "district": "green",
+   "districts": [
+    "green",
+    "north"
+   ],
+   "idle": [
+    "idle"
+   ],
+   "moving": "walk",
+   "props": [
+    "bucket"
+   ],
+   "roleId": "gardener",
+   "districtNames": [
+    "Green Estates",
+    "North Heights"
+   ],
+   "skinTone": "#6B4530",
+   "hair": "low_cut",
+   "headwear": "cap",
+   "outfit": [
+    {
+     "garment": "tshirt",
+     "fabric": "cotton",
+     "colour": "#FFEB3B"
+    },
+    {
+     "garment": "trousers",
+     "fabric": "cotton",
+     "colour": "#3E2723"
+    },
+    {
+     "garment": "slides",
+     "fabric": "leather",
+     "colour": "#3E2723"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,124 @@
+{
+  "when": "2026-10-15T11:27:56.650Z",
+  "shots": [
+    {
+      "name": "kitchen",
+      "file": "docs/screenshots/game/kitchen.png",
+      "place": "Kitchen",
+      "fps": "0 fps · 459 calls",
+      "calls": 459,
+      "tris": 1140820
+    },
+    {
+      "name": "night-living",
+      "file": "docs/screenshots/game/night-living.png",
+      "place": "Living room",
+      "fps": "1 fps · 467 calls",
+      "calls": 468,
+      "tris": 1234884
+    }
+  ],
+  "household": [
+    {
+      "key": "gateman",
+      "name": "Seyi Garuba",
+      "clip": "guard",
+      "pos": [
+        -344.6,
+        24.3,
+        -339.1
+      ]
+    },
+    {
+      "key": "security",
+      "name": "Umar Obi",
+      "clip": "guard",
+      "pos": [
+        -337.9,
+        24.8,
+        -366.4
+      ]
+    },
+    {
+      "key": "driver",
+      "name": "Garba Garuba",
+      "clip": "phone",
+      "pos": [
+        -317.6,
+        24.3,
+        -346.4
+      ]
+    },
+    {
+      "key": "housekeeper",
+      "name": "Amina Umaru",
+      "clip": "sweep",
+      "pos": [
+        -353.6,
+        24.8,
+        -371.9
+      ]
+    },
+    {
+      "key": "cook",
+      "name": "Titilayo Danjuma",
+      "clip": "work",
+      "pos": [
+        -325.7,
+        24.8,
+        -382.9
+      ]
+    },
+    {
+      "key": "gardener",
+      "name": "Kunle Bankole",
+      "clip": "work",
+      "pos": [
+        -364.1,
+        24.3,
+        -385.9
+      ]
+    },
+    {
+      "key": "friend",
+      "name": "Funmilayo Anyanwu",
+      "clip": "sit",
+      "pos": [
+        -352.1,
+        24.8,
+        -373.9
+      ]
+    },
+    {
+      "key": "gatehouse",
+      "name": "Segun Fashola",
+      "clip": "sit",
+      "pos": [
+        -339.5,
+        24.5,
+        -339.3
+      ]
+    },
+    {
+      "key": "steward",
+      "name": "Osaze Suleiman",
+      "clip": "work",
+      "pos": [
+        -331.5,
+        24.8,
+        -372.3
+      ]
+    },
+    {
+      "key": "guest",
+      "name": "Ayo Madu",
+      "clip": "phone",
+      "pos": [
+        -339.5,
+        24.5,
+        -397.9
+      ]
+    }
+  ],
+  "errors": []
+}

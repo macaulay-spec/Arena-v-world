@@ -1,0 +1,546 @@
+{
+  "quality": "standard",
+  "renderer": "SwiftShader (headless, software GL)",
+  "when": "2026-10-15T18:51:56.293Z",
+  "checks": {
+    "creator shows Body and Face tabs backed by kit morphs": {
+      "ok": true,
+      "detail": {
+        "body": true,
+        "face": true,
+        "faceSliders": 9
+      }
+    },
+    "build slider drives shape_weight_hi on body AND outfit meshes": {
+      "ok": true,
+      "detail": {
+        "LOD0": {
+          "weight_hi": 1.35,
+          "nose_neg": 1,
+          "lips_pos": 0.5
+        },
+        "Armature": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        },
+        "OUTFIT_casual": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        }
+      }
+    },
+    "face sliders drive face morphs on the body mesh only": {
+      "ok": true,
+      "detail": {
+        "lod0": {
+          "weight_hi": 1.35,
+          "nose_neg": 1,
+          "lips_pos": 0.5
+        },
+        "outfit": {
+          "weight_hi": 1.35,
+          "nose_neg": null,
+          "lips_pos": null
+        }
+      }
+    },
+    "rapid sex/hair/outfit switching leaves one model of the last selection": {
+      "ok": true,
+      "detail": {
+        "children": 1,
+        "applied": {
+          "sex": "f",
+          "tone": 2,
+          "hair": "coils_fade",
+          "outfit": "smart",
+          "name": "Yemi",
+          "height": 0.5,
+          "build": 1,
+          "muscle": 0.5,
+          "face": {
+            "nose_width": -1,
+            "lips": 0.5
+          }
+        },
+        "visOutfits": [
+          "OUTFIT_smart"
+        ],
+        "visHair": [
+          "HAIR_coils_fade"
+        ],
+        "skinned": 31,
+        "outfitLabel": "Office"
+      }
+    },
+    "touching the visible stick moves the player": {
+      "ok": true,
+      "detail": {
+        "moving": {
+          "speed": 1.505714285714286,
+          "mag": 0.8928571428571429,
+          "stick": true
+        },
+        "dist": 1.69
+      }
+    },
+    "releasing the stick stops the player": {
+      "ok": true,
+      "detail": {
+        "x": -347.03314285714293,
+        "z": -382.7,
+        "speed": 0,
+        "stick": false
+      }
+    },
+    "pointercancel during a drag cannot leave the player moving": {
+      "ok": true,
+      "detail": {
+        "beforeCancel": 0.8928571428571429,
+        "afterCancel": {
+          "mag": 0,
+          "speed": 0,
+          "stick": false
+        }
+      }
+    },
+    "jump impulse is applied in the first update after the press": {
+      "ok": true,
+      "detail": {
+        "vy": 3.7095000000000002,
+        "dy": 0.18547500000000028,
+        "grounded": false,
+        "framesLater": 1
+      }
+    },
+    "jump lands again": {
+      "ok": true
+    },
+    "paused: loop runs but no GPU frames and no simulation": {
+      "ok": true,
+      "detail": {
+        "r0": {
+          "frame": 364,
+          "rendered": 363,
+          "bench": 362
+        },
+        "r1": {
+          "frame": 374,
+          "rendered": 363,
+          "bench": 362
+        }
+      }
+    },
+    "resume renders again with no stale input": {
+      "ok": true,
+      "detail": {
+        "rendered": 366,
+        "speed": 0,
+        "mag": 0
+      }
+    },
+    "HUD layout: radar top-left, no overlaps, nothing off-screen (640×360 … 1280×720)": {
+      "ok": true,
+      "detail": [
+        {
+          "w": 640,
+          "h": 360,
+          "off": [],
+          "overlaps": [],
+          "radarTopLeft": true
+        },
+        {
+          "w": 780,
+          "h": 360,
+          "off": [],
+          "overlaps": [],
+          "radarTopLeft": true
+        },
+        {
+          "w": 844,
+          "h": 390,
+          "off": [],
+          "overlaps": [],
+          "radarTopLeft": true
+        },
+        {
+          "w": 1280,
+          "h": 720,
+          "off": [],
+          "overlaps": [],
+          "radarTopLeft": true
+        }
+      ]
+    }
+  },
+  "bench": {
+    "living-room": {
+      "frames": 9,
+      "seconds": 30,
+      "fps": 0.3,
+      "msPerFrame": 3335,
+      "cpuMsPerFrame": 29.1,
+      "calls": 432,
+      "tris": 1015293,
+      "programs": 59,
+      "geometries": 1119,
+      "textures": 2035
+    },
+    "street-outside": {
+      "frames": 8,
+      "seconds": 30,
+      "fps": 0.27,
+      "msPerFrame": 3752,
+      "cpuMsPerFrame": 25.5,
+      "calls": 606,
+      "tris": 1886302,
+      "programs": 64,
+      "geometries": 1141,
+      "textures": 2057
+    }
+  },
+  "shots": [
+    "docs/screenshots/game/verify/creator-m-default.png",
+    "docs/screenshots/game/verify/creator-m-heavy-muscular.png",
+    "docs/screenshots/game/verify/creator-m-slim-soft.png",
+    "docs/screenshots/game/verify/creator-m-face-default.png",
+    "docs/screenshots/game/verify/creator-m-face-plus.png",
+    "docs/screenshots/game/verify/creator-m-face-minus.png",
+    "docs/screenshots/game/verify/creator-f-default.png",
+    "docs/screenshots/game/verify/creator-f-heavy-muscular.png",
+    "docs/screenshots/game/verify/creator-f-slim-soft.png",
+    "docs/screenshots/game/verify/creator-f-face-default.png",
+    "docs/screenshots/game/verify/creator-f-face-plus.png",
+    "docs/screenshots/game/verify/creator-f-face-minus.png",
+    "docs/screenshots/game/verify/game-mid-jump.png",
+    "docs/screenshots/game/verify/game-mid-walk.png"
+  ],
+  "layouts": [
+    {
+      "w": 640,
+      "h": 360,
+      "off": [],
+      "overlaps": [],
+      "radarTopLeft": true,
+      "boxes": {
+        "radar-wrap": [
+          12,
+          10,
+          130,
+          128
+        ],
+        "stats": [
+          476,
+          10,
+          626,
+          91
+        ],
+        "btn-pause": [
+          298,
+          10,
+          342,
+          54
+        ],
+        "fps": [
+          140,
+          10,
+          225,
+          29
+        ],
+        "stick": [
+          86,
+          204,
+          214,
+          332
+        ],
+        "btn-jump": [
+          548,
+          178,
+          612,
+          242
+        ],
+        "btn-interact": [
+          472,
+          238,
+          536,
+          302
+        ],
+        "btn-run": [
+          464,
+          154,
+          528,
+          218
+        ],
+        "btn-camera": [
+          560,
+          272,
+          604,
+          316
+        ],
+        "toast": [
+          176,
+          62,
+          464,
+          97
+        ],
+        "place-card": [
+          229,
+          286,
+          411,
+          344
+        ],
+        "prompt": [
+          233,
+          222,
+          407,
+          266
+        ]
+      }
+    },
+    {
+      "w": 780,
+      "h": 360,
+      "off": [],
+      "overlaps": [],
+      "radarTopLeft": true,
+      "boxes": {
+        "radar-wrap": [
+          12,
+          10,
+          130,
+          128
+        ],
+        "stats": [
+          616,
+          10,
+          766,
+          91
+        ],
+        "btn-pause": [
+          368,
+          10,
+          412,
+          54
+        ],
+        "fps": [
+          140,
+          10,
+          225,
+          29
+        ],
+        "stick": [
+          86,
+          204,
+          214,
+          332
+        ],
+        "btn-jump": [
+          688,
+          178,
+          752,
+          242
+        ],
+        "btn-interact": [
+          612,
+          238,
+          676,
+          302
+        ],
+        "btn-run": [
+          604,
+          154,
+          668,
+          218
+        ],
+        "btn-camera": [
+          700,
+          272,
+          744,
+          316
+        ],
+        "toast": [
+          246,
+          62,
+          534,
+          97
+        ],
+        "place-card": [
+          299,
+          286,
+          481,
+          344
+        ],
+        "prompt": [
+          303,
+          222,
+          477,
+          266
+        ]
+      }
+    },
+    {
+      "w": 844,
+      "h": 390,
+      "off": [],
+      "overlaps": [],
+      "radarTopLeft": true,
+      "boxes": {
+        "radar-wrap": [
+          12,
+          10,
+          130,
+          128
+        ],
+        "stats": [
+          680,
+          10,
+          830,
+          91
+        ],
+        "btn-pause": [
+          400,
+          10,
+          444,
+          54
+        ],
+        "fps": [
+          140,
+          10,
+          225,
+          29
+        ],
+        "stick": [
+          86,
+          234,
+          214,
+          362
+        ],
+        "btn-jump": [
+          752,
+          208,
+          816,
+          272
+        ],
+        "btn-interact": [
+          676,
+          268,
+          740,
+          332
+        ],
+        "btn-run": [
+          668,
+          184,
+          732,
+          248
+        ],
+        "btn-camera": [
+          764,
+          302,
+          808,
+          346
+        ],
+        "toast": [
+          278,
+          62,
+          566,
+          97
+        ],
+        "place-card": [
+          331,
+          316,
+          513,
+          374
+        ],
+        "prompt": [
+          335,
+          245,
+          509,
+          289
+        ]
+      }
+    },
+    {
+      "w": 1280,
+      "h": 720,
+      "off": [],
+      "overlaps": [],
+      "radarTopLeft": true,
+      "boxes": {
+        "radar-wrap": [
+          12,
+          10,
+          130,
+          128
+        ],
+        "stats": [
+          1116,
+          10,
+          1266,
+          91
+        ],
+        "btn-pause": [
+          618,
+          10,
+          662,
+          54
+        ],
+        "fps": [
+          140,
+          10,
+          225,
+          29
+        ],
+        "stick": [
+          86,
+          564,
+          214,
+          692
+        ],
+        "btn-jump": [
+          1188,
+          538,
+          1252,
+          602
+        ],
+        "btn-interact": [
+          1112,
+          598,
+          1176,
+          662
+        ],
+        "btn-run": [
+          1104,
+          514,
+          1168,
+          578
+        ],
+        "btn-camera": [
+          1200,
+          632,
+          1244,
+          676
+        ],
+        "toast": [
+          496,
+          62,
+          784,
+          97
+        ],
+        "place-card": [
+          549,
+          646,
+          731,
+          704
+        ],
+        "prompt": [
+          553,
+          489,
+          727,
+          533
+        ]
+      }
+    }
+  ],
+  "errors": []
+}

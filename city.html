@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d111a" />
+    <title>V-WORLD · Vora City</title>
+    <link rel="stylesheet" href="/src/app/style.css" />
+  </head>
+  <body>
+    <canvas id="view"></canvas>
+    <div id="hud"></div>
+    <canvas id="minimap" title="click to travel"></canvas>
+    <div id="loading">
+      <div class="box">
+        <div class="logo">V-WORLD</div>
+        <div class="sub">Vora City · Republic of V</div>
+        <div class="bar"><div id="loading-bar"></div></div>
+        <div id="loading-text">Starting…</div>
+      </div>
+    </div>
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

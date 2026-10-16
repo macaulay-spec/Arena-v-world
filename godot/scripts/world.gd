@@ -1,0 +1,989 @@
+class_name World
+extends Node3D
+## Vora City runtime: S0 proof neighborhood plus the opt-in S1 128 m streamed city ring,
+## sun/sky/day-night, the player, street NPCs with mocap and parked cars.
+
+signal built(stats: Dictionary)
+signal toast_requested(message: String)
+
+const CHUNK := "s0"
+const GATE_WORLD := Vector3(-347.1, 22.1, -336.5)   # just outside the gate (local 27, 75.4)
+const CAR_DIR := "res://assets/ext/kenney/car-kit/"
+
+var builder: WorldBuilder
+var mansion: MansionBuilder
+var front_door: MansionDoor
+var streamer: ChunkStreamer
+var player: Player
+var stream_ready := false
+var _stream_mode := false
+var _stream_initialized := false
+var city_routes: Array = []
+var car_nodes: Array[Node3D] = []
+var owned_vehicles: Array[DrivableCar] = []
+var active_vehicle: DrivableCar
+var dispatcher_position := Vector3.ZERO
+var sleep_position := Vector3.ZERO
+var fridge_position := Vector3.ZERO
+var delivery_destination := Vector3.ZERO
+var delivery_active := false
+var delivery_reward := 0
+var dispatcher_marker: Node3D
+var delivery_marker: Node3D
+var police_pursuer: PolicePursuer
+var _wanted_escape_timer := 0.0
+var sun: DirectionalLight3D
+var env: Environment
+var sky_mat: ProceduralSkyMaterial
+var npcs: Array[NPC] = []
+var stats := {}
+var car_models: Array[String] = []
+var night_lights: Array[OmniLight3D] = []
+var skirt: MeshInstance3D
+var skirt_mesh: PlaneMesh
+var _night := -1.0
+var _light_timer := 0.0
+var _stream_t0 := 0
+var _mansion_tris := 0
+var _mansion_surfaces := 0
+
+
+func _ready() -> void:
+	if "--stream-city" in OS.get_cmdline_user_args():
+		_ready_streamed()
+	else:
+		_ready_s0()
+	Game.quality_changed.connect(_apply_quality)
+	_apply_quality(Game.quality)
+
+
+## The proven S0 baseline stays available for direct phone comparison (`--stream-city` opts into S1).
+func _ready_s0() -> void:
+	var t0 := Time.get_ticks_msec()
+	var chunk := WorldBuilder.load_chunk(CHUNK)
+	builder = WorldBuilder.new(chunk)
+	builder.build_all()
+	mansion = MansionBuilder.new(builder)
+	mansion.build()
+	for p in mansion.palm_world_positions():
+		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
+	builder.emit(self)
+	_add_front_door()
+	_configure_home_actions()
+	_lighting()
+	_spawn_player()
+	_spawn_npcs()
+	stats = builder.stats.duplicate()
+	_spawn_cars()
+	_add_dispatcher()
+	_restore_delivery_state()
+	stats["build_ms"] = Time.get_ticks_msec() - t0
+	stats["npcs"] = npcs.size()
+	stats["collision_shapes"] = builder.collision_boxes.size() + 1
+	stream_ready = true
+	print("World built: ", stats)
+	built.emit(stats)
+
+
+## S1 runtime: the mansion remains its own handcrafted overlay while the city planner streams 128 m tiles.
+func _ready_streamed() -> void:
+	var t0 := Time.get_ticks_msec()
+	_stream_t0 = t0
+	_stream_mode = true
+	builder = WorldBuilder.new(WorldBuilder.load_chunk(CHUNK))
+	mansion = MansionBuilder.new(builder)
+	mansion.build()
+	for p in mansion.palm_world_positions():
+		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
+	builder.emit(self, false)
+	_add_front_door()
+	_configure_home_actions()
+	_mansion_tris = int(builder.stats.get("tris", 0))
+	_mansion_surfaces = int(builder.stats.get("surfaces", 0))
+	_lighting()
+	_spawn_player()
+	player.set_physics_process(false) # don't let the avatar fall while the first 3×3 terrain ring loads
+	streamer = ChunkStreamer.new()
+	streamer.name = "ChunkStreamer"
+	streamer.region_ready.connect(_on_stream_region_ready)
+	streamer.center_changed.connect(_on_stream_center_changed)
+	add_child(streamer)
+	streamer.set_target(player)
+	stats = {"tris": builder.stats.get("tris", 0), "surfaces": builder.stats.get("surfaces", 0),
+		"buildings": 0, "trees": 0, "chunks": 0, "cars": 0, "npcs": 0,
+		"build_ms": Time.get_ticks_msec() - t0, "collision_shapes": builder.collision_boxes.size()}
+	print("S1 streaming started at ", ChunkStreamer.cell_for(player.global_position))
+
+
+func _add_front_door() -> void:
+	front_door = MansionDoor.new()
+	front_door.name = "FrontDoor"
+	front_door.position = mansion.W(33.0, MansionBuilder.GF, 44.52)
+	add_child(front_door)
+
+
+func _configure_home_actions() -> void:
+	sleep_position = mansion.W(22.8, MansionBuilder.F1 + 0.05, 27.2)
+	fridge_position = mansion.W(44.1, MansionBuilder.GF + 0.05, 24.0)
+
+
+func _on_stream_center_changed(_center: Vector2i) -> void:
+	if not _stream_mode:
+		return
+	if _stream_initialized:
+		_clear_npcs()
+		for car in car_nodes:
+			if is_instance_valid(car) and car != active_vehicle:
+				car.queue_free()
+		car_nodes.clear()
+		if is_instance_valid(active_vehicle):
+			car_nodes.append(active_vehicle)
+		city_routes.clear()
+	var nearest := streamer.nearest_builder(player.global_position) if streamer else null
+	if nearest != null:
+		builder = nearest
+
+
+func _on_stream_region_ready(center: Vector2i, loaded_count: int) -> void:
+	if not _stream_mode or streamer == null:
+		return
+	var nearest := streamer.nearest_builder(player.global_position)
+	if nearest != null:
+		builder = nearest
+	city_routes = streamer.sidewalk_paths()
+	if _stream_initialized:
+		_clear_npcs()
+	_spawn_npcs(player.global_position)
+	_spawn_cars()
+	_add_dispatcher()
+	_restore_delivery_state()
+	player.set_physics_process(true)
+	stream_ready = true
+	_stream_initialized = true
+	_update_stream_stats(center, loaded_count)
+	_apply_quality(Game.quality)
+	print("S1 region ready: ", stats)
+	if int(stats.get("region_loads", 0)) == 0:
+		built.emit(stats)
+	stats["region_loads"] = int(stats.get("region_loads", 0)) + 1
+
+
+func _update_stream_stats(center: Vector2i, loaded_count: int) -> void:
+	var tris := _mansion_tris
+	var surfaces := _mansion_surfaces
+	var buildings := 0
+	var trees := 0
+	var collision_shapes := 1 # the custom mansion collision body
+	var nav_regions := 0
+	for chunk in streamer.loaded_builders():
+		tris += int(chunk.stats.get("tris", 0))
+		surfaces += int(chunk.stats.get("surfaces", 0))
+		buildings += int(chunk.stats.get("buildings", 0))
+		trees += int(chunk.stats.get("trees", 0))
+		collision_shapes += chunk.collision_boxes.size() + 1
+		nav_regions += 1 if not chunk.sidewalk_paths.is_empty() else 0
+	stats["tris"] = tris
+	stats["surfaces"] = surfaces
+	stats["buildings"] = buildings
+	stats["trees"] = trees
+	stats["chunks"] = loaded_count
+	stats["nav_regions"] = nav_regions
+	stats["collision_shapes"] = collision_shapes
+	stats["cars"] = car_nodes.size()
+	stats["npcs"] = npcs.size()
+	stats["build_ms"] = Time.get_ticks_msec() - _stream_t0
+	stats["center_chunk"] = "%d,%d" % [center.x, center.y]
+
+
+func _lighting() -> void:
+	sun = DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.shadow_enabled = bool(Game.quality.get("shadows", false))
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_max_distance = 70.0
+	sun.directional_shadow_split_1 = 0.2
+	sun.directional_shadow_fade_start = 0.8
+	sun.shadow_bias = 0.08
+	sun.shadow_normal_bias = 2.0
+	sun.light_angular_distance = 0.7
+	add_child(sun)
+	var we := WorldEnvironment.new()
+	env = Environment.new()
+	sky_mat = ProceduralSkyMaterial.new()
+	sky_mat.sun_angle_max = 16.0
+	sky_mat.sun_curve = 0.08
+	sky_mat.sky_curve = 0.09
+	sky_mat.ground_bottom_color = Color(0.2, 0.17, 0.13)
+	var sky := Sky.new()
+	sky.sky_material = sky_mat
+	sky.radiance_size = Sky.RADIANCE_SIZE_64
+	env.background_mode = Environment.BG_SKY
+	env.sky = sky
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
+	env.tonemap_mode = Environment.TONE_MAPPER_AGX
+	env.tonemap_exposure = 1.15
+	env.tonemap_white = 4.0
+	env.fog_enabled = true
+	env.fog_mode = Environment.FOG_MODE_DEPTH
+	env.fog_depth_begin = 70.0
+	env.fog_depth_end = float(Game.quality.get("fog_end", 220.0))
+	env.fog_depth_curve = 1.4
+	env.fog_sky_affect = 0.0
+	env.fog_aerial_perspective = 0.85
+	env.adjustment_enabled = false
+	we.environment = env
+	add_child(we)
+	# ground skirt: hides the end of the chunk until streaming (S1) fills the world. It follows the
+	# player and ends just inside the camera far plane, where it is fully fogged, so no seam shows.
+	skirt = MeshInstance3D.new()
+	skirt_mesh = PlaneMesh.new()
+	skirt_mesh.size = Vector2(2.0, 2.0) * float(Game.quality.get("far", 400.0)) * 0.96
+	skirt.mesh = skirt_mesh
+	var sm := StandardMaterial3D.new()
+	sm.albedo_color = Color(0.36, 0.42, 0.24)
+	sm.roughness = 1.0
+	skirt.material_override = sm
+	skirt.position = Vector3(builder.origin.x + builder.nx * builder.grid * 0.5, 16.5, builder.origin.y + builder.nz * builder.grid * 0.5)
+	skirt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if not _stream_mode and not Game.dbg("noskirt"):
+		add_child(skirt)
+	if Game.dbg("nofog"):
+		env.fog_enabled = false
+	if Game.dbg("defaultsky"):
+		sky_mat = ProceduralSkyMaterial.new()
+		sky.sky_material = sky_mat
+	if Game.dbg("nosky"):
+		env.background_mode = Environment.BG_COLOR
+		env.background_color = Color(0.5, 0.7, 1.0)
+	# pooled street lights (moved to the lamps nearest the player after dark)
+	for i in range(6):
+		var l := OmniLight3D.new()
+		l.light_color = Color(1.0, 0.8, 0.55)
+		l.light_energy = 0.0
+		l.omni_range = 16.0
+		l.omni_attenuation = 1.2
+		l.shadow_enabled = false
+		l.visible = false
+		add_child(l)
+		night_lights.append(l)
+
+
+func _apply_quality(q: Dictionary) -> void:
+	if sun:
+		sun.shadow_enabled = bool(q.get("shadows", false))
+	if env:
+		env.fog_depth_end = float(q.get("fog_end", 220.0))
+	if skirt_mesh:
+		skirt_mesh.size = Vector2(2.0, 2.0) * float(q.get("far", 400.0)) * 0.96
+	# Keep named household contacts in view on Lite, then fill the remaining crowd budget with street life.
+	var want := int(q.get("npcs", 6))
+	var ordered: Array[NPC] = []
+	ordered.assign(npcs)
+	ordered.sort_custom(func(a: NPC, b: NPC): return a.household_priority and not b.household_priority)
+	for i in range(ordered.size()):
+		var active := i < want
+		ordered[i].visible = active
+		ordered[i].process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
+
+
+func _process(delta: float) -> void:
+	_update_sun(Game.day_fraction())
+	if skirt and player and not _stream_mode:
+		skirt.position.x = player.global_position.x
+		skirt.position.z = player.global_position.z
+	_update_wanted(delta)
+
+
+func _update_wanted(delta: float) -> void:
+	var wanted := int(Game.profile.get("wanted", 0))
+	if wanted <= 0:
+		_wanted_escape_timer = 0.0
+		if is_instance_valid(police_pursuer):
+			police_pursuer.queue_free()
+		police_pursuer = null
+		return
+	if not is_instance_valid(police_pursuer):
+		_spawn_police_pursuer()
+	var target: Node3D = active_vehicle if is_instance_valid(active_vehicle) else player
+	if target == null or not is_instance_valid(police_pursuer):
+		return
+	var distance := police_pursuer.global_position.distance_to(target.global_position)
+	if distance > 100.0:
+		_wanted_escape_timer += delta
+		if _wanted_escape_timer >= 60.0:
+			_wanted_escape_timer = 0.0
+			Game.set_wanted(wanted - 1)
+			if int(Game.profile.get("wanted", 0)) == 0:
+				toast_requested.emit("You lost the police.")
+	else:
+		_wanted_escape_timer = 0.0
+
+
+func _update_sun(f: float) -> void:
+	# Lagos (6°N): sunrise ~06:30, sunset ~18:45, short twilight
+	var h := f * 24.0
+	var day_t := (h - 6.5) / 12.25                      # 0 at sunrise, 1 at sunset
+	var elev := sin(clampf(day_t, 0.0, 1.0) * PI)      # 0..1 over the day
+	if day_t < 0.0:
+		elev = -minf(-day_t * 4.0, 1.0)
+	elif day_t > 1.0:
+		elev = -minf((day_t - 1.0) * 4.0, 1.0)
+	var day := clampf(elev * 3.5 + 0.08, 0.0, 1.0)
+	var dusk := clampf(1.0 - absf(elev - 0.08) * 4.0, 0.0, 1.0)   # golden band around the horizon
+	var night := 1.0 - day
+	# sun direction: rises in the east (+x), sets west, arcs slightly through the south (+z)
+	var az := clampf(day_t, -0.1, 1.1) * PI
+	var dir := Vector3(-cos(az), -maxf(elev, 0.04) - 0.05, -0.25)
+	sun.look_at_from_position(Vector3.ZERO, dir.normalized(), Vector3.UP)
+	var warm := Color(1.0, 0.66, 0.4)
+	var white := Color(1.0, 0.97, 0.92)
+	sun.light_color = white.lerp(warm, dusk)
+	sun.light_energy = 1.4 * day
+	# after sunset the same light becomes the moon: high in the north-east, cool, dim
+	if night > 0.5:
+		var k := clampf((night - 0.5) * 2.0, 0.0, 1.0)
+		var moon_dir := Vector3(0.35, -0.8, 0.45).normalized()
+		sun.look_at_from_position(Vector3.ZERO, dir.normalized().lerp(moon_dir, k).normalized(), Vector3.UP)
+		sun.light_color = sun.light_color.lerp(Color(0.62, 0.72, 1.0), k)
+		sun.light_energy = maxf(sun.light_energy, 0.4 * k)
+	# sky
+	var top_day := Color(0.22, 0.45, 0.85)
+	var hor_day := Color(0.66, 0.78, 0.92)
+	var top_dusk := Color(0.2, 0.28, 0.52)
+	var hor_dusk := Color(0.92, 0.74, 0.6)     # pale warm; the orange lives in the sun halo, not the whole sky
+	var top_night := Color(0.03, 0.04, 0.09)
+	var hor_night := Color(0.1, 0.12, 0.2)
+	var top := top_day.lerp(top_dusk, dusk * 0.8).lerp(top_night, night * night)
+	var hor := hor_day.lerp(hor_dusk, dusk).lerp(hor_night, night * night)
+	sky_mat.sky_top_color = top
+	sky_mat.sky_horizon_color = hor
+	sky_mat.ground_horizon_color = hor.darkened(0.25)
+	sky_mat.sky_energy_multiplier = 1.0
+	env.ambient_light_color = Color(0.56, 0.62, 0.72).lerp(Color(0.85, 0.7, 0.58), dusk * 0.2).lerp(Color(0.24, 0.28, 0.42), night)
+	env.ambient_light_energy = 0.75 - 0.2 * night
+	env.tonemap_exposure = 1.15 + 0.6 * night      # eye adaptation after dark
+	env.fog_light_color = hor
+	# emissive props after dark
+	var n := clampf(night * 1.4, 0.0, 1.0)
+	if absf(n - _night) > 0.02:
+		_night = n
+		Materials.get_mat("lamp_glow").emission_energy_multiplier = 0.3 + 4.0 * n
+		var g := Materials.get_mat("mansion_glass")
+		g.emission_enabled = true
+		g.emission = Color(1.0, 0.8, 0.5)
+		g.emission_energy_multiplier = 1.4 * n
+	_update_night_lights(n)
+
+
+## Moves the pooled omni lights to the lamps nearest the player (cheap night lighting).
+func _update_night_lights(n: float) -> void:
+	_light_timer -= get_process_delta_time()
+	if _light_timer > 0.0 and n > 0.0:
+		return
+	_light_timer = 0.5
+	var count := int(Game.quality.get("night_lights", 3))
+	if n <= 0.01 or player == null:
+		for l in night_lights:
+			l.visible = false
+		return
+	var pp := player.global_position
+	var lamps: Array = []
+	if _stream_mode and streamer:
+		for lp in streamer.lamp_positions():
+			lamps.append(lp)
+	else:
+		for lp in builder.lamp_positions:
+			lamps.append(lp)
+	for lp in mansion.lights:
+		lamps.append(lp)
+	lamps.sort_custom(func(a, b): return a.distance_squared_to(pp) < b.distance_squared_to(pp))
+	for i in range(night_lights.size()):
+		var l := night_lights[i]
+		if i < count and i < lamps.size():
+			var lp: Vector3 = lamps[i]
+			var tall := lp.y - builder.height_at(lp.x, lp.z) < 1.0
+			l.global_position = lp + (Vector3(1.2, 6.0, 0) if tall else Vector3(0, 1.0, 0))
+			l.omni_range = 22.0 if tall else 8.0
+			l.light_energy = (3.2 if tall else 1.6) * n
+			l.visible = true
+		else:
+			l.visible = false
+
+
+func _spawn_player() -> void:
+	player = Player.new()
+	player.name = "Player"
+	player.avatar_name = String(Game.profile.get("avatar_name", "Male_Adult_01"))
+	add_child(player)
+	player.global_transform = mansion.player_spawn()
+	player.yaw = PI
+	player.cam_yaw.rotation.y = PI
+	player.model.rotation.y = PI
+
+
+func _spawn_npcs(center: Vector3 = GATE_WORLD) -> void:
+	var civs := Rocketbox.avatar_entries("civ")
+	if civs.is_empty():
+		return
+	var routes := _get_routes()
+	if routes.is_empty():
+		return
+	# Populate the loaded neighbourhood around the player; each route is planner-generated sidewalk geometry.
+	var near_routes := []
+	for r in routes:
+		if r.size() < 2:
+			continue
+		var mid: Vector3 = r[r.size() / 2]
+		if mid.distance_to(center) < 140.0:
+			near_routes.append(r)
+	if near_routes.is_empty():
+		near_routes = routes
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7 + int(absf(center.x) * 17.0 + absf(center.z) * 31.0)
+	var ci := 0
+	# walkers
+	for i in range(7):
+		if near_routes.is_empty():
+			break
+		var r: PackedVector3Array = near_routes[i % near_routes.size()]
+		var n := NPC.new()
+		n.setup(civs[ci % civs.size()]["name"], 100 + i + int(absf(center.x) * 3.0))
+		ci += 1
+		n.mode = "walk"
+		n.path = r
+		n.routes = routes
+		n.forward = rng.randf() < 0.5
+		n.path_index = rng.randi_range(0, r.size() - 1)
+		add_child(n)
+		n.global_position = r[n.path_index] + Vector3(0, 0.1, 0)
+		npcs.append(n)
+	# an animated conversation and phone user add life without a large crowd cost
+	var spot := _nearest_route_point(center + Vector3(9, 0, 0))
+	var a := _standing(civs[ci % civs.size()]["name"], spot + Vector3(-0.6, 0, 0), "gestic_talk", spot + Vector3(0.6, 0, 0))
+	ci += 1
+	_standing(civs[ci % civs.size()]["name"], spot + Vector3(0.6, 0, 0), "gestic_listen", spot + Vector3(-0.6, 0, 0))
+	ci += 1
+	var spot2 := _nearest_route_point(center + Vector3(-26, 0, 0))
+	_standing(civs[ci % civs.size()]["name"], spot2, "cell_phone", spot2 + Vector3(0, 0, 4))
+	# A police presence follows the player through the city; the household guard stays at JAG House.
+	var police := Rocketbox.avatar_entries("police")
+	if not police.is_empty():
+		var corner := _nearest_route_point(center + Vector3(-30, 0, -10))
+		var officer := _standing(police[0]["name"], corner, "idle_look", corner + Vector3(3, 0, -3))
+		officer.role_id = "police"
+		officer.character_name = "Officer Adeyemi"
+	if center.distance_to(GATE_WORLD) < 120.0:
+		var guards := Rocketbox.avatar_entries("guard")
+		if not guards.is_empty():
+			var gpos := mansion.W(31.5, 0.1, 73.0)
+			var gateman := _standing(guards[0]["name"], gpos, "idle", gpos + Vector3(-3, 0, 2))
+			gateman.role_id = "gateman"
+			gateman.character_name = "Musa"
+			gateman.household_priority = true
+		_spawn_household(civs)
+
+
+func _spawn_household(civs: Array) -> void:
+	if civs.is_empty():
+		return
+	var housekeeper := _standing(_choose_civ_avatar(civs, "Female_Adult_04", "f"), mansion.W(46.0, 0.1, 32.0), "gestic_talk", mansion.W(48.0, 0.1, 32.0))
+	housekeeper.character_name = "Bisi"
+	housekeeper.role_id = "housekeeper"
+	housekeeper.household_priority = true
+	var driver := _standing(_choose_civ_avatar(civs, "Male_Adult_04", "m"), mansion.W(58.0, 0.1, 72.0), "cell_phone", mansion.W(56.0, 0.1, 70.0))
+	driver.character_name = "Kola"
+	driver.role_id = "driver"
+	driver.household_priority = true
+
+
+func _choose_civ_avatar(civs: Array, preferred_name: String, preferred_sex: String) -> String:
+	for entry: Dictionary in civs:
+		if String(entry.get("name", "")) == preferred_name:
+			return preferred_name
+	for entry: Dictionary in civs:
+		if String(entry.get("sex", "m")) == preferred_sex:
+			return String(entry.get("name", ""))
+	return String(civs[0].get("name", "Male_Adult_04"))
+
+
+func _get_routes() -> Array:
+	return city_routes if _stream_mode else builder.sidewalk_paths
+
+
+func _nearest_talkable_npc() -> NPC:
+	if player == null:
+		return null
+	var nearest: NPC
+	var nearest_distance := INF
+	for candidate in npcs:
+		if not is_instance_valid(candidate) or not candidate.visible:
+			continue
+		var distance := player.global_position.distance_to(candidate.global_position)
+		if distance < nearest_distance:
+			nearest = candidate
+			nearest_distance = distance
+	return nearest if nearest_distance <= 2.8 else null
+
+
+func _clear_npcs() -> void:
+	for n in npcs:
+		if is_instance_valid(n):
+			n.queue_free()
+	npcs.clear()
+
+
+func _standing(avatar: String, pos: Vector3, category: String, face: Vector3) -> NPC:
+	var n := NPC.new()
+	n.setup(avatar, 500 + npcs.size())
+	n.mode = "idle"
+	n.idle_category = category
+	n.face_target = face
+	n.position = pos + Vector3(0, 0.1, 0)
+	add_child(n)
+	npcs.append(n)
+	return n
+
+
+func _nearest_route_point(p: Vector3) -> Vector3:
+	var best := p
+	var bd := INF
+	for r in _get_routes():
+		for i in range(r.size() - 1):
+			var a: Vector3 = r[i]
+			var b: Vector3 = r[i + 1]
+			var ab := b - a
+			var t := clampf((p - a).dot(ab) / maxf(ab.length_squared(), 0.001), 0.0, 1.0)
+			var q := a + ab * t
+			var d := Vector2(q.x - p.x, q.z - p.z).length()
+			if d < bd:
+				bd = d
+				best = q
+	return best
+
+
+# ---------------------------------------------------------------- cars
+func _spawn_cars() -> void:
+	for old_car in car_nodes:
+		if is_instance_valid(old_car) and old_car != active_vehicle:
+			old_car.queue_free()
+	car_nodes.clear()
+	owned_vehicles.clear()
+	if is_instance_valid(active_vehicle):
+		car_nodes.append(active_vehicle)
+		owned_vehicles.append(active_vehicle)
+	if car_models.is_empty():
+		var dir := DirAccess.open(CAR_DIR)
+		if dir == null:
+			print("World: no car models at ", CAR_DIR, " (parked cars skipped)")
+			return
+		for f in dir.get_files():
+			if f.ends_with(".glb") or f.ends_with(".gltf"):
+				car_models.append(f)
+	if car_models.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 99
+	var pref := {"owner_suv": ["suv-luxury", "suv"], "owner_sedan": ["sedan-sports", "sedan", "race"],
+		"car": ["sedan", "hatchback-sports", "suv", "taxi", "van", "truck"], "minibus": ["van", "delivery"]}
+	var slots: Array = mansion.car_slots.duplicate()
+	# Keep a bounded set near the active 3×3 ring to avoid loading citywide vehicle meshes.
+	var street: Array = streamer.car_slots() if _stream_mode and streamer else builder.car_slots.duplicate()
+	var car_center := player.global_position if _stream_mode and player else GATE_WORLD
+	street.sort_custom(func(a, b): return a["pos"].distance_squared_to(car_center) < b["pos"].distance_squared_to(car_center))
+	for i in range(mini(8, street.size())):
+		slots.append(street[i])
+	var count := owned_vehicles.size()
+	for s in slots:
+		var is_owned: bool = s["kind"] == "owner_suv" or s["kind"] == "owner_sedan"
+		var owner_id := "jag_suv" if s["kind"] == "owner_suv" else "jag_sedan"
+		if is_owned and is_instance_valid(active_vehicle) and active_vehicle.vehicle_id == owner_id:
+			continue
+		var options: Array = pref.get(s["kind"], pref["car"])
+		var file := ""
+		for o in options:
+			for m in car_models:
+				if m.begins_with(o + "."):
+					file = m
+					break
+			if file != "":
+				break
+		if file == "":
+			file = car_models[rng.randi_range(0, car_models.size() - 1)]
+		var ps = load(CAR_DIR + file)
+		if ps == null:
+			continue
+		var raw: Node3D = ps.instantiate()
+		var palette: Array = [Color(0.92, 0.92, 0.9), Color(0.1, 0.1, 0.12), Color(0.55, 0.57, 0.6), Color(0.45, 0.08, 0.08), Color(0.08, 0.14, 0.32), Color(0.2, 0.2, 0.22), Color(0.75, 0.72, 0.65)]
+		var body_col: Color = palette[count % palette.size()]
+		if s["kind"] == "owner_suv":
+			body_col = Color(0.08, 0.08, 0.09)
+		elif s["kind"] == "owner_sedan":
+			body_col = Color(0.9, 0.9, 0.88)
+		var inst := _merge_static(raw, body_col)   # one MeshInstance3D per car instead of 8-12 parts
+		raw.free()
+		var aabb := _aabb_of(inst)
+		var length := maxf(aabb.size.x, aabb.size.z)
+		var target := 4.6 if s["kind"] != "minibus" else 5.2
+		var sc := target / maxf(length, 0.01)
+		var holder: Node3D
+		if is_owned:
+			var owned_car := DrivableCar.new()
+			owned_car.name = "Car_%d" % count
+			var id := "jag_suv" if s["kind"] == "owner_suv" else "jag_sedan"
+			owned_car.configure(id, String(s["kind"]), inst, sc, aabb, target)
+			holder = owned_car
+			owned_vehicles.append(owned_car)
+		else:
+			inst.scale = Vector3.ONE * sc
+			inst.position = Vector3(0, -aabb.position.y * sc, 0)
+			holder = Node3D.new()
+			holder.name = "Car_%d" % count
+			holder.add_child(inst)
+			if s["kind"] == "minibus":
+				_tint(inst, Color(0.95, 0.75, 0.1))
+			for mi in inst.find_children("*", "MeshInstance3D", true, false):
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			var body := StaticBody3D.new()
+			var box := CollisionShape3D.new()
+			var shape := BoxShape3D.new()
+			shape.size = Vector3(aabb.size.x * sc, aabb.size.y * sc, aabb.size.z * sc)
+			box.shape = shape
+			box.position = Vector3(0, aabb.size.y * sc * 0.5, 0)
+			body.add_child(box)
+			holder.add_child(body)
+		add_child(holder)
+		car_nodes.append(holder)
+		holder.global_position = s["pos"]
+		holder.rotation.y = float(s["yaw"]) + (PI * 0.5 if aabb.size.x > aabb.size.z else 0.0)
+		count += 1
+	stats["cars"] = car_nodes.size()
+
+
+## Flattens all MeshInstance3D parts of an imported scene into one mesh (one surface per material).
+## Materials without an albedo texture (e.g. a kit whose shared colormap is missing) get `fallback_col`.
+func _merge_static(src: Node3D, fallback_col: Color = Color.WHITE) -> Node3D:
+	var by_mat: Dictionary = {}
+	for mi in src.find_children("*", "MeshInstance3D", true, false):
+		var m: MeshInstance3D = mi
+		if m.mesh == null:
+			continue
+		var xf: Transform3D = m.transform
+		var p := m.get_parent()
+		while p != src and p is Node3D:
+			xf = (p as Node3D).transform * xf
+			p = p.get_parent()
+		for si in range(m.mesh.get_surface_count()):
+			var mat := m.get_active_material(si)
+			var key := mat.get_instance_id() if mat else 0
+			if not by_mat.has(key):
+				var st := SurfaceTool.new()
+				st.begin(Mesh.PRIMITIVE_TRIANGLES)
+				by_mat[key] = [st, mat]
+			(by_mat[key][0] as SurfaceTool).append_from(m.mesh, si, xf)
+	var mesh := ArrayMesh.new()
+	for key in by_mat.keys():
+		var st: SurfaceTool = by_mat[key][0]
+		st.index()
+		st.commit(mesh)
+		var mat: Material = by_mat[key][1]
+		if mat is BaseMaterial3D:
+			var bm: BaseMaterial3D = (mat as BaseMaterial3D).duplicate()
+			bm.roughness = 0.35
+			bm.metallic = 0.25
+			bm.metallic_specular = 0.6
+			if bm.albedo_texture == null and fallback_col != Color.WHITE:
+				bm.albedo_color = fallback_col
+			mat = bm
+		mesh.surface_set_material(mesh.get_surface_count() - 1, mat)
+	var out := MeshInstance3D.new()
+	out.name = "CarMesh"
+	out.mesh = mesh
+	return out
+
+
+func _aabb_of(n: Node3D) -> AABB:
+	var out := AABB()
+	var first := true
+	var parts: Array = n.find_children("*", "MeshInstance3D", true, false)
+	if n is MeshInstance3D:
+		parts.append(n)   # find_children never returns the node itself
+	for mi in parts:
+		var a: AABB = (mi as MeshInstance3D).get_aabb()
+		if mi == n:
+			if first:
+				out = a
+				first = false
+			else:
+				out = out.merge(a)
+			continue
+		a = (mi as Node3D).transform * a
+		var p: Node = mi.get_parent()
+		while p != n and p is Node3D:
+			a = (p as Node3D).transform * a
+			p = p.get_parent()
+		if first:
+			out = a
+			first = false
+		else:
+			out = out.merge(a)
+	return out
+
+
+func _tint(n: Node3D, c: Color) -> void:
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		var m: MeshInstance3D = mi
+		for s in range(m.mesh.get_surface_count()):
+			var src := m.mesh.surface_get_material(s)
+			if src is BaseMaterial3D:
+				var sm: BaseMaterial3D = src
+				if sm.albedo_color.v > 0.3 and sm.albedo_color.s > 0.2:
+					var dup: BaseMaterial3D = sm.duplicate()
+					dup.albedo_color = c
+					m.set_surface_override_material(s, dup)
+
+
+func _add_dispatcher() -> void:
+	if is_instance_valid(dispatcher_marker):
+		return
+	dispatcher_position = mansion.W(33.0, 0.05, 45.5)
+	dispatcher_marker = _make_world_marker("CourierDispatch", dispatcher_position, "JAG COURIER\nSTART SHIFT", Color(1.0, 0.68, 0.18))
+
+
+func _make_world_marker(marker_name: String, at: Vector3, caption: String, tint: Color) -> Node3D:
+	var root := Node3D.new()
+	root.name = marker_name
+	root.position = at
+	var mesh_instance := MeshInstance3D.new()
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 0.18
+	cylinder.bottom_radius = 0.42
+	cylinder.height = 0.55
+	cylinder.radial_segments = 12
+	mesh_instance.mesh = cylinder
+	mesh_instance.position.y = 0.28
+	var material := StandardMaterial3D.new()
+	material.albedo_color = tint
+	material.emission_enabled = true
+	material.emission = tint
+	material.emission_energy_multiplier = 1.2
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mesh_instance.material_override = material
+	root.add_child(mesh_instance)
+	var label := Label3D.new()
+	label.text = caption
+	label.position = Vector3(0, 1.7, 0)
+	label.font_size = 32
+	label.outline_size = 8
+	label.modulate = tint.lightened(0.25)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	root.add_child(label)
+	add_child(root)
+	return root
+
+
+func _restore_delivery_state() -> void:
+	delivery_active = bool(Game.profile.get("job_active", false))
+	delivery_reward = maxi(0, int(Game.profile.get("job_reward", 0)))
+	var saved_destination: Variant = Game.profile.get("job_destination", [])
+	if delivery_active and typeof(saved_destination) == TYPE_ARRAY and saved_destination.size() == 3:
+		delivery_destination = Vector3(float(saved_destination[0]), float(saved_destination[1]), float(saved_destination[2]))
+		if not is_instance_valid(delivery_marker):
+			_ensure_delivery_marker()
+	elif delivery_active:
+		delivery_active = false
+		Game.profile["job_active"] = false
+		Game.profile["job_destination"] = []
+
+
+func _ensure_delivery_marker() -> void:
+	if is_instance_valid(delivery_marker):
+		delivery_marker.queue_free()
+	delivery_marker = _make_world_marker("DeliveryDestination", delivery_destination, "DELIVER\n₦%d" % delivery_reward, Color(0.25, 0.9, 1.0))
+
+
+func _choose_delivery_destination() -> Vector3:
+	var anchor := GATE_WORLD
+	var best := Vector3.ZERO
+	var best_score := INF
+	var found := false
+	for route in _get_routes():
+		for point: Vector3 in route:
+			var distance := Vector2(point.x - anchor.x, point.z - anchor.z).length()
+			if distance < 70.0 or distance > 280.0:
+				continue
+			var score := absf(distance - 165.0)
+			if score < best_score:
+				best = point
+				best_score = score
+				found = true
+	if found:
+		return best
+	var fallback := _nearest_route_point(anchor + Vector3(95.0, 0.0, 55.0))
+	return fallback
+
+
+func _start_delivery() -> void:
+	delivery_destination = _choose_delivery_destination()
+	var distance := Vector2(delivery_destination.x - dispatcher_position.x, delivery_destination.z - dispatcher_position.z).length()
+	delivery_reward = 3000 + int(distance * 4.0)
+	delivery_active = true
+	Game.profile["job_active"] = true
+	Game.profile["job_destination"] = [delivery_destination.x, delivery_destination.y, delivery_destination.z]
+	Game.profile["job_reward"] = delivery_reward
+	Game.profile["mission_id"] = "jag_courier"
+	Game.profile["mission_stage"] = 1
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	_ensure_delivery_marker()
+	toast_requested.emit("Courier shift started. Drive to the blue marker.")
+
+
+func _finish_delivery() -> void:
+	var reward := delivery_reward
+	delivery_active = false
+	Game.add_cash(reward)
+	Game.profile["deliveries"] = int(Game.profile.get("deliveries", 0)) + 1
+	Game.profile["job_active"] = false
+	Game.profile["job_destination"] = []
+	Game.profile["job_reward"] = 0
+	Game.profile["mission_id"] = ""
+	Game.profile["mission_stage"] = 0
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	if is_instance_valid(delivery_marker):
+		delivery_marker.queue_free()
+	delivery_marker = null
+	toast_requested.emit("Package delivered · ₦%s earned" % _format_currency(reward))
+	Game.save_game(self)
+
+
+func _format_currency(amount: int) -> String:
+	var digits := str(maxi(amount, 0))
+	var formatted := ""
+	for i in range(digits.length()):
+		if i > 0 and (digits.length() - i) % 3 == 0:
+			formatted += ","
+		formatted += digits.substr(i, 1)
+	return formatted
+
+
+func interaction_label() -> String:
+	if player == null:
+		return ""
+	if delivery_active:
+		var pos := active_vehicle.global_position if is_instance_valid(active_vehicle) else player.global_position
+		if pos.distance_to(delivery_destination) <= 7.0:
+			return "DELIVER PACKAGE · ₦%s" % _format_currency(delivery_reward)
+	if is_instance_valid(active_vehicle):
+		return "EXIT VEHICLE · %d km/h" % active_vehicle.speed_kph()
+	var nearest: DrivableCar
+	var nearest_distance := INF
+	for vehicle in owned_vehicles:
+		if not is_instance_valid(vehicle) or vehicle.driving:
+			continue
+		var distance := player.global_position.distance_to(vehicle.global_position)
+		if distance < nearest_distance:
+			nearest = vehicle
+			nearest_distance = distance
+	if nearest and nearest_distance <= 4.5:
+		return "ENTER %s" % ("SUV" if nearest.vehicle_kind == "owner_suv" else "SEDAN")
+	var talkable := _nearest_talkable_npc()
+	if talkable:
+		return "TALK TO " + talkable.role_title()
+	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
+		return "ACCEPT COURIER SHIFT"
+	if not delivery_active and player.global_position.distance_to(sleep_position) <= 2.8:
+		return "SLEEP · Rest until 07:00"
+	if player.global_position.distance_to(fridge_position) <= 2.8:
+		return "EAT · ₦250"
+	return ""
+
+
+func interact() -> void:
+	if player == null:
+		return
+	var interaction_position := active_vehicle.global_position if is_instance_valid(active_vehicle) else player.global_position
+	if delivery_active and interaction_position.distance_to(delivery_destination) <= 7.0:
+		_finish_delivery()
+		return
+	if is_instance_valid(active_vehicle):
+		active_vehicle.exit()
+		active_vehicle = null
+		toast_requested.emit("You left the vehicle.")
+		return
+	var nearest: DrivableCar
+	var nearest_distance := INF
+	for vehicle in owned_vehicles:
+		if not is_instance_valid(vehicle) or vehicle.driving:
+			continue
+		var distance := player.global_position.distance_to(vehicle.global_position)
+		if distance < nearest_distance:
+			nearest = vehicle
+			nearest_distance = distance
+	if nearest and nearest_distance <= 4.5:
+		if nearest.enter(player):
+			active_vehicle = nearest
+			toast_requested.emit("JAG car · use the stick to steer, RUN for gas, JUMP to brake.")
+		return
+	var talkable := _nearest_talkable_npc()
+	if talkable:
+		var speaker := talkable.character_name if not talkable.character_name.is_empty() else talkable.role_title().capitalize()
+		toast_requested.emit("%s: %s" % [speaker, talkable.dialogue_line(Game.profile)])
+		return
+	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
+		_start_delivery()
+		return
+	if not delivery_active and player.global_position.distance_to(sleep_position) <= 2.8:
+		Game.sleep_until_morning()
+		player.global_position = sleep_position + Vector3(0, 0, 1.2)
+		player.velocity = Vector3.ZERO
+		toast_requested.emit("You rested · Day %d · 07:00 · health restored." % int(Game.profile.get("day", 1)))
+		Game.save_game(self)
+		return
+	if player.global_position.distance_to(fridge_position) <= 2.8:
+		if Game.eat_meal():
+			toast_requested.emit("Meal eaten · health %d%% · ₦250 spent." % int(round(Game.profile.get("health", 100.0))))
+		else:
+			toast_requested.emit("A meal costs ₦250. Earn more cash first.")
+		return
+
+
+func _spawn_police_pursuer() -> void:
+	var police := Rocketbox.avatar_entries("police")
+	if police.is_empty() or player == null:
+		return
+	var target: Node3D = active_vehicle if is_instance_valid(active_vehicle) else player
+	var start := _nearest_route_point(target.global_position + Vector3(18.0, 0.0, 14.0))
+	police_pursuer = PolicePursuer.new()
+	police_pursuer.setup(self, String(police[0].get("name", "Police_Male_01")))
+	add_child(police_pursuer)
+	police_pursuer.global_position = start + Vector3.UP * 0.1
+	toast_requested.emit("Police are pursuing you. Break line of sight or get away.")
+
+
+func arrest_player() -> void:
+	if player == null:
+		return
+	if is_instance_valid(active_vehicle):
+		active_vehicle.exit()
+		active_vehicle = null
+	Game.set_wanted(0)
+	Game.profile["health"] = 100.0
+	Game.add_cash(-1000)
+	if delivery_active:
+		delivery_active = false
+		Game.profile["job_active"] = false
+		Game.profile["job_destination"] = []
+		Game.profile["job_reward"] = 0
+		Game.profile["mission_id"] = ""
+		Game.profile["mission_stage"] = 0
+		if is_instance_valid(delivery_marker):
+			delivery_marker.queue_free()
+		delivery_marker = null
+	Game.profile_changed.emit(Game.profile.duplicate(true))
+	player.global_transform = mansion.player_spawn()
+	player.velocity = Vector3.ZERO
+	player.yaw = PI
+	player.cam_yaw.rotation.y = PI
+	player.model.rotation.y = PI
+	toast_requested.emit("Arrested · ₦1,000 fine · returned to JAG House.")
+	Game.save_game(self)
