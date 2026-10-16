@@ -50,6 +50,28 @@ func _ready() -> void:
 		if housekeeper.dialogue_line(Game.profile).is_empty(): fails.append("housekeeper has no dialogue")
 		world.interact()
 		world.player.global_position = spawn_before_talk
+	# The furnished house is a working home: meal purchase/healing and sleep/day progression.
+	var home_test_spawn: Vector3 = world.player.global_position
+	var home_cash_before := int(Game.profile.get("cash", 0))
+	var meals_before := int(Game.profile.get("meals", 0))
+	Game.profile["health"] = 50.0
+	world.player.global_position = world.fridge_position + Vector3(0, 0, 2.0)
+	if world.interaction_label() != "EAT · ₦250": fails.append("fridge is not interactable in the kitchen")
+	world.interact()
+	if int(Game.profile.get("cash", -1)) != home_cash_before - 250: fails.append("meal price was not charged")
+	if int(Game.profile.get("meals", -1)) != meals_before + 1 or absf(float(Game.profile.get("health", 0.0)) - 75.0) > 0.01:
+		fails.append("meal did not increment the stat and restore health")
+	var day_before_sleep := int(Game.profile.get("day", 1))
+	Game.profile["health"] = 55.0
+	Game.minutes = 23.0 * 60.0
+	world.player.global_position = world.sleep_position + Vector3(0, 0, 2.0)
+	if world.interaction_label() != "SLEEP · Rest until 07:00": fails.append("master bed is not interactable upstairs")
+	world.interact()
+	if int(Game.profile.get("day", 0)) != day_before_sleep + 1 or absf(Game.minutes - 7.0 * 60.0) > 0.01:
+		fails.append("sleep did not advance to the next morning")
+	if absf(float(Game.profile.get("health", 0.0)) - 100.0) > 0.01:
+		fails.append("sleep did not restore full health")
+	world.player.global_position = home_test_spawn
 	# NPC skinned tris budget
 	var npc_tris := 0
 	for n in world.npcs:

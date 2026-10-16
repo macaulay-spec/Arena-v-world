@@ -15,6 +15,8 @@ const DEFAULT_PROFILE := {
 	"cash": 25000,
 	"health": 100.0,
 	"day": 1,
+	"meals": 0,
+	"times_slept": 0,
 	"wanted": 0,
 	"deliveries": 0,
 	"job_active": false,
@@ -108,6 +110,24 @@ func add_wanted(levels: int = 1) -> void:
 	set_wanted(int(profile.get("wanted", 0)) + maxi(0, levels))
 
 
+func eat_meal(cost: int = 250, health_gain: float = 25.0) -> bool:
+	if int(profile.get("cash", 0)) < cost:
+		return false
+	add_cash(-cost)
+	profile["meals"] = int(profile.get("meals", 0)) + 1
+	profile["health"] = clampf(float(profile.get("health", 100.0)) + health_gain, 0.0, 100.0)
+	profile_changed.emit(profile.duplicate(true))
+	return true
+
+
+func sleep_until_morning() -> void:
+	profile["day"] = maxi(1, int(profile.get("day", 1))) + 1
+	profile["times_slept"] = int(profile.get("times_slept", 0)) + 1
+	profile["health"] = 100.0
+	minutes = 7.0 * 60.0
+	profile_changed.emit(profile.duplicate(true))
+
+
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
@@ -145,6 +165,9 @@ func load_save() -> bool:
 	profile["avatar_name"] = String(profile.get("avatar_name", "Male_Adult_01"))
 	profile["cash"] = maxi(0, int(profile.get("cash", 25000)))
 	profile["health"] = clampf(float(profile.get("health", 100.0)), 0.0, 100.0)
+	profile["day"] = maxi(1, int(profile.get("day", 1)))
+	profile["meals"] = maxi(0, int(profile.get("meals", 0)))
+	profile["times_slept"] = maxi(0, int(profile.get("times_slept", 0)))
 	profile["wanted"] = clampi(int(profile.get("wanted", 0)), 0, 5)
 	profile["deliveries"] = maxi(0, int(profile.get("deliveries", 0)))
 	profile["job_active"] = bool(profile.get("job_active", false))

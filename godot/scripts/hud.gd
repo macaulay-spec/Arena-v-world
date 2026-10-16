@@ -49,8 +49,8 @@ func _ready() -> void:
 	root.add_child(short_label)
 	profile_label = Label.new()
 	profile_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	profile_label.position = Vector2(-400, 10)
-	profile_label.size = Vector2(300, 32)
+	profile_label.position = Vector2(-500, 10)
+	profile_label.size = Vector2(400, 32)
 	profile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	profile_label.add_theme_font_size_override("font_size", 16)
 	profile_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
@@ -248,7 +248,7 @@ func _process(delta: float) -> void:
 	build_label.text = "VORA CITY · JAG HOUSE · S0 · build %s · %s · %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), q, Game.clock_label()]
 	var wanted := int(Game.profile.get("wanted", 0))
 	var wanted_text := "  ·  WANTED %d" % wanted if wanted > 0 else ""
-	profile_label.text = "%s  ·  %s%s" % [str(Game.profile.get("name", "JAG")), _format_cash(int(Game.profile.get("cash", 0))), wanted_text]
+	profile_label.text = "%s  ·  %s  ·  DAY %d  ·  HP %d%%%s" % [str(Game.profile.get("name", "JAG")), _format_cash(int(Game.profile.get("cash", 0))), int(Game.profile.get("day", 1)), int(round(float(Game.profile.get("health", 100.0)))), wanted_text]
 	short_label.text = Perf.short_line()
 	var world := _current_world()
 	if world:

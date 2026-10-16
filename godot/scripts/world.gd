@@ -23,6 +23,8 @@ var car_nodes: Array[Node3D] = []
 var owned_vehicles: Array[DrivableCar] = []
 var active_vehicle: DrivableCar
 var dispatcher_position := Vector3.ZERO
+var sleep_position := Vector3.ZERO
+var fridge_position := Vector3.ZERO
 var delivery_destination := Vector3.ZERO
 var delivery_active := false
 var delivery_reward := 0
@@ -67,6 +69,7 @@ func _ready_s0() -> void:
 		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
 	builder.emit(self)
 	_add_front_door()
+	_configure_home_actions()
 	_lighting()
 	_spawn_player()
 	_spawn_npcs()
@@ -94,6 +97,7 @@ func _ready_streamed() -> void:
 		builder._add_tree("tree-palm", p[0], p[1], builder.rng.randf() * TAU, builder.rng.randf_range(0.9, 1.25))
 	builder.emit(self, false)
 	_add_front_door()
+	_configure_home_actions()
 	_mansion_tris = int(builder.stats.get("tris", 0))
 	_mansion_surfaces = int(builder.stats.get("surfaces", 0))
 	_lighting()
@@ -116,6 +120,11 @@ func _add_front_door() -> void:
 	front_door.name = "FrontDoor"
 	front_door.position = mansion.W(33.0, MansionBuilder.GF, 44.52)
 	add_child(front_door)
+
+
+func _configure_home_actions() -> void:
+	sleep_position = mansion.W(22.8, MansionBuilder.F1 + 0.05, 27.2)
+	fridge_position = mansion.W(44.1, MansionBuilder.GF + 0.05, 24.0)
 
 
 func _on_stream_center_changed(_center: Vector2i) -> void:
@@ -882,6 +891,10 @@ func interaction_label() -> String:
 		return "TALK TO " + talkable.role_title()
 	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
 		return "ACCEPT COURIER SHIFT"
+	if not delivery_active and player.global_position.distance_to(sleep_position) <= 2.8:
+		return "SLEEP · Rest until 07:00"
+	if player.global_position.distance_to(fridge_position) <= 2.8:
+		return "EAT · ₦250"
 	return ""
 
 
@@ -918,6 +931,19 @@ func interact() -> void:
 		return
 	if not delivery_active and player.global_position.distance_to(dispatcher_position) <= 3.0:
 		_start_delivery()
+		return
+	if not delivery_active and player.global_position.distance_to(sleep_position) <= 2.8:
+		Game.sleep_until_morning()
+		player.global_position = sleep_position + Vector3(0, 0, 1.2)
+		player.velocity = Vector3.ZERO
+		toast_requested.emit("You rested · Day %d · 07:00 · health restored." % int(Game.profile.get("day", 1)))
+		Game.save_game(self)
+		return
+	if player.global_position.distance_to(fridge_position) <= 2.8:
+		if Game.eat_meal():
+			toast_requested.emit("Meal eaten · health %d%% · ₦250 spent." % int(round(Game.profile.get("health", 100.0))))
+		else:
+			toast_requested.emit("A meal costs ₦250. Earn more cash first.")
 		return
 
 

@@ -9,10 +9,29 @@ func _ready() -> void:
 	Game.profile["cash"] = 123456
 	Game.profile["health"] = 73.5
 	Game.profile["deliveries"] = 4
+	Game.profile["meals"] = 2
+	Game.profile["times_slept"] = 3
+	Game.profile["day"] = 4
 	Game.profile["job_active"] = true
 	Game.profile["job_destination"] = [12.5, 22.1, -38.75]
 	Game.profile["job_reward"] = 4200
 	Game.profile["wanted"] = 3
+	Game.profile["cash"] = 500
+	Game.profile["health"] = 50.0
+	if not Game.eat_meal() or int(Game.profile.get("cash", -1)) != 250 or int(Game.profile.get("meals", -1)) != 3:
+		fails.append("home meal did not charge and increment the meal counter")
+	if absf(float(Game.profile.get("health", 0.0)) - 75.0) > 0.001:
+		fails.append("home meal did not restore health")
+	Game.sleep_until_morning()
+	if int(Game.profile.get("day", -1)) != 5 or int(Game.profile.get("times_slept", -1)) != 4:
+		fails.append("sleep did not advance the day and sleep count")
+	if absf(Game.minutes - 7.0 * 60.0) > 0.001 or float(Game.profile.get("health", 0.0)) != 100.0:
+		fails.append("sleep did not restore the morning clock and health")
+	Game.profile["cash"] = 123456
+	Game.profile["health"] = 73.5
+	Game.profile["meals"] = 2
+	Game.profile["times_slept"] = 3
+	Game.profile["day"] = 4
 	Game.minutes = 22.5 * 60.0
 	Game.add_cash(-999999)
 	if int(Game.profile.get("cash", -1)) != 0: fails.append("cash helper allowed a negative balance")
@@ -37,6 +56,8 @@ func _ready() -> void:
 			fails.append("cash did not round-trip")
 		if int(Game.profile.get("deliveries", -1)) != 4:
 			fails.append("delivery count did not round-trip")
+		if int(Game.profile.get("meals", -1)) != 2 or int(Game.profile.get("times_slept", -1)) != 3 or int(Game.profile.get("day", -1)) != 4:
+			fails.append("home needs/day counters did not round-trip")
 		if not bool(Game.profile.get("job_active", false)) or int(Game.profile.get("job_reward", -1)) != 4200:
 			fails.append("active courier job did not round-trip")
 		var saved_destination: Array = Game.profile.get("job_destination", [])
