@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: Install packages and collect their files
         shell: bash
+        continue-on-error: true
         run: |
           set -euo pipefail
           trap 'echo "::error title=xroot::failed at line $LINENO: $BASH_COMMAND"' ERR
@@ -46,8 +47,10 @@ jobs:
           sha256sum /tmp/xroot.tar.xz > SHA256.txt || echo "::error title=xroot::sha failed $?"
           echo "::notice title=xroot::parts: $(ls /tmp/out | tr '\n' ' ')"
       - name: Push to tools branch
+        if: always()
         run: |
           set -euo pipefail
+          test -s /tmp/out/xroot.tar.xz.part00 || { echo "::error title=xroot::no tarball parts"; exit 1; }
           git config --global --add safe.directory '*'
           git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/repo
           cd /tmp/repo
