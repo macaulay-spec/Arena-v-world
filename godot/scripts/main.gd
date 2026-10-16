@@ -34,6 +34,8 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--title-shot="):
 			_title_shot(a.substr(13))
+		elif a.begins_with("--creator-shot="):
+			_creator_shot(a.substr(15))
 
 
 func _process(delta: float) -> void:
@@ -63,6 +65,25 @@ func _title_shot(dir: String) -> void:
 		await get_tree().process_frame
 	get_viewport().get_texture().get_image().save_png(dir.path_join("title.png"))
 	print("title shot saved")
+	get_tree().quit(0)
+
+
+func _creator_shot(dir: String) -> void:
+	_open_creator()
+	for i in range(24):
+		await get_tree().process_frame
+	DirAccess.make_dir_recursive_absolute(dir)
+	var image: Image = get_viewport().get_texture().get_image()
+	if image == null:
+		printerr("creator shot failed: no rendered viewport image")
+		get_tree().quit(1)
+		return
+	var error := image.save_png(dir.path_join("creator.png"))
+	if error != OK:
+		printerr("creator shot failed: image save error %s" % error_string(error))
+		get_tree().quit(1)
+		return
+	print("creator shot saved")
 	get_tree().quit(0)
 
 

@@ -147,5 +147,5 @@ single-player systems.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
-`--dbg=noskirt,nofog,defaultsky,nosky`.
+`--creator-shot=<dir>`, `--dbg=noskirt,nofog,defaultsky,nosky`.
 

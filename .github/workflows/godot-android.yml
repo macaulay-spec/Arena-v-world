@@ -173,6 +173,7 @@ jobs:
             timeout 600 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --shots=/tmp/shots --quality=$q 2>&1 | grep -v "leaked\|still in use\|PagedAllocator" | tail -12 || true
           done
           timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --title-shot=/tmp/shots 2>&1 | grep "title shot" || true
+          timeout 120 xvfb-run -a -s "-screen 0 1280x720x24" /home/runner/godot-bin/godot --path . --rendering-driver opengl3 --rendering-method gl_compatibility --resolution 1280x720 -- --creator-shot=/tmp/shots 2>&1 | grep "creator shot" || true
           ls -la /tmp/shots
 
       - name: Render budget gate (Lite preset = the 2 GB phone target)
