@@ -86,14 +86,14 @@ server APIs, GDExtension option), memory kills on 2 GB devices (streaming + the 
 
 ## S0 build status (2026-10-16)
 
-Done, verified on renders (local llvmpipe + CI evidence branch `ci/evidence`):
+Verified by CI on the current home-expansion commit (Godot 4.7.2, Compatibility renderer):
 
-- Street block + mansion exterior, generated textures (22, no placeholders), day/night cycle,
-  Rocketbox mocap NPCs (12), parked cars (Kenney Car Kit, 10), on-foot controls with kerb step.
+- North Heights street block + JAG House estate/interior, 26 game-ready textures (no placeholders), day/night,
+  12 Rocketbox mocap NPCs, 10 parked Kenney cars, and on-foot controls with kerb step.
 - Title key art `godot/ui/title.png` (source `art/src/brand/title-key-art.png`).
-- CI Lite preset (2 GB phones): worst 59 draw calls / 70.9k primitives — inside the budget gate
-  (<=120 calls, <=150k prims). Standard preset is reported only (158 calls / 208k).
-- APK per commit: `vora-city-<sha>-s0-debug.apk` (~72 MB) in the workflow run artifacts.
+- Lite preset (the 2 GB phone target): worst 69 draw calls / 75.7k primitives — within the gate
+  (<=120 calls, <=150k prims). Standard is report-only and over budget at 172 / 265.2k.
+- APK `vora-city-905402b-s0-debug.apk` (74 MB) from [CI run 38895000945](https://github.com/macaulay-spec/Arena-v-world/actions/runs/38895000945).
 
 Bugs found by the render loop (keep these in mind for new code):
 
@@ -105,19 +105,27 @@ Bugs found by the render loop (keep these in mind for new code):
 
 Open before S0 exit: the user's phone verdict (Perf screen -> "Copy report").
 
-## JAG House interior expansion (working branch; product verification pending)
+## JAG House interior expansion (CI verified; owner phone test pending)
 
-The current working tree extends the S0 spawn into the North Heights house: a real foyer opening with proximity-
-controlled, collidable double doors; ground-floor limestone surfaces, room partitions, stairs, finished plaster ceilings and an upper-floor slab;
-3D procedural furniture for the living room, dining room, kitchen, family lounge, study and master suite; and
-original smoked-oak, deep-green fabric, stone and lagoon-art textures. The house remains attached to the same
-JAG House plateau/city plan. This is an initial furnished pass, not a claim that every upstairs room is complete.
+The S0 start now places the player in the North Heights foyer. The facade has a real entry opening with
+proximity-controlled, collidable double doors. The initial furnished pass includes a limestone floor, room
+partitions, a walkable stair, finished plaster ceilings, and 3D procedural furnishings for the living room,
+dining room, kitchen, family lounge, study, master bedroom, guest bedrooms and upstairs sitting room. New smoked-
+oak, deep-green upholstery, stone and Lagos-lagoon art textures are processed for GLES3; the images are material
+and wall-art textures, not substitutes for furniture meshes. All content remains on the existing JAG House
+plateau and city plan. This is an initial pass, not a finished/polished house: bathrooms, household schedules,
+interior lighting and additional interactions remain future work.
 
-Godot 4.7.2 `--editor --import --quit` parsed the project, and a headless world build reached 49,270 static
-triangles, 30 material surfaces and 864 collision shapes. The foyer spawn, proximity-open state and clear doorway
-probe also passed in the headless scene. The full smoke suite, rendered product captures, APK export and owner
-phone test are still pending; headless results are not product/render evidence. CI shots are configured for the
-foyer and living room so the first visual pass can be reviewed before the Ridge Street approach/block is added.
+CI run `38895000945` passed import, the full headless world smoke test, Android debug export and Lite render gate.
+The headless build reports 49,270 static triangles, 30 material surfaces, 864 collision shapes, 12 NPCs and 10
+cars. Lite's worst frame is 69 draw calls / 75,740 primitives, under its 120 / 150,000 gate. Screenshots were
+captured at 1280×720 with llvmpipe, not on a phone; the owner's 2 GB device performance and input test remain
+open. The [foyer](progress/jag-house-foyer-lite.png), [living room](progress/jag-house-living-lite.png) and
+[media wall](progress/jag-house-media-wall-lite.png) renders show the current S0 implementation.
+
+The 128 m / 3×3 S1 streamer and multi-tile exporter remain an unverified opt-in draft; there is no S1 build or
+APK yet. After the house is checked on-device, the next spatial expansion is the Ridge Street approach and
+nearby North Heights block. The six-district city plan remains unchanged.
 
 Dev switches (user args after `--`): `--quality=lite|standard|high`, `--shots=<dir>`
 (`--only=<prefix>`, `--shot=name,x,y,z,yaw,pitch,minutes`), `--title-shot=<dir>`,
