@@ -1,12 +1,14 @@
 name: Tools fetch — X11/Mesa root for the sandbox
 
-# Builds a Debian 12 user-space tree (Xvfb + Mesa llvmpipe + the X11 client libraries Godot needs)
-# so the sandbox (also Debian 12, no apt access) can render Godot scenes off-screen and take
-# screenshots locally. Pushed xz-compressed to the disposable branch `tools/xroot-bookworm`.
+# Builds a Debian 12 user-space tree (Xvfb + Mesa llvmpipe + X11 client libs) so the sandbox can run
+# Godot off-screen for screenshots. Trigger: push a new tag to tools/fetch/xroot.txt.
+# Result: orphan branch tools/xroot-bookworm with xroot.tar.xz.partNN (≤ 90 MB each) + SHA256.txt.
+
 on:
   push:
-    paths: ['tools/fetch/xroot.txt']
-  workflow_dispatch:
+    paths:
+      - "tools/fetch/xroot.txt"
+      - ".github/workflows/tools-xroot.yml"
 
 permissions:
   contents: write
@@ -14,16 +16,17 @@ permissions:
 jobs:
   xroot:
     runs-on: ubuntu-latest
-    container: debian:12
+    timeout-minutes: 30
     steps:
-      - name: Install packages and collect their files
-        shell: bash
-        continue-on-error: true
+      - name: Collect Debian 12 packages inside docker
         run: |
           set -euo pipefail
-          trap 'echo "::error title=xroot::failed at line $LINENO: $BASH_COMMAND"' ERR
+          mkdir -p /tmp/out
+          cat > /tmp/collect.sh <<'EOS'
+          set -eu
+          export DEBIAN_FRONTEND=noninteractive
           apt-get update -qq
-          apt-get install -y -qq --no-install-recommends git xz-utils ca-certificates > /dev/null
+          apt-get install -y -qq --no-install-recommends xz-utils > /dev/null
           dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt
           apt-get install -y -qq --no-install-recommends \
             xvfb xauth x11-xkb-utils xkb-data \
@@ -32,26 +35,28 @@ jobs:
             libasound2 libpulse0 libdbus-1-3 libfontconfig1 fonts-dejavu-core > /dev/null
           dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt
           comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt
-          echo "::notice title=xroot::new packages: $(wc -l < /tmp/new.txt)"
+          echo "new packages: $(wc -l < /tmp/new.txt)"
           mkdir -p /tmp/xroot
-          while read -r p; do dpkg -L "$p" | while read -r f; do if [ -f "$f" ] || [ -L "$f" ]; then mkdir -p "/tmp/xroot$(dirname "$f")"; cp -a "$f" "/tmp/xroot$f" 2>/dev/null || true; fi; done; done < /tmp/new.txt
-          # dpkg -L lists real paths; make sure the alternatives-managed GL symlinks resolve too
-          ls -la /tmp/xroot/usr/lib/x86_64-linux-gnu/ | grep -i "libGL\|libEGL\|dri" | head -20 || true
+          while read -r p; do
+            dpkg -L "$p" | while read -r f; do
+              if [ -f "$f" ] || [ -L "$f" ]; then mkdir -p "/tmp/xroot$(dirname "$f")"; cp -a "$f" "/tmp/xroot$f" 2>/dev/null || true; fi
+            done
+          done < /tmp/new.txt
           du -sh /tmp/xroot
-          tar -C /tmp/xroot -cf /tmp/xroot.tar .
-          xz -9 -T0 /tmp/xroot.tar
-          echo "::notice title=xroot::tarball $(du -h /tmp/xroot.tar.xz | cut -f1)"
-          mkdir -p /tmp/out || echo "::error title=xroot::mkdir failed $?"
-          cd /tmp/out || echo "::error title=xroot::cd failed $?"
-          split -b 90m -d /tmp/xroot.tar.xz xroot.tar.xz.part || echo "::error title=xroot::split failed $?"
-          sha256sum /tmp/xroot.tar.xz > SHA256.txt || echo "::error title=xroot::sha failed $?"
-          echo "::notice title=xroot::parts: $(ls /tmp/out | tr '\n' ' ')"
+          tar -C /tmp/xroot -cf - . | xz -6 -T0 > /out/xroot.tar.xz
+          cd /out && split -b 90m -d xroot.tar.xz xroot.tar.xz.part && rm xroot.tar.xz
+          sha256sum xroot.tar.xz.part* > SHA256.txt
+          ls -la /out
+          EOS
+          docker run --rm -v /tmp/out:/out -v /tmp/collect.sh:/collect.sh:ro debian:12 bash /collect.sh
+          echo "::notice title=xroot::$(ls /tmp/out | tr '\n' ' ') ($(du -ch /tmp/out/xroot.tar.xz.part* | tail -1 | cut -f1))"
+
       - name: Push to tools branch
-        if: always()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          test -s /tmp/out/xroot.tar.xz.part00 || { echo "::error title=xroot::no tarball parts"; exit 1; }
-          git config --global --add safe.directory '*'
+          test -s /tmp/out/xroot.tar.xz.part00
           git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/repo
           cd /tmp/repo
           git config user.name "tools-fetch"; git config user.email "tools-fetch@users.noreply.github.com"
@@ -61,6 +66,4 @@ jobs:
           cp /tmp/out/* .
           echo "Debian 12 user-space tree: Xvfb + Mesa (llvmpipe) + X11 client libs for off-screen Godot rendering in the sandbox. Disposable." > README.md
           git add -A && git commit -qm "tools: xroot bookworm (Xvfb + Mesa)" && git push -f origin tools/xroot-bookworm
-          echo "::notice title=xroot::pushed tools/xroot-bookworm ($(du -ch /tmp/out/xroot.tar.xz.part* | tail -1 | cut -f1))"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "::notice title=xroot::pushed tools/xroot-bookworm"
