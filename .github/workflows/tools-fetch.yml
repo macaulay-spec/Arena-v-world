@@ -4,6 +4,8 @@ name: Tools fetch (proxy for the sandbox)
 # tool (default: the official Godot Linux editor build), verifies its checksum and pushes it to an
 # orphan branch `tools/<name>` so the sandbox can `git fetch` it. The branch is disposable.
 on:
+  push:
+    paths: ['tools/fetch/godot.txt']
   workflow_dispatch:
     inputs:
       godot_version:
@@ -19,9 +21,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Resolve version
+        id: v
+        run: |
+          V="${{ github.event.inputs.godot_version }}"; [ -n "$V" ] || V="$(tr -d '[:space:]' < tools/fetch/godot.txt)"
+          echo "version=$V" >> "$GITHUB_OUTPUT"; echo "Godot $V"
       - name: Download and verify Godot
         env:
-          V: ${{ github.event.inputs.godot_version }}
+          V: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
           BASE="https://github.com/godotengine/godot/releases/download/$V"
@@ -37,7 +44,7 @@ jobs:
           ls -la out
       - name: Push to tools branch
         env:
-          V: ${{ github.event.inputs.godot_version }}
+          V: ${{ steps.v.outputs.version }}
         run: |
           set -euo pipefail
           git config user.name "tools-fetch"
