@@ -40,10 +40,11 @@ jobs:
           tar -C /tmp/xroot -cf /tmp/xroot.tar .
           xz -9 -T0 /tmp/xroot.tar
           echo "::notice title=xroot::tarball $(du -h /tmp/xroot.tar.xz | cut -f1)"
-          mkdir -p /tmp/out && cd /tmp/out
-          split -b 90m -d /tmp/xroot.tar.xz xroot.tar.xz.part
-          sha256sum /tmp/xroot.tar.xz > SHA256.txt
-          ls -la
+          mkdir -p /tmp/out || echo "::error title=xroot::mkdir failed $?"
+          cd /tmp/out || echo "::error title=xroot::cd failed $?"
+          split -b 90m -d /tmp/xroot.tar.xz xroot.tar.xz.part || echo "::error title=xroot::split failed $?"
+          sha256sum /tmp/xroot.tar.xz > SHA256.txt || echo "::error title=xroot::sha failed $?"
+          echo "::notice title=xroot::parts: $(ls /tmp/out | tr '\n' ' ')"
       - name: Push to tools branch
         run: |
           set -euo pipefail
