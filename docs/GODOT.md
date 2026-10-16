@@ -111,5 +111,11 @@ What is in the S0 world (`godot/`):
 - Build card + Perf screen (fps, p10, frame ms, draw calls, primitives, RAM/VRAM, device/GPU, budget verdict, "Copy report",
   quality presets, time-of-day buttons).
 
-Open before the phone test is meaningful: generated art for the remaining tiles (plaster_plain, roof_concrete, roof_metal,
-concrete, stone, wood) and the three non-palm tree cutouts (currently procedural placeholders), title key art.
+All 22 material tiles / tree cutouts are now generated art (`art/src/textures` → `tools/make_textures.py`); no
+procedural placeholders remain. Still open before S0 exit: title key art (`godot/ui/title.png`), and the phone test itself.
+
+Local off-screen rendering (fast loop, ~5 s per view): the CI job `tools-xroot.yml` exports a Debian user-space tree with
+Xvfb + Mesa to the branch `tools/xroot-*`; unpack it, start `Xvfb :99 -screen 0 1280x720x24`, then
+`DISPLAY=:99 LIBGL_ALWAYS_SOFTWARE=1 godot --path godot --rendering-driver opengl3 -- --shots=/tmp/shots --quality=standard --only=03`
+(`--shot=name,x,y,z,yaw,pitch,minutes` adds a custom view). Debian 12's Mesa 22.3 mis-renders the Godot sky (white sheets);
+use the Debian 13 tree for faithful skies.

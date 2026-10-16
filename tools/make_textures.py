@@ -65,15 +65,14 @@ def key_magenta(img: Image.Image) -> Image.Image:
     for y in range(h):
         for x in range(w):
             r, g, b = px[x, y]
-            # magenta-ness: high r & b, low g
-            m = max(0.0, min(1.0, (min(r, b) - g) / 120.0))
+            # magenta-ness: high r & b, low g (foliage/bark/white flowers never have min(r,b) >> g)
+            spill = min(r, b) - g
+            m = max(0.0, min(1.0, spill / 70.0))
             a = int(255 * (1.0 - m))
-            if a < 255:
-                # remove magenta spill from edge pixels
-                g2 = g
-                r2 = int(r - (r - g) * m * 0.8)
-                b2 = int(b - (b - g) * m * 0.8)
-                op[x, y] = (max(0, r2), g2, max(0, b2), a)
+            if spill > 12:
+                # full despill: clamp red and blue down to the green level so edge pixels stay leaf-coloured
+                cap = g + 12
+                op[x, y] = (min(r, cap), g, min(b, cap), a)
             else:
                 op[x, y] = (r, g, b, 255)
     return out
