@@ -100,7 +100,8 @@ func _ready() -> void:
 	else:
 		var cash_before_arrest := int(Game.profile.get("cash", 0))
 		world.police_pursuer.global_position = world.player.global_position + Vector3(0, 0, 1.0)
-		await get_tree().physics_frame
+		for frame in range(4):
+			await get_tree().physics_frame
 		if int(Game.profile.get("wanted", -1)) != 0: fails.append("police did not clear wanted level on arrest")
 		if int(Game.profile.get("cash", -1)) != maxi(0, cash_before_arrest - 1000): fails.append("arrest fine was not charged")
 	# Exercise the single-player profile + position save round trip without leaving a test save behind.
