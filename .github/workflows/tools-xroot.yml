@@ -17,8 +17,10 @@ jobs:
     container: debian:12
     steps:
       - name: Install packages and collect their files
+        shell: bash
         run: |
           set -euo pipefail
+          trap 'echo "::error title=xroot::failed at line $LINENO: $BASH_COMMAND"' ERR
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends git xz-utils ca-certificates > /dev/null
           dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt
@@ -29,7 +31,7 @@ jobs:
             libasound2 libpulse0 libdbus-1-3 libfontconfig1 fonts-dejavu-core > /dev/null
           dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt
           comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt
-          echo "new packages: $(wc -l < /tmp/new.txt)"
+          echo "::notice title=xroot::new packages: $(wc -l < /tmp/new.txt)"
           mkdir -p /tmp/xroot
           while read -r p; do dpkg -L "$p" | while read -r f; do if [ -f "$f" ] || [ -L "$f" ]; then mkdir -p "/tmp/xroot$(dirname "$f")"; cp -a "$f" "/tmp/xroot$f" 2>/dev/null || true; fi; done; done < /tmp/new.txt
           # dpkg -L lists real paths; make sure the alternatives-managed GL symlinks resolve too
@@ -37,7 +39,7 @@ jobs:
           du -sh /tmp/xroot
           tar -C /tmp/xroot -cf /tmp/xroot.tar .
           xz -9 -T0 /tmp/xroot.tar
-          ls -la /tmp/xroot.tar.xz
+          echo "::notice title=xroot::tarball $(du -h /tmp/xroot.tar.xz | cut -f1)"
           mkdir -p /tmp/out && cd /tmp/out
           split -b 90m -d /tmp/xroot.tar.xz xroot.tar.xz.part
           sha256sum /tmp/xroot.tar.xz > SHA256.txt
