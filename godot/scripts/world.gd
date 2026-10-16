@@ -62,8 +62,8 @@ func _lighting() -> void:
 	var we := WorldEnvironment.new()
 	env = Environment.new()
 	sky_mat = ProceduralSkyMaterial.new()
-	sky_mat.sun_angle_max = 10.0
-	sky_mat.sun_curve = 0.06
+	sky_mat.sun_angle_max = 28.0
+	sky_mat.sun_curve = 0.12
 	sky_mat.sky_curve = 0.09
 	sky_mat.ground_bottom_color = Color(0.2, 0.17, 0.13)
 	var sky := Sky.new()
@@ -104,7 +104,7 @@ func _lighting() -> void:
 		l.light_color = Color(1.0, 0.8, 0.55)
 		l.light_energy = 0.0
 		l.omni_range = 16.0
-		l.omni_attenuation = 1.4
+		l.omni_attenuation = 1.2
 		l.shadow_enabled = false
 		l.visible = false
 		add_child(l)
@@ -143,28 +143,33 @@ func _update_sun(f: float) -> void:
 	var az := clampf(day_t, -0.1, 1.1) * PI
 	var dir := Vector3(-cos(az), -maxf(elev, 0.04) - 0.05, -0.25)
 	sun.look_at_from_position(Vector3.ZERO, dir.normalized(), Vector3.UP)
-	var warm := Color(1.0, 0.6, 0.32)
+	var warm := Color(1.0, 0.66, 0.4)
 	var white := Color(1.0, 0.97, 0.92)
 	sun.light_color = white.lerp(warm, dusk)
 	sun.light_energy = 1.4 * day
-	if day < 0.03:
-		sun.light_color = Color(0.45, 0.55, 0.85)
-		sun.light_energy = 0.12
+	# after sunset the same light becomes the moon: high in the north-east, cool, dim
+	if night > 0.5:
+		var k := clampf((night - 0.5) * 2.0, 0.0, 1.0)
+		var moon_dir := Vector3(0.35, -0.8, 0.45).normalized()
+		sun.look_at_from_position(Vector3.ZERO, dir.normalized().lerp(moon_dir, k).normalized(), Vector3.UP)
+		sun.light_color = sun.light_color.lerp(Color(0.62, 0.72, 1.0), k)
+		sun.light_energy = maxf(sun.light_energy, 0.4 * k)
 	# sky
 	var top_day := Color(0.22, 0.45, 0.85)
 	var hor_day := Color(0.66, 0.78, 0.92)
-	var top_dusk := Color(0.16, 0.2, 0.42)
-	var hor_dusk := Color(0.98, 0.58, 0.32)
-	var top_night := Color(0.015, 0.02, 0.05)
-	var hor_night := Color(0.06, 0.08, 0.14)
+	var top_dusk := Color(0.2, 0.28, 0.52)
+	var hor_dusk := Color(0.92, 0.74, 0.6)     # pale warm; the orange lives in the sun halo, not the whole sky
+	var top_night := Color(0.03, 0.04, 0.09)
+	var hor_night := Color(0.1, 0.12, 0.2)
 	var top := top_day.lerp(top_dusk, dusk * 0.8).lerp(top_night, night * night)
 	var hor := hor_day.lerp(hor_dusk, dusk).lerp(hor_night, night * night)
 	sky_mat.sky_top_color = top
 	sky_mat.sky_horizon_color = hor
 	sky_mat.ground_horizon_color = hor.darkened(0.25)
 	sky_mat.sky_energy_multiplier = 1.0
-	env.ambient_light_color = Color(0.56, 0.62, 0.72).lerp(Color(0.9, 0.65, 0.5), dusk * 0.25).lerp(Color(0.12, 0.14, 0.24), night)
-	env.ambient_light_energy = 0.75 - 0.35 * night
+	env.ambient_light_color = Color(0.56, 0.62, 0.72).lerp(Color(0.85, 0.7, 0.58), dusk * 0.2).lerp(Color(0.24, 0.28, 0.42), night)
+	env.ambient_light_energy = 0.75 - 0.2 * night
+	env.tonemap_exposure = 1.15 + 0.6 * night      # eye adaptation after dark
 	env.fog_light_color = hor
 	# emissive props after dark
 	var n := clampf(night * 1.4, 0.0, 1.0)
@@ -202,8 +207,8 @@ func _update_night_lights(n: float) -> void:
 			var lp: Vector3 = lamps[i]
 			var tall := lp.y - builder.height_at(lp.x, lp.z) < 1.0
 			l.global_position = lp + (Vector3(1.2, 6.0, 0) if tall else Vector3(0, 1.0, 0))
-			l.omni_range = 18.0 if tall else 7.0
-			l.light_energy = (2.2 if tall else 1.2) * n
+			l.omni_range = 22.0 if tall else 8.0
+			l.light_energy = (3.2 if tall else 1.6) * n
 			l.visible = true
 		else:
 			l.visible = false

@@ -117,12 +117,35 @@ func _physics_process(delta: float) -> void:
 	elif jump_pressed:
 		velocity.y = JUMP_V
 	jump_pressed = false
+	var was_on_floor := is_on_floor()
 	move_and_slide()
+	if was_on_floor and is_on_wall() and goal.length() > 0.1:
+		_try_step(goal.normalized())
 	# face movement direction
 	if vel_h.length() > 0.2:
 		var target_yaw := atan2(-vel_h.x, -vel_h.z)
 		model.rotation.y = lerp_angle(model.rotation.y, target_yaw, clampf(delta * TURN_SPEED, 0.0, 1.0))
 	_animate(vel_h.length(), running)
+
+
+## Kerbs, steps and low ledges (≤ 0.35 m): if the capsule is blocked by a wall, test whether the
+## same move succeeds one step higher and, if so, climb onto it (Godot has no built-in stair stepping).
+func _try_step(dir: Vector3) -> void:
+	var step_h := 0.35
+	var xf := global_transform
+	if test_move(xf, Vector3.UP * step_h):
+		return
+	var up_xf := xf.translated(Vector3.UP * step_h)
+	var fwd := dir * 0.3
+	if test_move(up_xf, fwd):
+		return
+	var fwd_xf := up_xf.translated(fwd)
+	var col := KinematicCollision3D.new()
+	if test_move(fwd_xf, Vector3.DOWN * step_h, col):
+		var travel := col.get_travel()
+		if step_h - travel.length() > 0.04:      # it is really a step, not flat ground
+			global_position = fwd_xf.origin + travel + Vector3.UP * 0.01
+			velocity.y = 0.0
 
 
 func _animate(speed: float, running: bool) -> void:

@@ -7,9 +7,9 @@ const BUILD_INFO_PATH := "res://build_info.json"
 
 ## Quality presets. Lite is the 2 GB-phone preset and the default when memory is unknown or ≤ 3 GB.
 const PRESETS := {
-	"lite": {"label": "Lite", "scale": 0.75, "shadows": false, "shadow_size": 512, "npcs": 8, "fog_end": 220.0, "far": 400.0, "fxaa": false, "night_lights": 3},
-	"standard": {"label": "Standard", "scale": 1.0, "shadows": true, "shadow_size": 1024, "npcs": 14, "fog_end": 320.0, "far": 600.0, "fxaa": true, "night_lights": 5},
-	"high": {"label": "High", "scale": 1.0, "shadows": true, "shadow_size": 2048, "npcs": 20, "fog_end": 450.0, "far": 900.0, "fxaa": true, "night_lights": 6},
+	"lite": {"label": "Lite", "scale": 0.75, "shadows": false, "shadow_size": 512, "npcs": 8, "fog_end": 220.0, "far": 400.0, "msaa": 0, "night_lights": 3},
+	"standard": {"label": "Standard", "scale": 1.0, "shadows": true, "shadow_size": 1024, "npcs": 14, "fog_end": 320.0, "far": 600.0, "msaa": 0, "night_lights": 5},
+	"high": {"label": "High", "scale": 1.0, "shadows": true, "shadow_size": 2048, "npcs": 20, "fog_end": 450.0, "far": 900.0, "msaa": 2, "night_lights": 6},
 }
 
 var build: Dictionary = {"commit": "dev", "date": "", "slice": "S0"}
@@ -66,7 +66,7 @@ func _apply_quality() -> void:
 	if vp:
 		vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		vp.scaling_3d_scale = quality["scale"]
-		pass
+		vp.msaa_3d = Viewport.MSAA_2X if int(quality.get("msaa", 0)) >= 2 else Viewport.MSAA_DISABLED
 	RenderingServer.directional_shadow_atlas_set_size(quality["shadow_size"], true)
 
 

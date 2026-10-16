@@ -167,29 +167,52 @@ func _house() -> void:
 	for bx: Array in [[17.0, 27.0], [40.0, 49.0]]:
 		wb.batch("earth").add_box(W((bx[0] + bx[1]) * 0.5, 0.2, z1 + 1.0), Vector3(bx[1] - bx[0], 0.4, 1.6), Basis.IDENTITY, 2.0, Color(0.55, 0.45, 0.35), true, false)
 		wb.batch("grass").add_box(W((bx[0] + bx[1]) * 0.5, 0.65, z1 + 1.0), Vector3(bx[1] - bx[0] - 0.4, 0.5, 1.2), Basis.IDENTITY, 1.0, Color(0.5, 0.7, 0.35), true, false)
-	# pool terrace + pool
+	# pool terrace: a raised paver deck (0.45 m) with the pool sunk into it, ramp on the west side
 	var pav := wb.batch("pavers")
-	pav.add_rect(W(31.0, 0.06, 20.0), W(51.0, 0.06, 20.0), W(51.0, 0.06, 2.5), W(31.0, 0.06, 2.5), 2.0, 2.0, Color(0.95, 0.93, 0.9))
+	var DK := 0.45
+	var dc := Color(0.95, 0.93, 0.9)
+	# deck top in four strips around the pool opening (34..48 x 5..13)
+	pav.add_rect(W(31.0, DK, 5.0), W(51.0, DK, 5.0), W(51.0, DK, 2.5), W(31.0, DK, 2.5), 2.0, 2.0, dc)
+	pav.add_rect(W(31.0, DK, 20.0), W(51.0, DK, 20.0), W(51.0, DK, 13.0), W(31.0, DK, 13.0), 2.0, 2.0, dc)
+	pav.add_rect(W(31.0, DK, 13.0), W(34.0, DK, 13.0), W(34.0, DK, 5.0), W(31.0, DK, 5.0), 2.0, 2.0, dc)
+	pav.add_rect(W(48.0, DK, 13.0), W(51.0, DK, 13.0), W(51.0, DK, 5.0), W(48.0, DK, 5.0), 2.0, 2.0, dc)
+	# deck faces (south, east, north) + collision slabs
+	var conc := wb.batch("concrete")
+	conc.add_quad(W(31.0, DK, 2.5), W(51.0, DK, 2.5), W(51.0, 0.0, 2.5), W(31.0, 0.0, 2.5), Vector2(0, 0), Vector2(10, 0), Vector2(10, 0.25), Vector2(0, 0.25), dc)
+	conc.add_quad(W(51.0, DK, 2.5), W(51.0, DK, 20.0), W(51.0, 0.0, 20.0), W(51.0, 0.0, 2.5), Vector2(0, 0), Vector2(9, 0), Vector2(9, 0.25), Vector2(0, 0.25), dc)
+	conc.add_quad(W(51.0, DK, 20.0), W(31.0, DK, 20.0), W(31.0, 0.0, 20.0), W(51.0, 0.0, 20.0), Vector2(0, 0), Vector2(10, 0), Vector2(10, 0.25), Vector2(0, 0.25), dc)
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(41.0, DK * 0.5, 3.75)), Vector3(20.0, DK, 2.5)])
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(41.0, DK * 0.5, 16.5)), Vector3(20.0, DK, 7.0)])
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(32.5, DK * 0.5, 9.0)), Vector3(3.0, DK, 8.0)])
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W(49.5, DK * 0.5, 9.0)), Vector3(3.0, DK, 8.0)])
+	# ramp up from the lawn on the west (X 27..31), gentle enough for the character controller
+	pav.add_quad(W(27.0, 0.0, 20.0), W(31.0, DK, 20.0), W(31.0, DK, 2.5), W(27.0, 0.0, 2.5), Vector2(0, 0), Vector2(2, 0), Vector2(2, 9), Vector2(0, 9), dc)
+	conc.add_quad(W(31.0, DK, 2.5), W(31.0, 0.0, 2.5), W(27.0, 0.0, 2.5), W(27.0, 0.0, 2.5), Vector2(0, 0), Vector2(0, 0.25), Vector2(2, 0), Vector2(2, 0), dc)
+	conc.add_quad(W(27.0, 0.0, 20.0), W(27.0, 0.0, 20.0), W(31.0, 0.0, 20.0), W(31.0, DK, 20.0), Vector2(0, 0), Vector2(0, 0), Vector2(2, 0), Vector2(2, 0.25), dc)
+	var ramp_ang := atan2(DK, 4.0)
+	wb.collision_boxes.append([Transform3D(Basis(Vector3(0, 0, 1), ramp_ang), W(29.0, DK * 0.5 - 0.05, 11.25)), Vector3(sqrt(16.0 + DK * DK), 0.1, 17.5)])
+	# pool water + tiled walls
 	var water := wb.batch("water")
-	water.add_rect(W(34.0, -0.35, 13.0), W(48.0, -0.35, 13.0), W(48.0, -0.35, 5.0), W(34.0, -0.35, 5.0), 4.0, 4.0, Color(0.6, 0.9, 1.0))
-	_pool_walls(34.0, 48.0, 5.0, 13.0)
+	water.add_rect(W(34.0, DK - 0.3, 13.0), W(48.0, DK - 0.3, 13.0), W(48.0, DK - 0.3, 5.0), W(34.0, DK - 0.3, 5.0), 4.0, 4.0, Color(0.6, 0.9, 1.0))
+	_pool_walls(34.0, 48.0, 5.0, 13.0, DK)
 	# sun loungers (simple slabs) so the terrace is not empty
 	for lx: float in [36.0, 39.0, 42.0]:
-		wood.add_box(W(lx, 0.3, 16.0), Vector3(0.8, 0.12, 2.0), Basis.IDENTITY, 1.0, Color(0.9, 0.85, 0.75), true, false)
-		wood.add_box(W(lx, 0.25, 16.0), Vector3(0.1, 0.4, 0.1), Basis.IDENTITY, 1.0, Color(0.7, 0.6, 0.5), true, false)
+		wood.add_box(W(lx, DK + 0.3, 16.0), Vector3(0.8, 0.12, 2.0), Basis.IDENTITY, 1.0, Color(0.9, 0.85, 0.75), true, false)
+		wood.add_box(W(lx, DK + 0.25, 16.0), Vector3(0.1, 0.4, 0.1), Basis.IDENTITY, 1.0, Color(0.7, 0.6, 0.5), true, false)
 	for p in [[32.5, 4.0], [49.5, 4.0], [32.5, 14.5], [49.5, 14.5]]:
 		palms.append(p)
 
 
-func _pool_walls(x0: float, x1: float, z0: float, z1: float) -> void:
+func _pool_walls(x0: float, x1: float, z0: float, z1: float, top: float) -> void:
 	var tile := wb.batch("pavers")
-	var d := 0.45
+	var bot := top - 0.42
 	var c := Color(0.8, 0.95, 1.0)
-	tile.add_quad(W(x0, 0.06, z0), W(x1, 0.06, z0), W(x1, -d, z0), W(x0, -d, z0), Vector2(0, 0), Vector2(7, 0), Vector2(7, 0.25), Vector2(0, 0.25), c)
-	tile.add_quad(W(x1, 0.06, z1), W(x0, 0.06, z1), W(x0, -d, z1), W(x1, -d, z1), Vector2(0, 0), Vector2(7, 0), Vector2(7, 0.25), Vector2(0, 0.25), c)
-	tile.add_quad(W(x0, 0.06, z1), W(x0, 0.06, z0), W(x0, -d, z0), W(x0, -d, z1), Vector2(0, 0), Vector2(4, 0), Vector2(4, 0.25), Vector2(0, 0.25), c)
-	tile.add_quad(W(x1, 0.06, z0), W(x1, 0.06, z1), W(x1, -d, z1), W(x1, -d, z0), Vector2(0, 0), Vector2(4, 0), Vector2(4, 0.25), Vector2(0, 0.25), c)
-	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W((x0 + x1) * 0.5, -0.3, (z0 + z1) * 0.5)), Vector3(x1 - x0, 0.2, z1 - z0)])
+	tile.add_quad(W(x1, top, z0), W(x0, top, z0), W(x0, bot, z0), W(x1, bot, z0), Vector2(0, 0), Vector2(7, 0), Vector2(7, 0.25), Vector2(0, 0.25), c)
+	tile.add_quad(W(x0, top, z1), W(x1, top, z1), W(x1, bot, z1), W(x0, bot, z1), Vector2(0, 0), Vector2(7, 0), Vector2(7, 0.25), Vector2(0, 0.25), c)
+	tile.add_quad(W(x0, top, z0), W(x0, top, z1), W(x0, bot, z1), W(x0, bot, z0), Vector2(0, 0), Vector2(4, 0), Vector2(4, 0.25), Vector2(0, 0.25), c)
+	tile.add_quad(W(x1, top, z1), W(x1, top, z0), W(x1, bot, z0), W(x1, bot, z1), Vector2(0, 0), Vector2(4, 0), Vector2(4, 0.25), Vector2(0, 0.25), c)
+	# the player can "swim" on the surface: a floor just under the water
+	wb.collision_boxes.append([Transform3D(Basis.IDENTITY, W((x0 + x1) * 0.5, top - 0.35, (z0 + z1) * 0.5)), Vector3(x1 - x0, 0.1, z1 - z0)])
 
 
 func _glass_quad(b: MeshBatch, a0: float, a1: float, fixed: float, y0: float, y1: float, face: int) -> void:
@@ -231,11 +254,25 @@ func _glass_quad(b: MeshBatch, a0: float, a1: float, fixed: float, y0: float, y1
 	wall.add_quad(p0 + up, g0 + up, g1 + up, p1 + up, Vector2(0, 0.1), Vector2(0, 0), Vector2(u, 0), Vector2(u, 0.1), c)
 	var sill := wb.batch("concrete")
 	sill.add_quad(g0, p0, p1, g1, Vector2(0, 0.1), Vector2(0, 0), Vector2(u, 0), Vector2(u, 0.1), c)
-	# slim dark frame on the glass plane
+	# slim dark frame on the glass plane: perimeter bars + a mullion every ~2.4 m (bars only, never a slab)
 	var frame := wb.batch("metal_dark")
-	var mid := (g0 + g1) * 0.5 + up * 0.5
-	var basis := Basis(Vector3.UP, -atan2((g1 - g0).z, (g1 - g0).x))
-	frame.add_box(mid, Vector3((g1 - g0).length() + 0.06, (y1 - y0) + 0.06, 0.03), basis, 1.0, Color(0.12, 0.12, 0.13), true, true)
+	var along := (g1 - g0)
+	var w := along.length()
+	var dirv := along / w
+	var basis := Basis(Vector3.UP, -atan2(dirv.z, dirv.x))
+	var hgt := y1 - y0
+	var fc := Color(0.12, 0.12, 0.13)
+	var out := -inward * 0.03
+	frame.add_box(g0 + along * 0.5 + Vector3(0, 0.04, 0) + out, Vector3(w, 0.08, 0.05), basis, 1.0, fc, true, true)
+	frame.add_box(g0 + along * 0.5 + up - Vector3(0, 0.04, 0) + out, Vector3(w, 0.08, 0.05), basis, 1.0, fc, true, true)
+	var n_mull := maxi(int(round(w / 2.4)), 1)
+	for i in range(n_mull + 1):
+		var t := float(i) / float(n_mull)
+		var px := g0 + along * t + up * 0.5 + out
+		frame.add_box(px, Vector3(0.07, hgt, 0.05), basis, 1.0, fc, true, true)
+	# transom at 2/3 height for tall openings (door + fanlight read)
+	if hgt > 2.2:
+		frame.add_box(g0 + along * 0.5 + up * 0.68 + out, Vector3(w, 0.06, 0.05), basis, 1.0, fc, true, true)
 
 
 func _box(b: MeshBatch, x0: float, x1: float, z0: float, z1: float, y0: float, y1: float, col: Color, collide: bool) -> void:

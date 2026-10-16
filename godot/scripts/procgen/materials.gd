@@ -23,7 +23,7 @@ const DEFS := {
 	"roof_metal": [Color(0.5, 0.52, 0.55), 0.6, 3.0],
 	"compound_wall": [Color(0.85, 0.82, 0.74), 0.9, 4.0],
 	"mansion_wall": [Color(0.93, 0.92, 0.88), 0.7, 4.0],
-	"mansion_glass": [Color(0.12, 0.16, 0.2), 0.15, 4.0],
+	"mansion_glass": [Color(0.45, 0.55, 0.65), 0.12, 4.0],
 	"stone": [Color(0.55, 0.5, 0.45), 0.8, 2.0],
 	"wood": [Color(0.36, 0.24, 0.14), 0.7, 2.0],
 	"water": [Color(0.1, 0.45, 0.6), 0.05, 4.0],
@@ -66,9 +66,10 @@ static func get_mat(name: String) -> StandardMaterial3D:
 		m.emission = Color(1.0, 0.85, 0.6)
 		m.emission_energy_multiplier = 2.0
 	if name == "mansion_glass":
-		m.metallic = 0.6
-		m.roughness = 0.15
-		m.metallic_specular = 0.8
+		m.metallic = 0.25
+		m.roughness = 0.12
+		m.metallic_specular = 0.9
+		m.albedo_color = Color(1.1, 1.15, 1.2) if m.albedo_texture else Color(0.45, 0.55, 0.65)
 	if name == "water":
 		m.metallic = 0.3
 		m.roughness = 0.05
