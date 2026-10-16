@@ -5,6 +5,7 @@ var title: CanvasLayer
 var world: World
 var hud: HUD
 var status: Label
+var build_meta: Label
 var menu_panel: PanelContainer
 var creator_panel: PanelContainer
 var name_input: LineEdit
@@ -128,11 +129,11 @@ func _build_title() -> void:
 	logo.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 	logo.add_theme_constant_override("shadow_offset_y", 3)
 	brand.add_child(logo)
-	var sub := Label.new()
-	sub.text = "a JAG game  ·  SINGLE-PLAYER  ·  North Heights / JAG House  ·  build %s  ·  %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), str(Game.build.get("date", ""))]
-	sub.add_theme_font_size_override("font_size", 16)
-	sub.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	brand.add_child(sub)
+	build_meta = Label.new()
+	build_meta.text = "a JAG game  ·  SINGLE-PLAYER  ·  North Heights / JAG House  ·  build %s  ·  %s" % [str(Game.build.get("commit", "dev")).substr(0, 7), str(Game.build.get("date", ""))]
+	build_meta.add_theme_font_size_override("font_size", 16)
+	build_meta.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	brand.add_child(build_meta)
 	status = Label.new()
 	status.text = "YOUR STORY STARTS AT JAG HOUSE"
 	status.add_theme_font_size_override("font_size", 18)
@@ -332,7 +333,7 @@ func _build_creator_panel() -> void:
 	var stage := Node3D.new()
 	preview_viewport.add_child(stage)
 	var camera := Camera3D.new()
-	camera.position = Vector3(0, 1.0, 3.8)
+	camera.position = Vector3(0, 1.0, -3.8)
 	camera.current = true
 	camera.fov = 34.0
 	stage.add_child(camera)
@@ -354,6 +355,7 @@ func _open_creator() -> void:
 	_screen = "creator"
 	menu_panel.visible = false
 	creator_panel.visible = true
+	build_meta.visible = false
 	preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	_build_value = 1.0
 	_height_value = 1.0
@@ -364,6 +366,7 @@ func _close_creator() -> void:
 	_screen = "title"
 	creator_panel.visible = false
 	preview_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	build_meta.visible = true
 	menu_panel.visible = true
 
 
