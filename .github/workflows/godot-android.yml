@@ -200,16 +200,18 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          [ -d /tmp/shots ] && [ -n "$(ls -A /tmp/shots 2>/dev/null)" ] || { echo "no shots"; exit 0; }
+          mkdir -p /tmp/shots
+          [ -n "$(ls -A /tmp/shots 2>/dev/null)" ] || [ -s /tmp/test.log ] || { echo "no screenshots or test log"; exit 0; }
           git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/evrepo
           cd /tmp/evrepo
           git config user.name "ci-evidence"; git config user.email "ci-evidence@users.noreply.github.com"
           git checkout -q --orphan ci/evidence
           git rm -rfq --cached . || true
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          mkdir -p shots && cp /tmp/shots/* shots/
+          mkdir -p shots
+          find /tmp/shots -maxdepth 1 -type f -exec cp {} shots/ \;
           cp /tmp/test.log test.log || true
-          echo "Screenshots + render report for ${GITHUB_SHA} (run ${GITHUB_RUN_ID}). Disposable branch, force-pushed by CI." > README.md
+          echo "CI evidence for ${GITHUB_SHA} (run ${GITHUB_RUN_ID}): screenshots and/or headless logs. Disposable branch, force-pushed by CI." > README.md
           git add -A && git commit -qm "evidence ${GITHUB_SHA::7}" && git push -f origin ci/evidence
           echo "::notice title=evidence::pushed ci/evidence ($(ls shots | wc -l) files)"
 
