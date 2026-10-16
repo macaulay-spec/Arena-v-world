@@ -12,7 +12,6 @@ var stick_knob: Control
 var build_label: Label
 var profile_label: Label
 var mission_label: Label
-var prompt_label: Label
 var run_button: Button
 var jump_button: Button
 var interact_button: Button
@@ -67,15 +66,6 @@ func _ready() -> void:
 	mission_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
 	mission_label.add_theme_constant_override("shadow_offset_y", 2)
 	root.add_child(mission_label)
-	prompt_label = Label.new()
-	prompt_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	prompt_label.position = Vector2(-230, 75)
-	prompt_label.custom_minimum_size = Vector2(460, 28)
-	prompt_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	prompt_label.add_theme_font_size_override("font_size", 15)
-	prompt_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.55))
-	prompt_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.95))
-	root.add_child(prompt_label)
 	# stick visuals
 	stick_base = _circle(Color(1, 1, 1, 0.18), 150)
 	stick_knob = _circle(Color(1, 1, 1, 0.45), 64)
@@ -97,6 +87,7 @@ func _ready() -> void:
 	interact_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	interact_button.position = Vector2(-390, -96)
 	interact_button.add_theme_font_size_override("font_size", 15)
+	interact_button.visible = false
 	interact_button.pressed.connect(_interact)
 	root.add_child(interact_button)
 	var perf := _button("PERF", Vector2(-92, 10), Vector2(80, 40))
@@ -261,11 +252,13 @@ func _process(delta: float) -> void:
 	short_label.text = Perf.short_line()
 	var world := _current_world()
 	if world:
-		mission_label.text = _mission_text(world)
 		var prompt := world.interaction_label()
+		mission_label.text = _mission_text(world)
+		if not prompt.is_empty():
+			mission_label.text += "\n[USE] " + prompt
 		interact_button.disabled = prompt.is_empty()
+		interact_button.visible = not prompt.is_empty()
 		interact_button.tooltip_text = prompt
-		prompt_label.text = "[USE] " + prompt if not prompt.is_empty() else ""
 		var driving := is_instance_valid(world.active_vehicle)
 		if driving != _was_driving:
 			run_button.set_pressed_no_signal(false)
