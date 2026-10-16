@@ -43,6 +43,13 @@ func _floors() -> void:
 	_add_floor_collision(16.2, 49.8, 42.4, 43.8, F1)
 	_add_floor_collision(16.2, 31.4, 37.2, 42.4, F1)
 	_add_floor_collision(34.6, 49.8, 37.2, 42.4, F1)
+	# Finished ceilings are the underside of the floor/roof slabs; the stair opening stays open below.
+	var ceiling := wb.batch("plaster_plain")
+	_ceiling_rect(ceiling, 16.2, 49.8, 20.2, 37.2, F1 - 0.03)
+	_ceiling_rect(ceiling, 16.2, 49.8, 42.4, 43.8, F1 - 0.03)
+	_ceiling_rect(ceiling, 16.2, 31.4, 37.2, 42.4, F1 - 0.03)
+	_ceiling_rect(ceiling, 34.6, 49.8, 37.2, 42.4, F1 - 0.03)
+	_ceiling_rect(ceiling, 16.2, 49.8, 20.2, 43.8, RF - 0.04)
 	# Small rugs soften the stone without cluttering routes through the rooms.
 	_floor_rect(wb.batch("interior_fabric"), 17.0, 25.8, 34.2, 39.0, GF + 0.018, Color(0.86, 0.9, 0.84))
 	_floor_rect(wb.batch("interior_fabric"), 31.0, 38.0, 22.8, 29.0, GF + 0.018, Color(0.74, 0.84, 0.72))
@@ -55,6 +62,12 @@ func _floor_rect(batch: MeshBatch, x0: float, x1: float, z0: float, z1: float, y
 		return
 	batch.add_rect(W(x0, y, z1), W(x1, y, z1), W(x1, y, z0), W(x0, y, z0),
 		Materials.uv_m("interior_floor"), Materials.uv_m("interior_floor"), col)
+
+
+func _ceiling_rect(batch: MeshBatch, x0: float, x1: float, z0: float, z1: float, y: float) -> void:
+	# Reverse the floor winding so the front faces downward into the room.
+	batch.add_rect(W(x0, y, z0), W(x1, y, z0), W(x1, y, z1), W(x0, y, z1),
+		Materials.uv_m("plaster_plain"), Materials.uv_m("plaster_plain"), Color(0.98, 0.97, 0.94))
 
 
 func _add_floor_collision(x0: float, x1: float, z0: float, z1: float, top_y: float) -> void:

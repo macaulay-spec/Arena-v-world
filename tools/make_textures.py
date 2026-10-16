@@ -55,6 +55,14 @@ def finish_tile(name: str, img: Image.Image, size: int, make_seamless: bool):
     if make_seamless:
         img = seamless(img)
     img = img.resize((size, size), Image.LANCZOS)
+    if name == "interior_floor":
+        # Four large 1 m honed-stone tiles per 4 m UV repeat; the grout lines are subtle and seamless.
+        draw = ImageDraw.Draw(img)
+        step = size // 4
+        lines = sorted(set([0, *range(step, size, step), size - 1]))
+        for p in lines:
+            draw.line([(p, 0), (p, size - 1)], fill=(194, 189, 180), width=2)
+            draw.line([(0, p), (size - 1, p)], fill=(194, 189, 180), width=2)
     img.save(OUT / f"{name}.png", optimize=True)
 
 

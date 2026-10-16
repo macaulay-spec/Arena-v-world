@@ -108,13 +108,13 @@ Open before S0 exit: the user's phone verdict (Perf screen -> "Copy report").
 ## JAG House interior expansion (working branch; product verification pending)
 
 The current working tree extends the S0 spawn into the North Heights house: a real foyer opening with proximity-
-controlled, collidable double doors; ground-floor limestone surfaces, room partitions, stairs and upper-floor slab;
+controlled, collidable double doors; ground-floor limestone surfaces, room partitions, stairs, finished plaster ceilings and an upper-floor slab;
 3D procedural furniture for the living room, dining room, kitchen, family lounge, study and master suite; and
 original smoked-oak, deep-green fabric, stone and lagoon-art textures. The house remains attached to the same
 JAG House plateau/city plan. This is an initial furnished pass, not a claim that every upstairs room is complete.
 
-Godot 4.7.2 `--editor --import --quit` parsed the project, and a headless world build reached 48,650 static
-triangles, 30 material surfaces and 852 collision shapes. The foyer spawn, proximity-open state and clear doorway
+Godot 4.7.2 `--editor --import --quit` parsed the project, and a headless world build reached 49,270 static
+triangles, 30 material surfaces and 864 collision shapes. The foyer spawn, proximity-open state and clear doorway
 probe also passed in the headless scene. The full smoke suite, rendered product captures, APK export and owner
 phone test are still pending; headless results are not product/render evidence. CI shots are configured for the
 foyer and living room so the first visual pass can be reviewed before the Ridge Street approach/block is added.
