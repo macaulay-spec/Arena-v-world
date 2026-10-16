@@ -162,7 +162,7 @@ func _ground_floor_partitions() -> void:
 	_partition_x(39.0, 34.0, 43.8, 39.0, 1.25, base, top, height) # hall / dining
 	_partition_x(39.0, 20.2, 34.0, 30.0, 1.25, base, top, height) # family / kitchen
 	_partition_x(27.0, 20.2, 32.0, 26.0, 1.25, base, top, height) # study / family
-	_partition_z(32.0, 16.2, 27.0, 22.0, 1.25, base, top, height) # living / study
+	_partition_z(32.0, 16.2, 27.0, 22.0, 3.2, base, top, height) # wide living / study opening
 	_partition_z(32.0, 27.0, 39.0, 33.0, 1.5, base, top, height) # hall / family
 	_partition_z(34.0, 39.0, 49.8, 44.5, 1.25, base, top, height) # dining / kitchen
 
@@ -254,7 +254,7 @@ func _living_room() -> void:
 	# media console and screen on the north partition
 	_box("interior_oak", 21.5, GF + 0.42, 32.55, 3.4, 0.72, 0.52, Color(0.76, 0.65, 0.5), Basis(Vector3.UP, 0.0), true)
 	_box("metal_dark", 21.5, GF + 1.55, 32.25, 2.35, 1.32, 0.1, Color(0.12, 0.13, 0.14))
-	_box("jag_house_art", 21.5, GF + 1.55, 32.18, 2.18, 1.15, 0.035, Color.WHITE)
+	_box("jag_house_art", 21.5, GF + 1.55, 32.34, 2.18, 1.15, 0.035, Color.WHITE)
 	# end table and lamp
 	_box("interior_oak", 18.2, GF + 0.38, 39.4, 0.58, 0.65, 0.58, Color(0.68, 0.52, 0.35), Basis.IDENTITY, true)
 	_cylinder("metal_dark", 18.2, GF + 0.78, 39.4, 0.045, 0.045, 0.55, Color(0.72, 0.55, 0.3))
