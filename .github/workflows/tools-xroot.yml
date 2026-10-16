@@ -1,0 +1,60 @@
+name: Tools fetch — X11/Mesa root for the sandbox
+
+# Builds a Debian 12 user-space tree (Xvfb + Mesa llvmpipe + the X11 client libraries Godot needs)
+# so the sandbox (also Debian 12, no apt access) can render Godot scenes off-screen and take
+# screenshots locally. Pushed xz-compressed to the disposable branch `tools/xroot-bookworm`.
+on:
+  push:
+    paths: ['tools/fetch/xroot.txt']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  xroot:
+    runs-on: ubuntu-latest
+    container: debian:12
+    steps:
+      - name: Install packages and collect their files
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git xz-utils ca-certificates > /dev/null
+          dpkg-query -W -f='${Package}\n' | sort > /tmp/before.txt
+          apt-get install -y -qq --no-install-recommends \
+            xvfb xauth x11-xkb-utils xkb-data \
+            libgl1 libglx-mesa0 libgl1-mesa-dri libegl1 libegl-mesa0 libgbm1 libglapi-mesa \
+            libx11-6 libx11-xcb1 libxcursor1 libxinerama1 libxrandr2 libxi6 libxext6 libxrender1 libxfixes3 libxxf86vm1 libxkbcommon0 \
+            libasound2 libpulse0 libdbus-1-3 libfontconfig1 fonts-dejavu-core > /dev/null
+          dpkg-query -W -f='${Package}\n' | sort > /tmp/after.txt
+          comm -13 /tmp/before.txt /tmp/after.txt > /tmp/new.txt
+          echo "new packages: $(wc -l < /tmp/new.txt)"
+          mkdir -p /tmp/xroot
+          while read -r p; do dpkg -L "$p" | while read -r f; do if [ -f "$f" ] || [ -L "$f" ]; then mkdir -p "/tmp/xroot$(dirname "$f")"; cp -a "$f" "/tmp/xroot$f" 2>/dev/null || true; fi; done; done < /tmp/new.txt
+          # dpkg -L lists real paths; make sure the alternatives-managed GL symlinks resolve too
+          ls -la /tmp/xroot/usr/lib/x86_64-linux-gnu/ | grep -i "libGL\|libEGL\|dri" | head -20 || true
+          du -sh /tmp/xroot
+          tar -C /tmp/xroot -cf /tmp/xroot.tar .
+          xz -9 -T0 /tmp/xroot.tar
+          ls -la /tmp/xroot.tar.xz
+          mkdir -p /tmp/out && cd /tmp/out
+          split -b 90m -d /tmp/xroot.tar.xz xroot.tar.xz.part
+          sha256sum /tmp/xroot.tar.xz > SHA256.txt
+          ls -la
+      - name: Push to tools branch
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory '*'
+          git clone -q --depth 1 "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" /tmp/repo
+          cd /tmp/repo
+          git config user.name "tools-fetch"; git config user.email "tools-fetch@users.noreply.github.com"
+          git checkout -q --orphan tools/xroot-bookworm
+          git rm -rfq --cached . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp /tmp/out/* .
+          echo "Debian 12 user-space tree: Xvfb + Mesa (llvmpipe) + X11 client libs for off-screen Godot rendering in the sandbox. Disposable." > README.md
+          git add -A && git commit -qm "tools: xroot bookworm (Xvfb + Mesa)" && git push -f origin tools/xroot-bookworm
+          echo "::notice title=xroot::pushed tools/xroot-bookworm ($(du -ch /tmp/out/xroot.tar.xz.part* | tail -1 | cut -f1))"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
