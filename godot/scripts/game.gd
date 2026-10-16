@@ -26,7 +26,7 @@ const DEFAULT_PROFILE := {
 
 ## Quality presets. Lite is the 2 GB-phone preset and the default when memory is unknown or ≤ 3 GB.
 const PRESETS := {
-	"lite": {"label": "Lite", "scale": 0.75, "shadows": false, "shadow_size": 512, "npcs": 8, "fog_end": 220.0, "far": 320.0, "msaa": 0, "night_lights": 3},
+	"lite": {"label": "Lite", "scale": 0.75, "shadows": false, "shadow_size": 512, "npcs": 6, "fog_end": 220.0, "far": 320.0, "msaa": 0, "night_lights": 3},
 	"standard": {"label": "Standard", "scale": 1.0, "shadows": true, "shadow_size": 1024, "npcs": 14, "fog_end": 320.0, "far": 600.0, "msaa": 0, "night_lights": 5},
 	"high": {"label": "High", "scale": 1.0, "shadows": true, "shadow_size": 2048, "npcs": 20, "fog_end": 450.0, "far": 900.0, "msaa": 2, "night_lights": 6},
 }
